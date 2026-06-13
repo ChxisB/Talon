@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/chrisbeckett/spectre-proxy/agent/internal/protocol"
+	"github.com/ChxisB/spectre-proxy/agent/internal/protocol"
 )
 
 // ─── OpenAI API types ───────────────────────────────────────────────

@@ -2,7 +2,7 @@
 package wafer
 
 import (
-	"github.com/chrisbeckett/spectre-proxy/agent/internal/providers"
+	"github.com/ChxisB/spectre-proxy/agent/internal/providers"
 )
 
 func init() {

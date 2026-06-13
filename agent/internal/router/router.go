@@ -5,7 +5,7 @@ package router
 import (
 	"strings"
 
-	"github.com/chrisbeckett/spectre-proxy/agent/internal/config"
+	"github.com/ChxisB/spectre-proxy/agent/internal/config"
 )
 
 // ProviderAliases maps non-canonical provider prefixes (as used by some

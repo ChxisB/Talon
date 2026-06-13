@@ -11,12 +11,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/chrisbeckett/spectre-proxy/agent/internal/config"
-	"github.com/chrisbeckett/spectre-proxy/agent/internal/logger"
-	"github.com/chrisbeckett/spectre-proxy/agent/internal/protocol"
-	"github.com/chrisbeckett/spectre-proxy/agent/internal/providers"
-	"github.com/chrisbeckett/spectre-proxy/agent/internal/router"
-	"github.com/chrisbeckett/spectre-proxy/agent/internal/tools"
+	"github.com/ChxisB/spectre-proxy/agent/internal/config"
+	"github.com/ChxisB/spectre-proxy/agent/internal/logger"
+	"github.com/ChxisB/spectre-proxy/agent/internal/protocol"
+	"github.com/ChxisB/spectre-proxy/agent/internal/providers"
+	"github.com/ChxisB/spectre-proxy/agent/internal/router"
+	"github.com/ChxisB/spectre-proxy/agent/internal/tools"
 	"github.com/google/uuid"
 )
 

@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/chrisbeckett/spectre-proxy/agent/internal/protocol"
+	"github.com/ChxisB/spectre-proxy/agent/internal/protocol"
 )
 
 func safePrefix(s string) string {

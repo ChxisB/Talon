@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/chrisbeckett/spectre-proxy/agent/internal/config"
-	"github.com/chrisbeckett/spectre-proxy/agent/internal/protocol"
+	"github.com/ChxisB/spectre-proxy/agent/internal/config"
+	"github.com/ChxisB/spectre-proxy/agent/internal/protocol"
 )
 
 // ProviderConfig holds configuration for a provider instance.

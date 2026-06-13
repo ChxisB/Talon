@@ -1,9 +1,9 @@
 package server
 
 import (
-	"github.com/chrisbeckett/spectre-proxy/agent/internal/config"
-	"github.com/chrisbeckett/spectre-proxy/agent/internal/protocol"
-	"github.com/chrisbeckett/spectre-proxy/agent/internal/router"
+	"github.com/ChxisB/spectre-proxy/agent/internal/config"
+	"github.com/ChxisB/spectre-proxy/agent/internal/protocol"
+	"github.com/ChxisB/spectre-proxy/agent/internal/router"
 	"github.com/google/uuid"
 )
 

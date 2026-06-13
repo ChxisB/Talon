@@ -1,4 +1,4 @@
-module github.com/chrisbeckett/spectre-proxy/agent
+module github.com/ChxisB/spectre-proxy/agent
 
 go 1.26.3
 

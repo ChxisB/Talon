@@ -3,7 +3,7 @@
 package providers
 
 import (
-	"github.com/chrisbeckett/spectre-proxy/agent/internal/config"
+	"github.com/ChxisB/spectre-proxy/agent/internal/config"
 )
 
 // ProviderFactory creates a provider from config.

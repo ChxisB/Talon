@@ -13,10 +13,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/chrisbeckett/spectre-proxy/agent/internal/config"
-	"github.com/chrisbeckett/spectre-proxy/agent/internal/messaging"
-	"github.com/chrisbeckett/spectre-proxy/agent/internal/providers"
-	"github.com/chrisbeckett/spectre-proxy/agent/internal/server"
+	"github.com/ChxisB/spectre-proxy/agent/internal/config"
+	"github.com/ChxisB/spectre-proxy/agent/internal/messaging"
+	"github.com/ChxisB/spectre-proxy/agent/internal/providers"
+	"github.com/ChxisB/spectre-proxy/agent/internal/server"
 )
 
 func main() {

@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/chrisbeckett/spectre-proxy/agent/internal/logger"
-	"github.com/chrisbeckett/spectre-proxy/agent/internal/protocol"
+	"github.com/ChxisB/spectre-proxy/agent/internal/logger"
+	"github.com/ChxisB/spectre-proxy/agent/internal/protocol"
 )
 
 // Config holds configuration for an OpenAI-compatible provider.

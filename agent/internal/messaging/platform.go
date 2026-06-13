@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/chrisbeckett/spectre-proxy/agent/internal/config"
-	"github.com/chrisbeckett/spectre-proxy/agent/internal/protocol"
-	"github.com/chrisbeckett/spectre-proxy/agent/internal/providers"
+	"github.com/ChxisB/spectre-proxy/agent/internal/config"
+	"github.com/ChxisB/spectre-proxy/agent/internal/protocol"
+	"github.com/ChxisB/spectre-proxy/agent/internal/providers"
 )
 
 // Platform defines the interface for messaging platform adapters.
