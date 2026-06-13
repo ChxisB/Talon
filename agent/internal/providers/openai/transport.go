@@ -17,6 +17,8 @@ import (
 
 	"github.com/ChxisB/spectre-proxy/agent/internal/logger"
 	"github.com/ChxisB/spectre-proxy/agent/internal/protocol"
+	"github.com/ChxisB/spectre-proxy/agent/internal/providers"
+	"github.com/ChxisB/spectre-proxy/agent/internal/providers/protoutil"
 )
 
 // Config holds configuration for an OpenAI-compatible provider.
@@ -49,8 +51,19 @@ func NewTransport(cfg Config) *Transport {
 // ID returns the provider identifier.
 func (t *Transport) ID() string { return t.cfg.Name }
 
-// StreamResponse sends a messages request and returns SSE events.
-func (t *Transport) StreamResponse(ctx context.Context, req *protocol.MessagesRequest, inputTokens int, thinking bool) (<-chan protocol.SSEEvent, error) {
+// ProtocolSupport returns which CLI protocols this transport supports.
+func (t *Transport) ProtocolSupport() providers.ProtocolSupport {
+	return providers.ProtocolSupport{
+		Anthropic: true,  // Via OpenAI Chat → Anthropic SSE translation
+		Responses: true,  // Via protocol translation
+		GenAI:     true,  // Via protocol translation
+	}
+}
+
+// StreamAnthropic translates an Anthropic Messages API request to OpenAI Chat
+// Completions format, sends it, and translates the response SSE back to
+// Anthropic format.
+func (t *Transport) StreamAnthropic(ctx context.Context, req *protocol.MessagesRequest, inputTokens int, thinking bool) (<-chan protocol.SSEEvent, error) {
 	ch := make(chan protocol.SSEEvent, 128)
 
 	sysPrompt := extractSystemPrompt(req)
@@ -437,6 +450,40 @@ func (t *Transport) CheckHealth(ctx context.Context) error {
 		return fmt.Errorf("status %d", resp.StatusCode)
 	}
 	return nil
+}
+
+// StreamResponses translates an OpenAI Responses API request to OpenAI Chat
+// format via the internal MessagesRequest, then translates back to Responses SSE.
+func (t *Transport) StreamResponses(ctx context.Context, rawReq json.RawMessage, resolvedModel string) (<-chan []byte, error) {
+	msgReq, err := protoutil.ParseResponsesRequest(rawReq, resolvedModel)
+	if err != nil {
+		return nil, fmt.Errorf("%s: parse responses request: %w", t.cfg.Name, err)
+	}
+	msgReq.Model = resolvedModel
+
+	anthroEvents, err := t.StreamAnthropic(ctx, msgReq, 0, false)
+	if err != nil {
+		return nil, fmt.Errorf("%s: stream responses: %w", t.cfg.Name, err)
+	}
+
+	return protoutil.TranslateAnthropicToResponses(anthroEvents, resolvedModel), nil
+}
+
+// StreamGenAI translates a Google GenAI API request to OpenAI Chat format,
+// then translates the response back to GenAI streaming format.
+func (t *Transport) StreamGenAI(ctx context.Context, rawReq json.RawMessage, resolvedModel string) (<-chan []byte, error) {
+	msgReq, err := protoutil.ParseGenAIRequest(rawReq, resolvedModel)
+	if err != nil {
+		return nil, fmt.Errorf("%s: parse genai request: %w", t.cfg.Name, err)
+	}
+	msgReq.Model = resolvedModel
+
+	anthroEvents, err := t.StreamAnthropic(ctx, msgReq, 0, false)
+	if err != nil {
+		return nil, fmt.Errorf("%s: stream genai: %w", t.cfg.Name, err)
+	}
+
+	return protoutil.TranslateAnthropicToGenAI(anthroEvents), nil
 }
 
 func truncate(s string, maxLen int) string {

@@ -16,6 +16,8 @@ import (
 	"time"
 
 	"github.com/ChxisB/spectre-proxy/agent/internal/protocol"
+	"github.com/ChxisB/spectre-proxy/agent/internal/providers"
+	"github.com/ChxisB/spectre-proxy/agent/internal/providers/protoutil"
 )
 
 func safePrefix(s string) string {
@@ -51,8 +53,19 @@ func NewTransport(cfg Config) *Transport {
 // ID returns the provider identifier.
 func (t *Transport) ID() string { return t.cfg.Name }
 
-// StreamResponse sends a messages request and returns SSE events.
-func (t *Transport) StreamResponse(ctx context.Context, req *protocol.MessagesRequest, inputTokens int, thinking bool) (<-chan protocol.SSEEvent, error) {
+// ProtocolSupport returns which CLI protocols this transport supports.
+func (t *Transport) ProtocolSupport() providers.ProtocolSupport {
+	return providers.ProtocolSupport{
+		Anthropic: true,  // Native Anthropic Messages API
+		Responses: true,  // Via protocol translation
+		GenAI:     true,  // Via protocol translation
+	}
+}
+
+// StreamAnthropic sends a messages request and returns Anthropic-format SSE events.
+// This is the native protocol for this transport — messages are forwarded directly
+// to the upstream Anthropic Messages API endpoint.
+func (t *Transport) StreamAnthropic(ctx context.Context, req *protocol.MessagesRequest, inputTokens int, thinking bool) (<-chan protocol.SSEEvent, error) {
 	ch := make(chan protocol.SSEEvent, 128)
 
 	bodyMap := map[string]any{
@@ -213,6 +226,42 @@ func (t *Transport) ListModels(ctx context.Context) ([]string, error) {
 		models[i] = m.ID
 	}
 	return models, nil
+}
+
+// StreamResponses translates an OpenAI Responses API request to the Anthropic
+// Messages format, sends it through StreamAnthropic, and translates the SSE
+// events back to Responses API format.
+func (t *Transport) StreamResponses(ctx context.Context, rawReq json.RawMessage, resolvedModel string) (<-chan []byte, error) {
+	msgReq, err := protoutil.ParseResponsesRequest(rawReq, resolvedModel)
+	if err != nil {
+		return nil, fmt.Errorf("%s: parse responses request: %w", t.cfg.Name, err)
+	}
+	msgReq.Model = resolvedModel
+
+	anthroEvents, err := t.StreamAnthropic(ctx, msgReq, 0, false)
+	if err != nil {
+		return nil, fmt.Errorf("%s: stream responses: %w", t.cfg.Name, err)
+	}
+
+	return protoutil.TranslateAnthropicToResponses(anthroEvents, resolvedModel), nil
+}
+
+// StreamGenAI translates a Google GenAI API request to the Anthropic Messages
+// format, sends it through StreamAnthropic, and translates the events back to
+// GenAI streaming format.
+func (t *Transport) StreamGenAI(ctx context.Context, rawReq json.RawMessage, resolvedModel string) (<-chan []byte, error) {
+	msgReq, err := protoutil.ParseGenAIRequest(rawReq, resolvedModel)
+	if err != nil {
+		return nil, fmt.Errorf("%s: parse genai request: %w", t.cfg.Name, err)
+	}
+	msgReq.Model = resolvedModel
+
+	anthroEvents, err := t.StreamAnthropic(ctx, msgReq, 0, false)
+	if err != nil {
+		return nil, fmt.Errorf("%s: stream genai: %w", t.cfg.Name, err)
+	}
+
+	return protoutil.TranslateAnthropicToGenAI(anthroEvents), nil
 }
 
 // CheckHealth verifies the provider is reachable.

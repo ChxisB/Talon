@@ -1,5 +1,5 @@
 // Package messaging provides multi-platform messaging adapters for the
-// Spectre Proxy agent. Ported from free-claude-code/messaging/.
+// Spectre Proxy agent.
 package messaging
 
 import (
@@ -125,7 +125,7 @@ func (h *Handler) HandleMessage(ctx context.Context, msg Message) error {
 		Messages: session.Messages,
 	}
 
-	events, err := provider.StreamResponse(ctx, req, 0, true)
+	events, err := provider.StreamAnthropic(ctx, req, 0, true)
 	if err != nil {
 		return fmt.Errorf("ai request failed: %w", err)
 	}
