@@ -1,8 +1,12 @@
 <div align="center">
 
-# 👻 Spectre Proxy
+<p>
+  <img src="public/favicon.svg" alt="" width="80">
+</p>
 
-**Multi-provider AI proxy for Claude Code, OpenAI Codex, Google Gemini — and any client that speaks Anthropic, OpenAI, or Google GenAI.**
+<h1 style="border-bottom: none; margin-bottom: 20px;">Spectre Proxy</h1>
+
+**Use Claude Code, Codex, or Gemini with any provider — not just their own. OpenRouter, Gemini, OpenCode, Groq, Ollama, and more.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 [![Go](https://img.shields.io/badge/Go-1.26-00ADD8?style=for-the-badge&logo=go)](https://go.dev/)
