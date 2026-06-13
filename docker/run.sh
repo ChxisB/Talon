@@ -6,6 +6,17 @@ ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 
 cd "$ROOT_DIR"
 
+# ─── Cross-platform helpers ──────────────────────────────────────────
+# open_url opens a URL in the default browser on any platform.
+open_url() {
+  case "$(uname -s)" in
+    Darwin)  open "$1" ;;
+    Linux)   xdg-open "$1" ;;
+    MINGW*|MSYS*|CYGWIN*) start "$1" ;;
+    *)       echo "Open $1 in your browser" ;;
+  esac
+}
+
 # ─── Help ────────────────────────────────────────────────────────────
 usage() {
   cat <<EOF
@@ -74,7 +85,7 @@ case "${1:-help}" in
     ;;
   dashboard)
     echo "📂 Opening dashboard..."
-    open http://localhost:3000
+    open_url "http://localhost:3000"
     ;;
   *)
     usage

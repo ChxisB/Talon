@@ -1,5 +1,4 @@
 // Package router resolves Claude model names to provider/model pairs.
-// Ported from free-claude-code/api/model_router.py.
 package router
 
 import (

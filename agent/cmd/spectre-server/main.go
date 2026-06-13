@@ -2,7 +2,6 @@
 //
 // A local HTTP proxy that translates Anthropic Messages API requests
 // to any supported provider (OpenRouter, Ollama, Gemini, etc.).
-// Ported from free-claude-code.
 package main
 
 import (

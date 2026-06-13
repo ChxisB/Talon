@@ -42,7 +42,10 @@ func init() {
 		fmt.Fprintf(os.Stderr, `Spectre Proxy v%s
 
 Usage:
-  spectre                        Launch AI agent with MCP tools
+  spectre                        Launch AI agent (selects backend interactively)
+  spectre --cli claude           Launch Claude Code
+  spectre --cli codex            Launch OpenAI Codex
+  spectre --cli gemini           Launch Google Gemini
   spectre <prompt>               Single prompt, print and exit
   spectre --model <m> <prompt>   Use a specific model
   spectre serve                  Start the proxy server only
@@ -65,9 +68,11 @@ Sub-agents (auto-selected by task):
   Data Engineer (PostgreSQL/analytics)
 
 Examples:
-  spectre                                 # launch agent with all tools
+  spectre                                 # prompt for backend, launch agent
+  spectre --cli codex                     # launch Codex directly
   spectre "write a python script"          # single prompt
   spectre --model openai/gpt-4o "hello"    # with model override
+  spectre --cli gemini --model deepseek    # Gemini with model override
   spectre status                           # check proxy status
   spectre models                          # list models
 
@@ -78,6 +83,7 @@ Flags:
 }
 
 func main() {
+	cliFlag := flag.String("cli", "", "CLI backend: claude, codex, or gemini")
 	modelFlag := flag.String("model", "", "Model override (e.g. openrouter/anthropic/claude-sonnet-4)")
 	dirFlag := flag.String("dir", "", "Working directory for the session")
 	versionFlag := flag.Bool("version", false, "Print version")
@@ -86,7 +92,6 @@ func main() {
 
 	// Ensure default config files exist
 	writeDefaultAgents()
-	syncMCPToClaude()
 	initTaskStore()
 
 	// Check for incomplete tasks on startup
@@ -120,7 +125,8 @@ func main() {
 	args := flag.Args()
 
 	if len(args) == 0 {
-		launchAgent(agentName, *modelFlag, *dirFlag)
+		backend := selectBackend(*cliFlag)
+		launchAgent(backend, agentName, *modelFlag, *dirFlag)
 		return
 	}
 
@@ -150,7 +156,8 @@ func main() {
 	case "dream":
 		dreamCycle()
 	case "chat", "agent":
-		launchAgent(agentName, *modelFlag, *dirFlag)
+		backend := selectBackend(*cliFlag)
+		launchAgent(backend, agentName, *modelFlag, *dirFlag)
 	default:
 		prompt(strings.Join(args, " "), *modelFlag)
 	}
@@ -204,6 +211,9 @@ func configure() {
 		os.MkdirAll(filepath.Dir(envPath), 0755)
 		os.WriteFile(envPath, []byte(`# Spectre Proxy Configuration
 AGENT_NAME=Spectre
+# CLI_BACKEND=claude      # Uncomment to skip the agent picker prompt
+# CLI_BACKEND=codex
+# CLI_BACKEND=gemini
 OPENROUTER_API_KEY=
 OPENAI_API_KEY=
 MODEL=openrouter/anthropic/claude-sonnet-4
@@ -241,14 +251,18 @@ func startServer() {
 
 // ─── Agent Launcher ───────────────────────────────────────────────────
 
-// launchAgent shows a Spectre welcome, ensures the proxy is running,
-// starts the MCP server (tools), then launches claude.
-func launchAgent(agentName, model, workDir string) {
+// launchAgent ensures the proxy is running, syncs backend config,
+// and launches the selected AI coding agent CLI as a child process.
+func launchAgent(backend CLIBackend, agentName, model, workDir string) {
 	ensureProxy()
+
+	// Sync backend-specific config (MCP servers, model providers, etc.)
+	backend.SyncConfig(proxyURL)
 
 	// Show Spectre-branded welcome
 	fmt.Printf("\n  \033[36m%s\033[0m — AI coding agent\n", agentName)
-	fmt.Printf("  \033[90mPowered by Claude via Spectre Proxy proxy\033[0m\n")
+	fmt.Printf("  \033[90mBackend: %s\033[0m\n", backend.Name())
+	fmt.Printf("  %s\n", backend.WelcomeMessage(agentName))
 	if model != "" {
 		fmt.Printf("  \033[90mModel: %s\033[0m\n", model)
 	}
@@ -257,46 +271,30 @@ func launchAgent(agentName, model, workDir string) {
 	}
 	fmt.Println()
 
-	// Find claude binary
-	claudeBin, err := exec.LookPath("claude")
+	// Find the CLI binary
+	binPath, err := exec.LookPath(backend.Binary())
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "claude CLI not found. Install it:\n")
-		fmt.Fprintf(os.Stderr, "  npm install -g @anthropic-ai/claude-code\n")
+		fmt.Fprintf(os.Stderr, "%s CLI not found. Install it:\n", backend.Name())
+		fmt.Fprintf(os.Stderr, "%s\n", backend.InstallHint())
 		os.Exit(1)
-	}
-
-	// Read auth token from config
-	authToken := readEnvVar("ANTHROPIC_AUTH_TOKEN")
-	if authToken == "" {
-		authToken = "spectre-proxy"
 	}
 
 	// ── Write default sub-agent files if missing ──
 	writeDefaultAgents()
 
-	// ── Sync MCP config to claude settings ──
-	syncMCPToClaude()
-
-	// ── Set environment for claude ──
+	// ── Build environment ──
 	env := os.Environ()
-	env = append(env, "ANTHROPIC_BASE_URL="+proxyURL)
-	env = append(env, "ANTHROPIC_AUTH_TOKEN="+authToken)
-	env = append(env, "CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1")
-	env = append(env, "VAULT_PATH="+os.Getenv("HOME")+"/Spectre Proxy/agent-vault")
+	env = append(env, backend.EnvVars(proxyURL)...)
 
+	// ── Build arguments ──
 	remaining := flag.Args()
 	if len(remaining) > 0 {
 		remaining = remaining[1:]
 	}
+	cmdArgs := backend.Args(model, remaining)
 
-	// Allow common tools without prompting
-	claudeArgs := []string{"--allowedTools", "Bash,Read,Edit,Write"}
-	if model != "" {
-		claudeArgs = append(claudeArgs, "--model", model)
-	}
-	claudeArgs = append(claudeArgs, remaining...)
-
-	cmd := exec.Command(claudeBin, claudeArgs...)
+	// ── Spawn the CLI ──
+	cmd := exec.Command(binPath, cmdArgs...)
 	if workDir != "" {
 		cmd.Dir = workDir
 	}

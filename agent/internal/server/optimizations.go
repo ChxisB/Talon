@@ -8,7 +8,6 @@ import (
 )
 
 // tryOptimizations checks for fast-path responses before forwarding to a provider.
-// Ported from free-claude-code/api/optimization_handlers.py.
 func tryOptimizations(req *protocol.MessagesRequest, resolved *router.ResolvedModel, cfg *config.Settings) *protocol.MessagesResponse {
 	lastMsg := lastUserMessage(req.Messages)
 	if lastMsg == "" {

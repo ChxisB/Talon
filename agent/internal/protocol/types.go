@@ -1,5 +1,5 @@
 // Package protocol implements the Anthropic Messages API types and SSE streaming
-// used by the Spectre Proxy proxy. Ported from free-claude-code/api/models/anthropic.py.
+// used by the Spectre Proxy proxy.
 package protocol
 
 import (

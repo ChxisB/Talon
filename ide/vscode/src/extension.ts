@@ -191,16 +191,22 @@ function openTerminal() {
 
 // ─── Helpers ────────────────────────────────────────────────────
 
+/** Returns the proxy binary filename for the current platform. */
+function proxyBinaryName(): string {
+  return process.platform === "win32" ? "spectre-server.exe" : "spectre-server";
+}
+
 function findProxyBinary(): string | null {
   const config = getConfig();
   if (config.proxyBinPath && existsSync(config.proxyBinPath)) return config.proxyBinPath;
 
+  const bin = proxyBinaryName();
   const candidates = [
-    join(PROJECT_DIR, "agent", "spectre-server"),
-    join(PROJECT_DIR, "agent", "cmd", "spectre-server", "spectre-server"),
-    join(PROJECT_DIR, "spectre-server"),
-    join(homedir(), "go", "bin", "spectre-server"),
-    "spectre-server",
+    join(PROJECT_DIR, "agent", bin),
+    join(PROJECT_DIR, "agent", "cmd", "spectre-server", bin),
+    join(PROJECT_DIR, bin),
+    join(homedir(), "go", "bin", bin),
+    bin,
   ];
 
   for (const c of candidates) {
@@ -217,7 +223,7 @@ async function buildProxy(): Promise<boolean> {
   }
   const terminal = vscode.window.createTerminal({ name: "Build Spectre Proxy" });
   terminal.show();
-  terminal.sendText(`cd "${agentDir}" && go build -o spectre-server ./cmd/spectre-server/`);
+  terminal.sendText(`cd "${agentDir}" && go build -o ${proxyBinaryName()} ./cmd/spectre-server/`);
   return true;
 }
 

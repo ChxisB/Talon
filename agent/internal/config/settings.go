@@ -1,5 +1,4 @@
 // Package config implements the Spectre Proxy proxy configuration system.
-// Ported from free-claude-code/config/settings.py.
 package config
 
 import (

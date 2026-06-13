@@ -31,7 +31,7 @@ services:
       # MODEL is also read from ~/.spectre-proxy/.env by run.sh at startup
     volumes:
       # Mount config so settings persist across restarts
-      - ${HOME}/.spectre-proxy:/root/.spectre-proxy:ro
+      - ~/.spectre-proxy:/root/.spectre-proxy:ro
     extra_hosts:
       # Allow the agent to reach services running on the host machine
       # (Ollama on localhost:11434, LM Studio on localhost:1234, etc.)
@@ -58,9 +58,9 @@ services:
       - VAULT_PATH=/vault
     volumes:
       # Mount Obsidian vault for the memory graph
-      - ${HOME}/Spectre Proxy/agent-vault:/vault:ro
+      - ~/Spectre Proxy/agent-vault:/vault:ro
       # Mount config and task data for dashboard
-      - ${HOME}/.spectre-proxy:/root/.spectre-proxy
+      - ~/.spectre-proxy:/root/.spectre-proxy
     depends_on:
       agent:
         condition: service_healthy

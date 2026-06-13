@@ -18,6 +18,7 @@ import (
 	"github.com/ChxisB/spectre-proxy/agent/internal/router"
 	"github.com/ChxisB/spectre-proxy/agent/internal/tools"
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 )
 
 // getEnvOrDotenv returns the value of an env var. Priority order:
@@ -45,22 +46,47 @@ func getEnvOrDotenv(key string) string {
 }
 
 func (s *Server) setupRoutes() {
+	log.Println("[debug] setupRoutes called")
+
+	// Provider metadata
+	s.router.HandleFunc("/v1/providers", s.handleListProviders).Methods("GET", "HEAD", "OPTIONS")
+	s.router.HandleFunc("/v1/providers/{id}", s.handleGetProvider).Methods("GET", "HEAD", "OPTIONS")
+
 	// Health
 	s.router.HandleFunc("/health", s.handleHealth).Methods("GET", "HEAD", "OPTIONS")
 
 	// Root
 	s.router.HandleFunc("/", s.handleRoot).Methods("GET", "HEAD", "OPTIONS")
 
-	// Models
+	// Models — returns both Anthropic and OpenAI-compatible model lists
+	// Codex reads the "data" array with "id" fields, same as Anthropic format.
+	// Gemini uses a separate endpoint at /v1beta/models.
 	s.router.HandleFunc("/v1/models", s.handleListModels).Methods("GET", "HEAD", "OPTIONS")
 
-	// Messages
+	// Messages (Anthropic API — used by Claude Code)
 	s.router.HandleFunc("/v1/messages", s.handleCreateMessage).Methods("POST")
 	s.router.HandleFunc("/v1/messages", s.handleProbe).Methods("HEAD", "OPTIONS")
 
-	// Token count
+	// Token count (Anthropic API)
 	s.router.HandleFunc("/v1/messages/count_tokens", s.handleCountTokens).Methods("POST")
 	s.router.HandleFunc("/v1/messages/count_tokens", s.handleProbe).Methods("HEAD", "OPTIONS")
+
+	// Responses API (OpenAI — used by Codex CLI)
+	s.router.HandleFunc("/v1/responses", s.handleResponsesAPI).Methods("POST")
+
+	// Google GenAI API (used by Gemini CLI)
+	// Model listing
+	s.router.HandleFunc("/{version:[^/]+}/models", s.handleGenAIModels).Methods("GET", "HEAD", "OPTIONS")
+	s.router.HandleFunc("/models", s.handleGenAIModels).Methods("GET", "HEAD", "OPTIONS")
+	// Inference — model name is everything before the colon
+	s.router.HandleFunc("/{version:[^/]+}/models/{model:[^:]+}:generateContent", s.handleGenAI).Methods("POST")
+	s.router.HandleFunc("/{version:[^/]+}/models/{model:[^:]+}:streamGenerateContent", s.handleGenAIStream).Methods("POST")
+	// Also handle without version prefix (just in case)
+	s.router.HandleFunc("/models/{model:[^:]+}:generateContent", s.handleGenAI).Methods("POST")
+	s.router.HandleFunc("/models/{model:[^:]+}:streamGenerateContent", s.handleGenAIStream).Methods("POST")
+
+	// OpenAI format model list (compatible with both Codex and general OpenAI clients)
+	s.router.HandleFunc("/v1/responses/models", s.handleOpenAIModels).Methods("GET", "HEAD", "OPTIONS")
 
 	// Admin API
 	s.router.HandleFunc("/admin/api/config", s.handleAdminGetConfig).Methods("GET")
@@ -296,6 +322,123 @@ func (s *Server) handleListModels(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// collectModelIDs returns a deduplicated list of model IDs from all available providers.
+func (s *Server) collectModelIDs() []string {
+	seen := make(map[string]bool)
+	var ids []string
+
+	// Add configured default model first
+	if s.config.Model != "" && !seen[s.config.Model] {
+		seen[s.config.Model] = true
+		ids = append(ids, s.config.Model)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	for _, desc := range config.ProviderCatalog() {
+		envKey := providerEnvKey[desc.ID]
+		if envKey == "" {
+			// Local-only — try anyway
+		} else if getEnvOrDotenv(envKey) == "" {
+			continue
+		}
+		cfg := providers.DefaultProviderConfig()
+		if envKey != "" {
+			cfg.APIKey = getEnvOrDotenv(envKey)
+		}
+		provider, err := s.Registry.Get(desc.ID, cfg, s.config)
+		if err != nil {
+			continue
+		}
+		providerModels, err := provider.ListModels(ctx)
+		if err != nil {
+			if hardcoded, ok := hardcodedProviderModels[desc.ID]; ok {
+				for _, id := range hardcoded {
+					if !seen[id] {
+						seen[id] = true
+						ids = append(ids, id)
+					}
+				}
+			}
+			continue
+		}
+		for _, id := range providerModels {
+			if !strings.Contains(id, "/") && desc.ID != "" {
+				id = desc.ID + "/" + id
+			}
+			if !seen[id] {
+				seen[id] = true
+				ids = append(ids, id)
+			}
+		}
+	}
+
+	// Static Claude fallbacks
+	for _, m := range staticClaudeModels() {
+		if !seen[m.ID] {
+			seen[m.ID] = true
+			ids = append(ids, m.ID)
+		}
+	}
+
+	return ids
+}
+
+// handleOpenAIModels returns models in OpenAI format (compatible with Codex CLI).
+// GET /v1/responses/models
+func (s *Server) handleOpenAIModels(w http.ResponseWriter, r *http.Request) {
+	modelIDs := s.collectModelIDs()
+	type openAIModel struct {
+		ID      string `json:"id"`
+		Object  string `json:"object"`
+		Created int64  `json:"created"`
+		OwnedBy string `json:"owned_by"`
+	}
+	data := make([]openAIModel, 0, len(modelIDs))
+	for _, id := range modelIDs {
+		data = append(data, openAIModel{
+			ID:      id,
+			Object:  "model",
+			Created: 0,
+			OwnedBy: "spectre",
+		})
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{
+		"object": "list",
+		"data":   data,
+	})
+}
+
+// handleGenAIModels returns models in Google GenAI format (compatible with Gemini CLI).
+// GET /v1beta/models
+func (s *Server) handleGenAIModels(w http.ResponseWriter, r *http.Request) {
+	modelIDs := s.collectModelIDs()
+	type genAIModel struct {
+		Name                       string   `json:"name"`
+		DisplayName                string   `json:"displayName"`
+		SupportedGenerationMethods []string `json:"supportedGenerationMethods"`
+	}
+	models := make([]genAIModel, 0, len(modelIDs))
+	for _, id := range modelIDs {
+		displayName := id
+		// Strip provider prefix for display
+		if idx := strings.IndexByte(id, '/'); idx >= 0 {
+			displayName = id[idx+1:]
+		}
+		models = append(models, genAIModel{
+			Name:                       "models/" + displayName,
+			DisplayName:                displayName,
+			SupportedGenerationMethods: []string{"generateContent", "streamGenerateContent"},
+		})
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{
+		"models": models,
+	})
+}
+
 func (s *Server) handleCreateMessage(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Model       string             `json:"model"`
@@ -389,7 +532,7 @@ func (s *Server) handleCreateMessage(w http.ResponseWriter, r *http.Request) {
 
 	// Stream response
 	ctx := r.Context()
-	events, err := provider.StreamResponse(ctx, msgReq, 0, resolved.ThinkingEnabled)
+	events, err := provider.StreamAnthropic(ctx, msgReq, 0, resolved.ThinkingEnabled)
 	if err != nil {
 		writeError(w, http.StatusBadGateway, "provider_error", fmt.Sprintf("Provider error: %v", err))
 		return
@@ -503,6 +646,29 @@ func (s *Server) handleAdminStatus(w http.ResponseWriter, r *http.Request) {
 		"model":    s.config.Model,
 		"provider": s.config.ProviderType,
 	})
+}
+
+// handleListProviders returns metadata for all registered providers.
+func (s *Server) handleListProviders(w http.ResponseWriter, r *http.Request) {
+	log.Printf("[debug] handleListProviders called for %s", r.URL.Path)
+	providers := s.Registry.ListProviderMetadata()
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{
+		"providers": providers,
+		"count":     len(providers),
+	})
+}
+
+// handleGetProvider returns metadata for a specific provider.
+func (s *Server) handleGetProvider(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	meta := s.Registry.GetMetadata(id)
+	if meta == nil {
+		http.Error(w, `{"type":"error","error":{"type":"not_found","message":"Provider not found"}}`, http.StatusNotFound)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(meta)
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────

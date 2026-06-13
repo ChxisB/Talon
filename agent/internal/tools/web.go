@@ -1,5 +1,5 @@
 // Package tools provides web search, web fetch, and other utility tools
-// for the Spectre Proxy proxy. Ported from free-claude-code/api/web_tools/.
+// for the Spectre Proxy proxy.
 package tools
 
 import (

@@ -1,5 +1,4 @@
 // Package server implements the HTTP server for the Spectre Proxy proxy.
-// Ported from free-claude-code/api/app.py, routes.py, and services.py.
 package server
 
 import (
