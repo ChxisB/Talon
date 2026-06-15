@@ -3,14 +3,14 @@ import path from "node:path";
 
 /**
  * VAULT_PATH is set via environment variable.
- * In Docker: VAULT_PATH=/vault (mounted from host ~/Spectre Proxy/agent-vault)
- * In dev:    defaults to ~/Spectre Proxy/agent-vault
+ * In Docker: VAULT_PATH=/vault (mounted from host ~/Talon/agent-vault)
+ * In dev:    defaults to ~/Talon/agent-vault
  */
 function resolveVaultRoot(): string {
   const env = process.env.VAULT_PATH;
   if (env) return env;
   const home = process.env.HOME || process.env.USERPROFILE || "/root";
-  return path.join(home, "Spectre Proxy", "agent-vault");
+  return path.join(home, "Talon", "agent-vault");
 }
 
 export const VAULT_ROOT = resolveVaultRoot();

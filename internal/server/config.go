@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/ChxisB/spectre-proxy/internal/proto"
+	"github.com/ChxisB/talon/internal/proto"
 )
 
 // handlePostWorkspaceConfigSet sets a configuration field.

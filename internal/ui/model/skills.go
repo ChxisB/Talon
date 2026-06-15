@@ -7,10 +7,10 @@ import (
 	"strings"
 	"sync"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	"github.com/ChxisB/spectre-proxy/internal/skills"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	"github.com/ChxisB/talon/internal/skills"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/ui/styles"
 )
 
 type skillStatusItem struct {
@@ -45,12 +45,11 @@ func (m *UI) skillsInfo(width, maxItems int, isSection bool) string {
 
 	items := m.skillStatusItems()
 	if len(items) == 0 {
-		list := t.Resource.AdditionalText.Render("None")
-		return lipgloss.NewStyle().Width(width).Render(fmt.Sprintf("%s\n\n%s", title, list))
+		return ""
 	}
 
 	list := skillsList(t, items, width, maxItems)
-	return lipgloss.NewStyle().Width(width).Render(fmt.Sprintf("%s\n\n%s", title, list))
+	return style.NewStyle().Width(width).Render(fmt.Sprintf("%s\n\n%s", title, list))
 }
 
 func (m *UI) skillStatusItems() []skillStatusItem {
@@ -141,5 +140,5 @@ func skillsList(t *styles.Styles, items []skillStatusItem, width, maxItems int) 
 			Description: item.description,
 		}, width))
 	}
-	return lipgloss.JoinVertical(lipgloss.Left, renderedItems...)
+	return style.JoinVertical(style.Left, renderedItems...)
 }

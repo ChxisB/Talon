@@ -4,28 +4,28 @@ import (
 	"image"
 	"strings"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	uv "github.com/ChxisB/spectre-proxy/deps/terminal"
-	"github.com/ChxisB/spectre-proxy/internal/stringext"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	term "github.com/ChxisB/talon/deps/terminal"
+	"github.com/ChxisB/talon/internal/stringext"
 )
 
 // DefaultHighlighter is the default highlighter function that applies inverse style.
-var DefaultHighlighter Highlighter = func(x, y int, c *uv.Cell) *uv.Cell {
+var DefaultHighlighter Highlighter = func(x, y int, c *term.Cell) *term.Cell {
 	if c == nil {
 		return c
 	}
-	c.Style.Attrs |= uv.AttrReverse
+	c.Style.Attrs |= term.AttrReverse
 	return c
 }
 
 // Highlighter represents a function that defines how to highlight text.
-type Highlighter func(x, y int, c *uv.Cell) *uv.Cell
+type Highlighter func(x, y int, c *term.Cell) *term.Cell
 
 // HighlightContent returns the content with highlighted regions based on the specified parameters.
 func HighlightContent(content string, area image.Rectangle, startLine, startCol, endLine, endCol int) string {
 	var sb strings.Builder
 	pos := image.Pt(-1, -1)
-	HighlightBuffer(content, area, startLine, startCol, endLine, endCol, func(x, y int, c *uv.Cell) *uv.Cell {
+	HighlightBuffer(content, area, startLine, startCol, endLine, endCol, func(x, y int, c *term.Cell) *term.Cell {
 		pos.X = x
 		if pos.Y == -1 {
 			pos.Y = y
@@ -52,8 +52,8 @@ func Highlight(content string, area image.Rectangle, startLine, startCol, endLin
 }
 
 // HighlightBuffer highlights a region of text within the given content and
-// region, returning a [uv.ScreenBuffer].
-func HighlightBuffer(content string, area image.Rectangle, startLine, startCol, endLine, endCol int, highlighter Highlighter) *uv.ScreenBuffer {
+// region, returning a [term.ScreenBuffer].
+func HighlightBuffer(content string, area image.Rectangle, startLine, startCol, endLine, endCol int, highlighter Highlighter) *term.ScreenBuffer {
 	content = stringext.NormalizeSpace(content)
 
 	if startLine < 0 || startCol < 0 {
@@ -65,8 +65,8 @@ func HighlightBuffer(content string, area image.Rectangle, startLine, startCol, 
 	}
 
 	width, height := area.Dx(), area.Dy()
-	buf := uv.NewScreenBuffer(width, height)
-	styled := uv.NewStyledString(content)
+	buf := term.NewScreenBuffer(width, height)
+	styled := term.NewStyledString(content)
 	styled.Draw(&buf, area)
 
 	// Treat -1 as "end of content"
@@ -134,9 +134,9 @@ func HighlightBuffer(content string, area image.Rectangle, startLine, startCol, 
 	return &buf
 }
 
-// ToHighlighter converts a [lipgloss.Style] to a [Highlighter].
-func ToHighlighter(lgStyle lipgloss.Style) Highlighter {
-	return func(_ int, _ int, c *uv.Cell) *uv.Cell {
+// ToHighlighter converts a [style.Style] to a [Highlighter].
+func ToHighlighter(lgStyle style.Style) Highlighter {
+	return func(_ int, _ int, c *term.Cell) *term.Cell {
 		if c != nil {
 			c.Style = ToStyle(lgStyle)
 		}
@@ -144,9 +144,9 @@ func ToHighlighter(lgStyle lipgloss.Style) Highlighter {
 	}
 }
 
-// ToStyle converts an inline [lipgloss.Style] to a [uv.Style].
-func ToStyle(lgStyle lipgloss.Style) uv.Style {
-	var uvStyle uv.Style
+// ToStyle converts an inline [style.Style] to a [term.Style].
+func ToStyle(lgStyle style.Style) term.Style {
+	var uvStyle term.Style
 
 	// Colors are already color.Color
 	uvStyle.Fg = lgStyle.GetForeground()
@@ -156,31 +156,31 @@ func ToStyle(lgStyle lipgloss.Style) uv.Style {
 	var attrs uint8
 
 	if lgStyle.GetBold() {
-		attrs |= uv.AttrBold
+		attrs |= term.AttrBold
 	}
 
 	if lgStyle.GetItalic() {
-		attrs |= uv.AttrItalic
+		attrs |= term.AttrItalic
 	}
 
 	if lgStyle.GetUnderline() {
-		uvStyle.Underline = uv.UnderlineSingle
+		uvStyle.Underline = term.UnderlineSingle
 	}
 
 	if lgStyle.GetStrikethrough() {
-		attrs |= uv.AttrStrikethrough
+		attrs |= term.AttrStrikethrough
 	}
 
 	if lgStyle.GetFaint() {
-		attrs |= uv.AttrFaint
+		attrs |= term.AttrFaint
 	}
 
 	if lgStyle.GetBlink() {
-		attrs |= uv.AttrBlink
+		attrs |= term.AttrBlink
 	}
 
 	if lgStyle.GetReverse() {
-		attrs |= uv.AttrReverse
+		attrs |= term.AttrReverse
 	}
 
 	uvStyle.Attrs = attrs
@@ -190,7 +190,7 @@ func ToStyle(lgStyle lipgloss.Style) uv.Style {
 
 // AdjustArea adjusts the given area rectangle by subtracting margins, borders,
 // and padding from the style.
-func AdjustArea(area image.Rectangle, style lipgloss.Style) image.Rectangle {
+func AdjustArea(area image.Rectangle, style style.Style) image.Rectangle {
 	topMargin, rightMargin, bottomMargin, leftMargin := style.GetMargin()
 	topBorder, rightBorder, bottomBorder, leftBorder := style.GetBorderTopSize(),
 		style.GetBorderRightSize(),

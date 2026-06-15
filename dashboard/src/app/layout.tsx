@@ -3,8 +3,8 @@ import "./globals.css";
 import Shell from "@/components/Shell";
 
 export const metadata: Metadata = {
-  title: "Spectre Proxy — Command Center",
-  description: "Spectre Proxy command center — dashboard for your AI coding agent",
+  title: "Talon — Command Center",
+  description: "Talon command center — dashboard for your AI coding agent",
   icons: { icon: "/favicon.svg" },
 };
 

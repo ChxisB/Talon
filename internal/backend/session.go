@@ -3,9 +3,9 @@ package backend
 import (
 	"context"
 
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/proto"
-	"github.com/ChxisB/spectre-proxy/internal/session"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/proto"
+	"github.com/ChxisB/talon/internal/session"
 )
 
 // CreateSession creates a new session in the given workspace.

@@ -7,11 +7,11 @@ import (
 	"strconv"
 	"strings"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
-	"github.com/ChxisB/spectre-proxy/internal/agent/hyper"
-	"github.com/ChxisB/spectre-proxy/internal/home"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	"github.com/ChxisB/talon/deps/util/ansi"
+	"github.com/ChxisB/talon/internal/agent/hyper"
+	"github.com/ChxisB/talon/internal/home"
+	"github.com/ChxisB/talon/internal/ui/styles"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -33,10 +33,18 @@ func FormatReasoningEffort(effort string) string {
 
 // ModelContextInfo contains token usage and cost information for a model.
 type ModelContextInfo struct {
-	ContextUsed    int64
-	ModelContext   int64
-	Cost           float64
-	EstimatedUsage bool
+	ContextUsed        int64
+	PromptTokens       int64
+	CompletionTokens   int64
+	ModelContext       int64
+	Cost               float64
+	CostPer1MIn        float64
+	CostPer1MOut       float64
+	EstimatedUsage     bool
+	TokenSaverEnabled  bool
+	TokenSaverLevel    string  // recommended, light, moderate, aggressive
+	CompressionSavings float64 // actual savings % from last output compression
+	InputSavings       float64 // savings % from memory tree / input optimization
 }
 
 // ModelInfo renders model information including name, provider, reasoning
@@ -52,7 +60,7 @@ func ModelInfo(t *styles.Styles, modelName, providerName, reasoningInfo string, 
 		modelWithProvider := fmt.Sprintf("%s %s %s", modelIcon, modelName, providerInfo)
 
 		// Check if it fits on one line
-		if lipgloss.Width(modelWithProvider) <= width {
+		if style.Width(modelWithProvider) <= width {
 			firstLine = modelWithProvider
 		} else {
 			// If it doesn't fit, put provider on next line
@@ -75,8 +83,8 @@ func ModelInfo(t *styles.Styles, modelName, providerName, reasoningInfo string, 
 	}
 
 	if context != nil {
-		formattedInfo := formatTokensAndCost(t, context.ContextUsed, context.ModelContext, context.Cost, context.EstimatedUsage)
-		parts = append(parts, lipgloss.NewStyle().PaddingLeft(2).Render(formattedInfo))
+		formattedInfo := formatTokensAndCost(t, context)
+		parts = append(parts, style.NewStyle().PaddingLeft(2).Render(formattedInfo))
 	}
 
 	if providerName == hyper.DisplayName && hyperCredits != nil {
@@ -86,50 +94,83 @@ func ModelInfo(t *styles.Styles, modelName, providerName, reasoningInfo string, 
 		parts = append(parts, "", hcInfo)
 	}
 
-	return lipgloss.NewStyle().Width(width).Render(
-		lipgloss.JoinVertical(lipgloss.Left, parts...),
+	return style.NewStyle().Width(width).Render(
+		style.JoinVertical(style.Left, parts...),
 	)
 }
 
-// formatTokensAndCost formats token usage and cost with appropriate units
-// (K/M) and percentage of context window.
-func formatTokensAndCost(t *styles.Styles, tokens, contextWindow int64, cost float64, estimated bool) string {
-	var formattedTokens string
-	switch {
-	case tokens >= 1_000_000:
-		formattedTokens = fmt.Sprintf("%.1fM", float64(tokens)/1_000_000)
-	case tokens >= 1_000:
-		formattedTokens = fmt.Sprintf("%.1fK", float64(tokens)/1_000)
-	default:
-		formattedTokens = fmt.Sprintf("%d", tokens)
-	}
+// formatTokensAndCost formats token usage and cost in a clean user-friendly layout.
+// Shows token in/out, cost, and token saver status with highlighting.
+func formatTokensAndCost(t *styles.Styles, ctx *ModelContextInfo) string {
+	var lines []string
 
-	if strings.HasSuffix(formattedTokens, ".0K") {
-		formattedTokens = strings.Replace(formattedTokens, ".0K", "K", 1)
-	}
-	if strings.HasSuffix(formattedTokens, ".0M") {
-		formattedTokens = strings.Replace(formattedTokens, ".0M", "M", 1)
-	}
-
+	// --- Context percentage line ---
 	var percentage float64
-	if contextWindow > 0 {
-		percentage = (float64(tokens) / float64(contextWindow)) * 100
+	if ctx.ModelContext > 0 {
+		percentage = (float64(ctx.ContextUsed) / float64(ctx.ModelContext)) * 100
 	}
-
-	formattedCost := t.ModelInfo.Cost.Render(fmt.Sprintf("$%.2f", cost))
-
-	formattedTokens = t.ModelInfo.TokenCount.Render(fmt.Sprintf("(%s)", formattedTokens))
 	percentageText := fmt.Sprintf("%d%%", int(percentage))
-	if estimated {
+	if ctx.EstimatedUsage {
 		percentageText = "~" + percentageText
 	}
-	formattedPercentage := t.ModelInfo.TokenPercentage.Render(percentageText)
-	formattedTokens = fmt.Sprintf("%s %s", formattedPercentage, formattedTokens)
+	contextPct := t.ModelInfo.TokenPercentage.Render(percentageText)
+	contextTotal := t.ModelInfo.TokenCount.Render(fmt.Sprintf("(%s)", formatTokenValue(ctx.ContextUsed)))
+	contextLine := fmt.Sprintf("%s %s", contextPct, contextTotal)
 	if percentage > 80 {
-		formattedTokens = fmt.Sprintf("%s %s", styles.LSPWarningIcon, formattedTokens)
+		contextLine = fmt.Sprintf("%s %s", styles.LSPWarningIcon, contextLine)
+	}
+	lines = append(lines, contextLine)
+
+	// --- Token in / Token out ---
+	promptStr := t.ModelInfo.TokenCount.Render(formatTokenValue(ctx.PromptTokens))
+	compStr := t.ModelInfo.TokenCount.Render(formatTokenValue(ctx.CompletionTokens))
+	tokenIn := t.ModelInfo.TokenPercentage.Render("in:")
+	tokenOut := t.ModelInfo.TokenPercentage.Render("out:")
+	inLine := fmt.Sprintf("%s  %s", tokenIn, promptStr)
+	if ctx.InputSavings > 0 {
+		savingsStr := t.ModelInfo.SaverEnabled.Render(fmt.Sprintf("(saved ~%.0f%%)", ctx.InputSavings))
+		inLine = fmt.Sprintf("%s %s", inLine, savingsStr)
+	}
+	outLine := fmt.Sprintf("%s %s", tokenOut, compStr)
+	if ctx.TokenSaverEnabled && ctx.CompressionSavings > 0 {
+		savingsStr := t.ModelInfo.SaverEnabled.Render(fmt.Sprintf("(saved ~%.0f%%)", ctx.CompressionSavings))
+		outLine = fmt.Sprintf("%s %s", outLine, savingsStr)
+	}
+	lines = append(lines, inLine)
+	lines = append(lines, outLine)
+
+	// --- Cost section ---
+	costStr := t.ModelInfo.Cost.Render(fmt.Sprintf("$%.4f", ctx.Cost))
+	costLabel := t.ModelInfo.TokenPercentage.Render("cost:")
+	lines = append(lines, fmt.Sprintf("%s %s", costLabel, costStr))
+
+	// --- Token saver status ---
+	saverLabel := t.ModelInfo.TokenPercentage.Render("token saver:")
+	if ctx.TokenSaverEnabled {
+		levelLabel := ctx.TokenSaverLevel
+		if levelLabel == "" {
+			levelLabel = "on"
+		}
+		saverStatus := t.ModelInfo.SaverEnabled.Render(levelLabel)
+		lines = append(lines, fmt.Sprintf("%s %s", saverLabel, saverStatus))
+	} else {
+		saverStatus := t.ModelInfo.SaverDisabled.Render("off")
+		lines = append(lines, fmt.Sprintf("%s %s", saverLabel, saverStatus))
 	}
 
-	return fmt.Sprintf("%s %s", formattedTokens, formattedCost)
+	return style.JoinVertical(style.Left, lines...)
+}
+
+// formatTokenValue formats a token count with K/M suffix.
+func formatTokenValue(tokens int64) string {
+	switch {
+	case tokens >= 1_000_000:
+		return fmt.Sprintf("%.1fM", float64(tokens)/1_000_000)
+	case tokens >= 1_000:
+		return fmt.Sprintf("%.1fK", float64(tokens)/1_000)
+	default:
+		return fmt.Sprintf("%d", tokens)
+	}
 }
 
 // FormatCredits formats an integer with comma separators for thousands.
@@ -178,11 +219,11 @@ func Status(t *styles.Styles, opts StatusOpts, width int) string {
 	title = t.Resource.RowTitleBase.Foreground(titleColor).Render(title)
 
 	if description != "" {
-		extraContentWidth := lipgloss.Width(opts.ExtraContent)
+		extraContentWidth := style.Width(opts.ExtraContent)
 		if extraContentWidth > 0 {
 			extraContentWidth += 1
 		}
-		description = ansi.Truncate(description, width-lipgloss.Width(icon)-lipgloss.Width(title)-2-extraContentWidth, "…")
+		description = ansi.Truncate(description, width-style.Width(icon)-style.Width(title)-2-extraContentWidth, "…")
 		description = t.Resource.RowDescBase.Foreground(descriptionColor).Render(description)
 	}
 
@@ -205,7 +246,7 @@ func Status(t *styles.Styles, opts StatusOpts, width int) string {
 // the remaining width.
 func Section(t *styles.Styles, text string, width int, info ...string) string {
 	char := styles.SectionSeparator
-	length := lipgloss.Width(text) + 1
+	length := style.Width(text) + 1
 	remainingWidth := width - length
 
 	var infoText string
@@ -213,7 +254,7 @@ func Section(t *styles.Styles, text string, width int, info ...string) string {
 		infoText = strings.Join(info, " ")
 		if len(infoText) > 0 {
 			infoText = " " + infoText
-			remainingWidth -= lipgloss.Width(infoText)
+			remainingWidth -= style.Width(infoText)
 		}
 	}
 
@@ -228,7 +269,7 @@ func Section(t *styles.Styles, text string, width int, info ...string) string {
 // remaining width.
 func DialogTitle(t *styles.Styles, title string, width int, fromColor, toColor color.Color) string {
 	char := "╱"
-	length := lipgloss.Width(title) + 1
+	length := style.Width(title) + 1
 	remainingWidth := width - length
 	if remainingWidth > 0 {
 		lines := strings.Repeat(char, remainingWidth)

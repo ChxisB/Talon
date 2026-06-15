@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/oauth/hyper"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/oauth/hyper"
+	"github.com/ChxisB/talon/internal/ui/common"
 )
 
 func NewOAuthHyper(
@@ -18,7 +18,7 @@ func NewOAuthHyper(
 	provider catwalk.Provider,
 	model config.SelectedModel,
 	modelType config.SelectedModelType,
-) (*OAuth, tea.Cmd) {
+) (*OAuth, bubble.Cmd) {
 	return newOAuth(com, isOnboarding, provider, model, modelType, &OAuthHyper{})
 }
 
@@ -32,7 +32,7 @@ func (m *OAuthHyper) name() string {
 	return "Hyper"
 }
 
-func (m *OAuthHyper) initiateAuth() tea.Msg {
+func (m *OAuthHyper) initiateAuth() bubble.Msg {
 	minimumWait := 750 * time.Millisecond
 	startTime := time.Now()
 
@@ -58,8 +58,8 @@ func (m *OAuthHyper) initiateAuth() tea.Msg {
 	}
 }
 
-func (m *OAuthHyper) startPolling(deviceCode string, expiresIn int) tea.Cmd {
-	return func() tea.Msg {
+func (m *OAuthHyper) startPolling(deviceCode string, expiresIn int) bubble.Cmd {
+	return func() bubble.Msg {
 		ctx, cancel := context.WithCancel(context.Background())
 		m.cancelFunc = cancel
 
@@ -88,7 +88,7 @@ func (m *OAuthHyper) startPolling(deviceCode string, expiresIn int) tea.Cmd {
 	}
 }
 
-func (m *OAuthHyper) stopPolling() tea.Msg {
+func (m *OAuthHyper) stopPolling() bubble.Msg {
 	if m.cancelFunc != nil {
 		m.cancelFunc()
 	}

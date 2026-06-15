@@ -5,22 +5,22 @@ import (
 	"path/filepath"
 	"strings"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/exp/palette"
-	"github.com/ChxisB/spectre-proxy/deps/util/term"
-	"github.com/ChxisB/spectre-proxy/internal/config"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	"github.com/ChxisB/talon/deps/util/exp/palette"
+	"github.com/ChxisB/talon/deps/util/term"
+	"github.com/ChxisB/talon/internal/config"
 	"github.com/spf13/cobra"
 )
 
 var dirsCmd = &cobra.Command{
 	Use:   "dirs",
 	Short: "Show config and data directories",
-	Long: `Show where spectre stores its configuration and data,
+	Long: `Show where talon stores its configuration and data,
 including any project-level config files discovered
 from the current directory up to the project root.`,
 	Example: `
 # Show all directories
-spectre dirs
+talon dirs
   `,
 	Run: func(cmd *cobra.Command, args []string) {
 		entries := collectDirs(cmd)
@@ -58,7 +58,7 @@ func collectDirs(cmd *cobra.Command) []string {
 }
 
 func printDirs(cmd *cobra.Command, dirs []string) {
-	labelStyle := lipgloss.NewStyle().Bold(true).Foreground(palette.Charple)
+	labelStyle := style.NewStyle().Bold(true).Foreground(palette.Charple)
 
 	labels := make([]string, len(dirs))
 	longest := 0
@@ -71,12 +71,12 @@ func printDirs(cmd *cobra.Command, dirs []string) {
 	}
 
 	for i, d := range dirs {
-		lipgloss.Println(labelStyle.Render(labels[i]) +
+		style.Println(labelStyle.Render(labels[i]) +
 			strings.Repeat(" ", longest-len(labels[i])) +
 			" " + d)
 	}
 
-	lipgloss.Println(lipgloss.NewStyle().Foreground(palette.Squid).Render("Configs merge from top to bottom"))
+	style.Println(style.NewStyle().Foreground(palette.Squid).Render("Configs merge from top to bottom"))
 }
 
 func dirLabel(i int) string {

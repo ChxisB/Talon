@@ -68,14 +68,14 @@ When user asks to create git commit:
    Commit message here.
 
 {{ if .Attribution.GeneratedWith }}
-💘 Generated with Spectre
+💘 Generated with Talon
 {{ end}}
 {{if eq .Attribution.TrailerStyle "assisted-by" }}
 
-Assisted-by: Spectre:{{ .ModelID }}
+Assisted-by: Talon:{{ .ModelID }}
 {{ else if eq .Attribution.TrailerStyle "co-authored-by" }}
 
-Co-Authored-By: Spectre Proxy <spectre-proxy@users.noreply.github.com>
+Co-Authored-By: Talon <talon@users.noreply.github.com>
 {{ end }}
 
    EOF
@@ -127,7 +127,7 @@ Use gh command for ALL GitHub tasks. When user asks to create PR:
    [Checklist of TODOs...]
 
 {{ if .Attribution.GeneratedWith}}
-   💘 Generated with Spectre
+   💘 Generated with Talon
 {{ end }}
 
    EOF

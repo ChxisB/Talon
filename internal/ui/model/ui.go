@@ -19,46 +19,46 @@ import (
 	"strings"
 	"time"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	uv "github.com/ChxisB/spectre-proxy/deps/terminal"
-	"github.com/ChxisB/spectre-proxy/deps/terminal/layout"
-	"github.com/ChxisB/spectre-proxy/deps/terminal/screen"
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/help"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/key"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/spinner"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/textarea"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/editor"
-	xstrings "github.com/ChxisB/spectre-proxy/deps/util/exp/strings"
-	"github.com/ChxisB/spectre-proxy/internal/agent/hyper"
-	"github.com/ChxisB/spectre-proxy/internal/agent/notify"
-	agenttools "github.com/ChxisB/spectre-proxy/internal/agent/tools"
-	"github.com/ChxisB/spectre-proxy/internal/agent/tools/mcp"
-	"github.com/ChxisB/spectre-proxy/internal/app"
-	"github.com/ChxisB/spectre-proxy/internal/commands"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/fsext"
-	"github.com/ChxisB/spectre-proxy/internal/history"
-	"github.com/ChxisB/spectre-proxy/internal/home"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/permission"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
-	"github.com/ChxisB/spectre-proxy/internal/session"
-	"github.com/ChxisB/spectre-proxy/internal/skills"
-	"github.com/ChxisB/spectre-proxy/internal/stringext"
-	"github.com/ChxisB/spectre-proxy/internal/ui/anim"
-	"github.com/ChxisB/spectre-proxy/internal/ui/attachments"
-	"github.com/ChxisB/spectre-proxy/internal/ui/chat"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/ui/completions"
-	"github.com/ChxisB/spectre-proxy/internal/ui/dialog"
-	fimage "github.com/ChxisB/spectre-proxy/internal/ui/image"
-	"github.com/ChxisB/spectre-proxy/internal/ui/notification"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
-	"github.com/ChxisB/spectre-proxy/internal/ui/util"
-	"github.com/ChxisB/spectre-proxy/internal/version"
-	"github.com/ChxisB/spectre-proxy/internal/workspace"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	term "github.com/ChxisB/talon/deps/terminal"
+	"github.com/ChxisB/talon/deps/terminal/layout"
+	"github.com/ChxisB/talon/deps/terminal/screen"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	"github.com/ChxisB/talon/deps/ui/core/v2/help"
+	"github.com/ChxisB/talon/deps/ui/core/v2/key"
+	"github.com/ChxisB/talon/deps/ui/core/v2/spinner"
+	"github.com/ChxisB/talon/deps/ui/core/v2/textarea"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/deps/util/editor"
+	xstr "github.com/ChxisB/talon/deps/util/exp/strings"
+	"github.com/ChxisB/talon/internal/agent/hyper"
+	"github.com/ChxisB/talon/internal/agent/notify"
+	agenttools "github.com/ChxisB/talon/internal/agent/tools"
+	"github.com/ChxisB/talon/internal/agent/tools/mcp"
+	"github.com/ChxisB/talon/internal/app"
+	"github.com/ChxisB/talon/internal/commands"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/fsext"
+	"github.com/ChxisB/talon/internal/history"
+	"github.com/ChxisB/talon/internal/home"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/permission"
+	"github.com/ChxisB/talon/internal/pubsub"
+	"github.com/ChxisB/talon/internal/session"
+	"github.com/ChxisB/talon/internal/skills"
+	"github.com/ChxisB/talon/internal/stringext"
+	"github.com/ChxisB/talon/internal/ui/anim"
+	"github.com/ChxisB/talon/internal/ui/attachments"
+	"github.com/ChxisB/talon/internal/ui/chat"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/ui/completions"
+	"github.com/ChxisB/talon/internal/ui/dialog"
+	fimage "github.com/ChxisB/talon/internal/ui/image"
+	"github.com/ChxisB/talon/internal/ui/notification"
+	"github.com/ChxisB/talon/internal/ui/styles"
+	"github.com/ChxisB/talon/internal/ui/util"
+	"github.com/ChxisB/talon/internal/version"
+	"github.com/ChxisB/talon/internal/workspace"
 )
 
 // MouseScrollThreshold defines how many lines to scroll the chat when a mouse
@@ -187,7 +187,7 @@ type UI struct {
 	state uiState
 
 	keyMap KeyMap
-	keyenh tea.KeyboardEnhancementsMsg
+	keyenh bubble.KeyboardEnhancementsMsg
 
 	dialog *dialog.Overlay
 	status *Status
@@ -238,9 +238,6 @@ type UI struct {
 	// skills
 	skillStates []*skills.SkillState
 
-	// sidebarLogo keeps a cached version of the sidebar sidebarLogo.
-	sidebarLogo string
-
 	// Notification state
 	notifyBackend       notification.Backend
 	notifyWindowFocused bool
@@ -250,6 +247,10 @@ type UI struct {
 
 	// forceCompactMode tracks whether compact mode is forced by user toggle
 	forceCompactMode bool
+
+	// sidebarScrollOffset tracks the scroll position of the sidebar content
+	// when it overflows the available height.
+	sidebarScrollOffset int
 
 	// isCompact tracks whether we're currently in compact layout mode (either
 	// by user toggle or auto-switch based on window size)
@@ -264,6 +265,12 @@ type UI struct {
 	focusedPillSection pillSection
 	promptQueue        int
 	pillsView          string
+
+	// token saver: last known compression savings percent (0 = disabled or no data)
+	lastCompressionSavings float64
+
+	// input savings: last known input optimization savings percent (memory-tree, token-optimizer)
+	lastInputSavings float64
 
 	// Todo spinner
 	todoSpinner    spinner.Model
@@ -388,8 +395,8 @@ func New(com *common.Common, initialSessionID string, continueLast bool) *UI {
 }
 
 // Init initializes the UI model.
-func (m *UI) Init() tea.Cmd {
-	var cmds []tea.Cmd
+func (m *UI) Init() bubble.Cmd {
+	var cmds []bubble.Cmd
 	if m.state == uiOnboarding {
 		if cmd := m.openModelsDialog(); cmd != nil {
 			cmds = append(cmds, cmd)
@@ -406,11 +413,11 @@ func (m *UI) Init() tea.Cmd {
 	if m.com.IsHyper() {
 		cmds = append(cmds, m.fetchHyperCredits())
 	}
-	return tea.Batch(cmds...)
+	return bubble.Batch(cmds...)
 }
 
 // loadInitialSession loads the initial session if one was specified on startup.
-func (m *UI) loadInitialSession() tea.Cmd {
+func (m *UI) loadInitialSession() bubble.Cmd {
 	switch {
 	case m.state != uiLanding:
 		// Only load if we're in landing state (i.e., fully configured)
@@ -418,7 +425,7 @@ func (m *UI) loadInitialSession() tea.Cmd {
 	case m.initialSessionID != "":
 		return m.loadSession(m.initialSessionID)
 	case m.continueLastSession:
-		return func() tea.Msg {
+		return func() bubble.Msg {
 			sessions, err := m.com.Workspace.ListSessions(context.Background())
 			if err != nil || len(sessions) == 0 {
 				return nil
@@ -431,7 +438,7 @@ func (m *UI) loadInitialSession() tea.Cmd {
 }
 
 // sendNotification returns a command that sends a notification if allowed by policy.
-func (m *UI) sendNotification(n notification.Notification) tea.Cmd {
+func (m *UI) sendNotification(n notification.Notification) bubble.Cmd {
 	if !m.shouldSendNotification() {
 		return nil
 	}
@@ -524,8 +531,8 @@ func (m *UI) setState(state uiState, focus uiFocusState) {
 }
 
 // loadCustomCommands loads the custom commands asynchronously.
-func (m *UI) loadCustomCommands() tea.Cmd {
-	return func() tea.Msg {
+func (m *UI) loadCustomCommands() bubble.Cmd {
+	return func() bubble.Msg {
 		customCommands, err := commands.LoadCustomCommands(m.com.Config())
 		if err != nil {
 			slog.Error("Failed to load custom commands", "error", err)
@@ -541,7 +548,7 @@ func (m *UI) loadCustomCommands() tea.Cmd {
 }
 
 // loadMCPrompts loads the MCP prompts asynchronously.
-func (m *UI) loadMCPrompts() tea.Msg {
+func (m *UI) loadMCPrompts() bubble.Msg {
 	prompts, err := commands.LoadMCPPrompts()
 	if err != nil {
 		slog.Error("Failed to load MCP prompts", "error", err)
@@ -554,8 +561,8 @@ func (m *UI) loadMCPrompts() tea.Msg {
 }
 
 // Update handles updates to the UI model.
-func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmds []tea.Cmd
+func (m *UI) Update(msg bubble.Msg) (bubble.Model, bubble.Cmd) {
+	var cmds []bubble.Cmd
 	if m.hasSession() && m.isAgentBusy() {
 		queueSize := m.com.Workspace.AgentQueuedPrompts(m.session.ID)
 		if queueSize != m.promptQueue {
@@ -566,19 +573,19 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Update terminal capabilities
 	m.caps.Update(msg)
 	switch msg := msg.(type) {
-	case tea.EnvMsg:
+	case bubble.EnvMsg:
 		// Is this Windows Terminal?
 		if !m.sendProgressBar {
 			m.sendProgressBar = slices.Contains(msg, "WT_SESSION")
 		}
-		cmds = append(cmds, common.QueryCmd(uv.Environ(msg)))
-	case tea.ModeReportMsg:
+		cmds = append(cmds, common.QueryCmd(term.Environ(msg)))
+	case bubble.ModeReportMsg:
 		m.updateNotificationBackend()
-	case uv.UnknownOscEvent:
+	case term.UnknownOscEvent:
 		m.updateNotificationBackend()
-	case tea.FocusMsg:
+	case bubble.FocusMsg:
 		m.notifyWindowFocused = true
-	case tea.BlurMsg:
+	case bubble.BlurMsg:
 		m.notifyWindowFocused = false
 	case pubsub.Event[notify.Notification]:
 		if cmd := m.handleAgentNotification(msg.Payload); cmd != nil {
@@ -720,7 +727,7 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case pubsub.Event[mcp.Event]:
 		switch msg.Payload.Type {
 		case mcp.EventStateChanged:
-			return m, tea.Batch(
+			return m, bubble.Batch(
 				m.handleStateChanged(),
 				m.loadMCPrompts,
 			)
@@ -736,7 +743,7 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, cmd)
 		}
 		if cmd := m.sendNotification(notification.Notification{
-			Title:   "Spectre is waiting...",
+			Title:   "Talon is waiting...",
 			Message: fmt.Sprintf("Permission required to execute \"%s\"", msg.Payload.ToolName),
 		}); cmd != nil {
 			cmds = append(cmds, cmd)
@@ -745,14 +752,14 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.handlePermissionNotification(msg.Payload)
 	case cancelTimerExpiredMsg:
 		m.isCanceling = false
-	case tea.TerminalVersionMsg:
+	case bubble.TerminalVersionMsg:
 		termVersion := strings.ToLower(msg.Name)
 		// Only enable progress bar for the following terminals.
 		if !m.sendProgressBar {
-			m.sendProgressBar = xstrings.ContainsAnyOf(termVersion, "ghostty", "iterm2", "rio")
+			m.sendProgressBar = xstr.ContainsAnyOf(termVersion, "ghostty", "iterm2", "rio")
 		}
 		return m, nil
-	case tea.WindowSizeMsg:
+	case bubble.WindowSizeMsg:
 		m.width, m.height = msg.Width, msg.Height
 		m.updateLayoutAndSize()
 		if m.state == uiChat && m.chat.Follow() {
@@ -760,7 +767,7 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, cmd)
 			}
 		}
-	case tea.KeyboardEnhancementsMsg:
+	case bubble.KeyboardEnhancementsMsg:
 		m.keyenh = msg
 		if msg.SupportsKeyDisambiguation() {
 			m.keyMap.Models.SetHelp("ctrl+m", "models")
@@ -771,11 +778,11 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case DelayedClickMsg:
 		// Handle delayed single-click action (e.g., expansion).
 		m.chat.HandleDelayedClick(msg)
-	case tea.MouseClickMsg:
+	case bubble.MouseClickMsg:
 		// Pass mouse events to dialogs first if any are open.
 		if m.dialog.HasDialogs() {
 			m.dialog.Update(msg)
-			return m, tea.Batch(cmds...)
+			return m, bubble.Batch(cmds...)
 		}
 
 		if cmd := m.handleClickFocus(msg); cmd != nil {
@@ -798,11 +805,11 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
-	case tea.MouseMotionMsg:
+	case bubble.MouseMotionMsg:
 		// Pass mouse events to dialogs first if any are open.
 		if m.dialog.HasDialogs() {
 			m.dialog.Update(msg)
-			return m, tea.Batch(cmds...)
+			return m, bubble.Batch(cmds...)
 		}
 
 		switch m.state {
@@ -836,11 +843,11 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.chat.HandleMouseDrag(x, y)
 		}
 
-	case tea.MouseReleaseMsg:
+	case bubble.MouseReleaseMsg:
 		// Pass mouse events to dialogs first if any are open.
 		if m.dialog.HasDialogs() {
 			m.dialog.Update(msg)
-			return m, tea.Batch(cmds...)
+			return m, bubble.Batch(cmds...)
 		}
 
 		switch m.state {
@@ -850,7 +857,7 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			x -= m.layout.main.Min.X
 			y -= m.layout.main.Min.Y
 			if m.chat.HandleMouseUp(x, y) && m.chat.HasHighlight() {
-				cmds = append(cmds, tea.Tick(doubleClickThreshold, func(t time.Time) tea.Msg {
+				cmds = append(cmds, bubble.Tick(doubleClickThreshold, func(t time.Time) bubble.Msg {
 					if time.Since(m.lastClickTime) >= doubleClickThreshold {
 						return copyChatHighlightMsg{}
 					}
@@ -858,39 +865,52 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}))
 			}
 		}
-	case tea.MouseWheelMsg:
+	case bubble.MouseWheelMsg:
 		// Pass mouse events to dialogs first if any are open.
 		if m.dialog.HasDialogs() {
 			m.dialog.Update(msg)
-			return m, tea.Batch(cmds...)
+			return m, bubble.Batch(cmds...)
 		}
 
-		// Otherwise handle mouse wheel for chat.
+		// Otherwise handle mouse wheel for chat or sidebar.
 		switch m.state {
 		case uiChat:
-			switch msg.Button {
-			case tea.MouseWheelUp:
-				if cmd := m.chat.ScrollByAndAnimate(-MouseScrollThreshold); cmd != nil {
-					cmds = append(cmds, cmd)
+			if !m.isCompact && m.layout.sidebar.Overlaps(image.Rect(msg.Mouse().X, msg.Mouse().Y, msg.Mouse().X+1, msg.Mouse().Y+1)) {
+				// Sidebar scrolling
+				const sidebarScrollStep = 3
+				switch msg.Button {
+				case bubble.MouseWheelUp:
+					m.sidebarScrollOffset = max(0, m.sidebarScrollOffset-sidebarScrollStep)
+				case bubble.MouseWheelDown:
+					// Upper bound enforced in drawSidebar
+					m.sidebarScrollOffset += sidebarScrollStep
 				}
-				if !m.chat.SelectedItemInView() {
-					m.chat.SelectPrev()
-					if cmd := m.chat.ScrollToSelectedAndAnimate(); cmd != nil {
+			} else {
+				// Chat scrolling
+				switch msg.Button {
+				case bubble.MouseWheelUp:
+					if cmd := m.chat.ScrollByAndAnimate(-MouseScrollThreshold); cmd != nil {
 						cmds = append(cmds, cmd)
 					}
-				}
-			case tea.MouseWheelDown:
-				if cmd := m.chat.ScrollByAndAnimate(MouseScrollThreshold); cmd != nil {
-					cmds = append(cmds, cmd)
-				}
-				if !m.chat.SelectedItemInView() {
-					if m.chat.AtBottom() {
-						m.chat.SelectLast()
-					} else {
-						m.chat.SelectNext()
+					if !m.chat.SelectedItemInView() {
+						m.chat.SelectPrev()
+						if cmd := m.chat.ScrollToSelectedAndAnimate(); cmd != nil {
+							cmds = append(cmds, cmd)
+						}
 					}
-					if cmd := m.chat.ScrollToSelectedAndAnimate(); cmd != nil {
+				case bubble.MouseWheelDown:
+					if cmd := m.chat.ScrollByAndAnimate(MouseScrollThreshold); cmd != nil {
 						cmds = append(cmds, cmd)
+					}
+					if !m.chat.SelectedItemInView() {
+						if m.chat.AtBottom() {
+							m.chat.SelectLast()
+						} else {
+							m.chat.SelectNext()
+						}
+						if cmd := m.chat.ScrollToSelectedAndAnimate(); cmd != nil {
+							cmds = append(cmds, cmd)
+						}
 					}
 				}
 			}
@@ -914,7 +934,7 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		if m.state == uiChat && m.hasSession() && hasInProgressTodo(m.session.Todos) && m.todoIsSpinning {
-			var cmd tea.Cmd
+			var cmd bubble.Cmd
 			m.todoSpinner, cmd = m.todoSpinner.Update(msg)
 			if cmd != nil {
 				m.renderPills()
@@ -922,11 +942,11 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
-	case tea.KeyPressMsg:
+	case bubble.KeyPressMsg:
 		if cmd := m.handleKeyPressMsg(msg); cmd != nil {
 			cmds = append(cmds, cmd)
 		}
-	case tea.PasteMsg:
+	case bubble.PasteMsg:
 		if cmd := m.handlePasteMsg(msg); cmd != nil {
 			cmds = append(cmds, cmd)
 		}
@@ -952,9 +972,9 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		cmds = append(cmds, clearInfoMsgCmd(ttl))
 	case app.UpdateAvailableMsg:
-		text := fmt.Sprintf("Spectre update available: v%s → v%s.", msg.CurrentVersion, msg.LatestVersion)
+		text := fmt.Sprintf("Talon update available: v%s → v%s.", msg.CurrentVersion, msg.LatestVersion)
 		if msg.IsDevelopment {
-			text = fmt.Sprintf("This is a development version of Spectre. The latest version is v%s.", msg.LatestVersion)
+			text = fmt.Sprintf("This is a development version of Talon. The latest version is v%s.", msg.LatestVersion)
 		}
 		ttl := 10 * time.Second
 		m.status.SetInfoMsg(util.InfoMsg{
@@ -969,7 +989,7 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.completionsOpen {
 			m.completions.SetItems(msg.Files, msg.Resources)
 		}
-	case uv.KittyGraphicsEvent:
+	case term.KittyGraphicsEvent:
 		if !bytes.HasPrefix(msg.Payload, []byte("OK")) {
 			slog.Warn("Unexpected Kitty graphics response",
 				"response", string(msg.Payload),
@@ -1001,12 +1021,12 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// at this point this can only handle [message.Attachment] message, and we
 	// should return all cmds anyway.
 	_ = m.attachments.Update(msg)
-	return m, tea.Batch(cmds...)
+	return m, bubble.Batch(cmds...)
 }
 
 // setSessionMessages sets the messages for the current session in the chat
-func (m *UI) setSessionMessages(msgs []message.Message) tea.Cmd {
-	var cmds []tea.Cmd
+func (m *UI) setSessionMessages(msgs []message.Message) bubble.Cmd {
+	var cmds []bubble.Cmd
 	// Build tool result map to link tool calls with their results
 	msgPtrs := make([]*message.Message, len(msgs))
 	for i := range msgs {
@@ -1053,7 +1073,7 @@ func (m *UI) setSessionMessages(msgs []message.Message) tea.Cmd {
 		cmds = append(cmds, cmd)
 	}
 	m.chat.SelectLast()
-	return tea.Sequence(cmds...)
+	return bubble.Sequence(cmds...)
 }
 
 // loadNestedToolCalls recursively loads nested tool calls for agent/agentic_fetch tools.
@@ -1116,8 +1136,8 @@ func (m *UI) loadNestedToolCalls(items []chat.MessageItem) {
 
 // appendSessionMessage appends a new message to the current session in the chat
 // if the message is a tool result it will update the corresponding tool call message
-func (m *UI) appendSessionMessage(msg message.Message) tea.Cmd {
-	var cmds []tea.Cmd
+func (m *UI) appendSessionMessage(msg message.Message) bubble.Cmd {
+	var cmds []bubble.Cmd
 
 	existing := m.chat.MessageItem(msg.ID)
 	if existing != nil {
@@ -1150,6 +1170,12 @@ func (m *UI) appendSessionMessage(msg message.Message) tea.Cmd {
 			}
 		}
 		m.chat.AppendMessages(items...)
+		if msg.CompressionSavings > 0 {
+			m.lastCompressionSavings = msg.CompressionSavings
+		}
+		if msg.InputSavings > 0 {
+			m.lastInputSavings = msg.InputSavings
+		}
 		if m.chat.Follow() {
 			if cmd := m.chat.ScrollToBottomAndAnimate(); cmd != nil {
 				cmds = append(cmds, cmd)
@@ -1181,10 +1207,10 @@ func (m *UI) appendSessionMessage(msg message.Message) tea.Cmd {
 			}
 		}
 	}
-	return tea.Sequence(cmds...)
+	return bubble.Sequence(cmds...)
 }
 
-func (m *UI) handleClickFocus(msg tea.MouseClickMsg) (cmd tea.Cmd) {
+func (m *UI) handleClickFocus(msg bubble.MouseClickMsg) (cmd bubble.Cmd) {
 	switch {
 	case m.state != uiChat:
 		return nil
@@ -1206,8 +1232,8 @@ func (m *UI) handleClickFocus(msg tea.MouseClickMsg) (cmd tea.Cmd) {
 // the chat when an assistant message is updated it may include updated tool
 // calls as well that is why we need to handle creating/updating each tool call
 // message too.
-func (m *UI) updateSessionMessage(msg message.Message) tea.Cmd {
-	var cmds []tea.Cmd
+func (m *UI) updateSessionMessage(msg message.Message) bubble.Cmd {
+	var cmds []bubble.Cmd
 	existingItem := m.chat.MessageItem(msg.ID)
 
 	if existingItem != nil {
@@ -1236,6 +1262,13 @@ func (m *UI) updateSessionMessage(msg message.Message) tea.Cmd {
 			newInfoItem := chat.NewAssistantInfoItem(m.com.Styles, &msg, m.com.Config(), time.Unix(m.lastUserMessageTime, 0))
 			m.chat.AppendMessages(newInfoItem)
 		}
+	}
+
+	if msg.CompressionSavings > 0 {
+		m.lastCompressionSavings = msg.CompressionSavings
+	}
+	if msg.InputSavings > 0 {
+		m.lastInputSavings = msg.InputSavings
 	}
 
 	var items []chat.MessageItem
@@ -1270,12 +1303,12 @@ func (m *UI) updateSessionMessage(msg message.Message) tea.Cmd {
 		m.chat.SelectLast()
 	}
 
-	return tea.Sequence(cmds...)
+	return bubble.Sequence(cmds...)
 }
 
 // handleChildSessionMessage handles messages from child sessions (agent tools).
-func (m *UI) handleChildSessionMessage(event pubsub.Event[message.Message]) tea.Cmd {
-	var cmds []tea.Cmd
+func (m *UI) handleChildSessionMessage(event pubsub.Event[message.Message]) bubble.Cmd {
+	var cmds []bubble.Cmd
 
 	// Only process messages with tool calls or results.
 	if len(event.Payload.ToolCalls()) == 0 && len(event.Payload.ToolResults()) == 0 {
@@ -1363,14 +1396,14 @@ func (m *UI) handleChildSessionMessage(event pubsub.Event[message.Message]) tea.
 		m.chat.SelectLast()
 	}
 
-	return tea.Sequence(cmds...)
+	return bubble.Sequence(cmds...)
 }
 
-func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
-	var cmds []tea.Cmd
+func (m *UI) handleDialogMsg(msg bubble.Msg) bubble.Cmd {
+	var cmds []bubble.Cmd
 	action := m.dialog.Update(msg)
 	if action == nil {
-		return tea.Batch(cmds...)
+		return bubble.Batch(cmds...)
 	}
 
 	isOnboarding := m.state == uiOnboarding
@@ -1447,7 +1480,7 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 			cmds = append(cmds, util.ReportWarn("Agent is busy, please wait before summarizing session..."))
 			break
 		}
-		cmds = append(cmds, func() tea.Msg {
+		cmds = append(cmds, func() bubble.Msg {
 			err := m.com.Workspace.AgentSummarize(context.Background(), msg.SessionID)
 			if err != nil {
 				return util.ReportError(err)()
@@ -1474,7 +1507,7 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 		}
 		m.dialog.CloseDialog(dialog.CommandsID)
 	case dialog.ActionToggleThinking:
-		cmds = append(cmds, func() tea.Msg {
+		cmds = append(cmds, func() bubble.Msg {
 			cfg := m.com.Config()
 			if cfg == nil {
 				return util.ReportError(errors.New("configuration not found"))()
@@ -1499,7 +1532,7 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 		})
 		m.dialog.CloseDialog(dialog.CommandsID)
 	case dialog.ActionToggleTransparentBackground:
-		cmds = append(cmds, func() tea.Msg {
+		cmds = append(cmds, func() bubble.Msg {
 			cfg := m.com.Config()
 			if cfg == nil {
 				return util.ReportError(errors.New("configuration not found"))()
@@ -1520,7 +1553,7 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 		})
 		m.dialog.CloseDialog(dialog.CommandsID)
 	case dialog.ActionQuit:
-		cmds = append(cmds, tea.Quit)
+		cmds = append(cmds, bubble.Quit)
 	case dialog.ActionEnableDockerMCP:
 		m.dialog.CloseDialog(dialog.CommandsID)
 		cmds = append(cmds, m.enableDockerMCP)
@@ -1564,7 +1597,7 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 			break
 		}
 
-		cmds = append(cmds, func() tea.Msg {
+		cmds = append(cmds, func() bubble.Msg {
 			m.com.Workspace.UpdateAgentModel(context.TODO())
 			return util.NewInfoMsg("Reasoning effort set to " + msg.Effort)
 		})
@@ -1581,13 +1614,13 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 		}
 
 	case dialog.ActionFilePickerSelected:
-		cmds = append(cmds, tea.Sequence(
+		cmds = append(cmds, bubble.Sequence(
 			msg.Cmd(),
-			func() tea.Msg {
+			func() bubble.Msg {
 				m.dialog.CloseDialog(dialog.FilePickerID)
 				return nil
 			},
-			func() tea.Msg {
+			func() bubble.Msg {
 				fimage.ResetCache()
 				return nil
 			},
@@ -1638,7 +1671,7 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 		cmds = append(cmds, util.CmdHandler(msg))
 	}
 
-	return tea.Batch(cmds...)
+	return bubble.Batch(cmds...)
 }
 
 // substituteArgs replaces $ARG_NAME placeholders in content with actual values.
@@ -1654,8 +1687,8 @@ func substituteArgs(content string, args map[string]string) string {
 // the Hyper OAuth token and then re-runs the model selection. If the
 // refresh fails, the selection resumes with ReAuthenticate set so the
 // OAuth dialog opens.
-func (m *UI) refreshHyperAndRetrySelect(msg dialog.ActionSelectModel) tea.Cmd {
-	return func() tea.Msg {
+func (m *UI) refreshHyperAndRetrySelect(msg dialog.ActionSelectModel) bubble.Cmd {
+	return func() bubble.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 		defer cancel()
 		if err := m.com.Workspace.RefreshOAuthToken(ctx, config.ScopeGlobal, "hyper"); err != nil {
@@ -1668,8 +1701,8 @@ func (m *UI) refreshHyperAndRetrySelect(msg dialog.ActionSelectModel) tea.Cmd {
 
 // fetchHyperCredits returns a command that asynchronously fetches the
 // remaining Hyper credits from the API.
-func (m *UI) fetchHyperCredits() tea.Cmd {
-	return func() tea.Msg {
+func (m *UI) fetchHyperCredits() bubble.Cmd {
+	return func() bubble.Msg {
 		cfg := m.com.Config()
 		if cfg == nil {
 			return nil
@@ -1695,8 +1728,8 @@ func (m *UI) fetchHyperCredits() tea.Cmd {
 
 // handleSelectModel performs the model selection after any provider
 // pre-checks (such as a silent Hyper OAuth refresh) have completed.
-func (m *UI) handleSelectModel(msg dialog.ActionSelectModel) tea.Cmd {
-	var cmds []tea.Cmd
+func (m *UI) handleSelectModel(msg dialog.ActionSelectModel) bubble.Cmd {
+	var cmds []bubble.Cmd
 
 	// we ignore dialogs with the oauth id as they need to be able to be dismissed
 	if m.isAgentBusy() && !m.dialog.ContainsDialog(dialog.OAuthID) {
@@ -1735,7 +1768,7 @@ func (m *UI) handleSelectModel(msg dialog.ActionSelectModel) tea.Cmd {
 		if cmd := m.openAuthenticationDialog(msg.Provider, msg.Model, msg.ModelType); cmd != nil {
 			cmds = append(cmds, cmd)
 		}
-		return tea.Batch(cmds...)
+		return bubble.Batch(cmds...)
 	}
 
 	if err := m.com.Workspace.UpdatePreferredModel(config.ScopeGlobal, msg.ModelType, msg.Model); err != nil {
@@ -1755,7 +1788,7 @@ func (m *UI) handleSelectModel(msg dialog.ActionSelectModel) tea.Cmd {
 		}
 	}
 
-	cmds = append(cmds, func() tea.Msg {
+	cmds = append(cmds, func() bubble.Msg {
 		if err := m.com.Workspace.UpdateAgentModel(context.TODO()); err != nil {
 			return util.ReportError(err)
 		}
@@ -1786,13 +1819,13 @@ func (m *UI) handleSelectModel(msg dialog.ActionSelectModel) tea.Cmd {
 		cmds = append(cmds, m.fetchHyperCredits())
 	}
 
-	return tea.Batch(cmds...)
+	return bubble.Batch(cmds...)
 }
 
-func (m *UI) openAuthenticationDialog(provider catwalk.Provider, model config.SelectedModel, modelType config.SelectedModelType) tea.Cmd {
+func (m *UI) openAuthenticationDialog(provider catwalk.Provider, model config.SelectedModel, modelType config.SelectedModelType) bubble.Cmd {
 	var (
 		dlg dialog.Dialog
-		cmd tea.Cmd
+		cmd bubble.Cmd
 
 		isOnboarding = m.state == uiOnboarding
 	)
@@ -1815,10 +1848,10 @@ func (m *UI) openAuthenticationDialog(provider catwalk.Provider, model config.Se
 	return cmd
 }
 
-func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
-	var cmds []tea.Cmd
+func (m *UI) handleKeyPressMsg(msg bubble.KeyPressMsg) bubble.Cmd {
+	var cmds []bubble.Cmd
 
-	handleGlobalKeys := func(msg tea.KeyPressMsg) bool {
+	handleGlobalKeys := func(msg bubble.KeyPressMsg) bool {
 		switch {
 		case key.Matches(msg, m.keyMap.Help):
 			m.status.ToggleHelp()
@@ -1869,7 +1902,7 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 				cmds = append(cmds, util.ReportWarn("Agent is busy, please wait..."))
 				return true
 			}
-			cmds = append(cmds, tea.Suspend)
+			cmds = append(cmds, bubble.Suspend)
 			return true
 		case key.Matches(msg, m.keyMap.ToggleYolo):
 			yolo := !m.com.Workspace.PermissionSkipRequests()
@@ -1891,7 +1924,7 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 			cmds = append(cmds, cmd)
 		}
 
-		return tea.Batch(cmds...)
+		return bubble.Batch(cmds...)
 	}
 
 	// Route all messages to dialog if one is open.
@@ -1905,16 +1938,16 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 			if cmd := m.cancelAgent(); cmd != nil {
 				cmds = append(cmds, cmd)
 			}
-			return tea.Batch(cmds...)
+			return bubble.Batch(cmds...)
 		}
 	}
 
 	switch m.state {
 	case uiOnboarding:
-		return tea.Batch(cmds...)
+		return bubble.Batch(cmds...)
 	case uiInitialize:
 		cmds = append(cmds, m.updateInitializeView(msg)...)
-		return tea.Batch(cmds...)
+		return bubble.Batch(cmds...)
 	case uiChat, uiLanding:
 		switch m.focus {
 		case uiFocusEditor:
@@ -1935,12 +1968,12 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 					case completions.ClosedMsg:
 						m.completionsOpen = false
 					}
-					return tea.Batch(cmds...)
+					return bubble.Batch(cmds...)
 				}
 			}
 
 			if ok := m.attachments.Update(msg); ok {
-				return tea.Batch(cmds...)
+				return bubble.Batch(cmds...)
 			}
 
 			switch {
@@ -1990,7 +2023,7 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 				m.randomizePlaceholders()
 				m.historyReset()
 
-				return tea.Batch(m.sendMessage(value, attachments...), m.loadPromptHistory())
+				return bubble.Batch(m.sendMessage(value, attachments...), m.loadPromptHistory())
 			case key.Matches(msg, m.keyMap.Chat.NewSession):
 				if !m.hasSession() {
 					break
@@ -2192,11 +2225,11 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 		handleGlobalKeys(msg)
 	}
 
-	return tea.Sequence(cmds...)
+	return bubble.Sequence(cmds...)
 }
 
 // drawHeader draws the header section of the UI.
-func (m *UI) drawHeader(scr uv.Screen, area uv.Rectangle) {
+func (m *UI) drawHeader(scr term.Screen, area term.Rectangle) {
 	m.header.drawHeader(
 		scr,
 		area,
@@ -2208,8 +2241,8 @@ func (m *UI) drawHeader(scr uv.Screen, area uv.Rectangle) {
 	)
 }
 
-// Draw implements [uv.Drawable] and draws the UI model.
-func (m *UI) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
+// Draw implements [term.Drawable] and draws the UI model.
+func (m *UI) Draw(scr term.Screen, area term.Rectangle) *bubble.Cursor {
 	layout := m.generateLayout(area.Dx(), area.Dy())
 
 	if m.layout != layout {
@@ -2230,15 +2263,15 @@ func (m *UI) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 	case uiInitialize:
 		m.drawHeader(scr, layout.header)
 
-		main := uv.NewStyledString(m.initializeView())
+		main := term.NewStyledString(m.initializeView())
 		main.Draw(scr, layout.main)
 
 	case uiLanding:
 		m.drawHeader(scr, layout.header)
-		main := uv.NewStyledString(m.landingView())
+		main := term.NewStyledString(m.landingView())
 		main.Draw(scr, layout.main)
 
-		editor := uv.NewStyledString(m.renderEditorView(scr.Bounds().Dx()))
+		editor := term.NewStyledString(m.renderEditorView(scr.Bounds().Dx()))
 		editor.Draw(scr, layout.editor)
 
 	case uiChat:
@@ -2250,14 +2283,14 @@ func (m *UI) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 
 		m.chat.Draw(scr, layout.main)
 		if layout.pills.Dy() > 0 && m.pillsView != "" {
-			uv.NewStyledString(m.pillsView).Draw(scr, layout.pills)
+			term.NewStyledString(m.pillsView).Draw(scr, layout.pills)
 		}
 
 		editorWidth := scr.Bounds().Dx()
 		if !m.isCompact {
 			editorWidth -= layout.sidebar.Dx()
 		}
-		editor := uv.NewStyledString(m.renderEditorView(editorWidth))
+		editor := term.NewStyledString(m.renderEditorView(editorWidth))
 		editor.Draw(scr, layout.editor)
 
 		// Draw details overlay in compact mode when open
@@ -2285,7 +2318,7 @@ func (m *UI) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 		x = max(0, x)
 		y = max(0, y+1) // Offset for attachments row
 
-		completionsView := uv.NewStyledString(m.completions.Render())
+		completionsView := term.NewStyledString(m.completions.Render())
 		completionsView.Draw(scr, image.Rectangle{
 			Min: image.Pt(x, y),
 			Max: image.Pt(x+w, y+h),
@@ -2293,9 +2326,9 @@ func (m *UI) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 	}
 
 	// Debugging rendering (visually see when the tui rerenders)
-	if os.Getenv("SPECTRE_UI_DEBUG") == "true" {
-		debugView := lipgloss.NewStyle().Background(lipgloss.ANSIColor(rand.Intn(256))).Width(4).Height(2)
-		debug := uv.NewStyledString(debugView.String())
+	if os.Getenv("TALON_UI_DEBUG") == "true" {
+		debugView := style.NewStyle().Background(style.ANSIColor(rand.Intn(256))).Width(4).Height(2)
+		debug := term.NewStyledString(debugView.String())
 		debug.Draw(scr, image.Rectangle{
 			Min: image.Pt(4, 1),
 			Max: image.Pt(8, 3),
@@ -2331,17 +2364,17 @@ func (m *UI) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 }
 
 // View renders the UI model's view.
-func (m *UI) View() tea.View {
-	var v tea.View
+func (m *UI) View() bubble.View {
+	var v bubble.View
 	v.AltScreen = true
 	if !m.isTransparent {
 		v.BackgroundColor = m.com.Styles.Background
 	}
-	v.MouseMode = tea.MouseModeCellMotion
+	v.MouseMode = bubble.MouseModeCellMotion
 	v.ReportFocus = m.caps.ReportFocusEvents
-	v.WindowTitle = "spectre " + home.Short(m.com.Workspace.WorkingDir())
+	v.WindowTitle = "talon " + home.Short(m.com.Workspace.WorkingDir())
 
-	canvas := uv.NewScreenBuffer(m.width, m.height)
+	canvas := term.NewScreenBuffer(m.width, m.height)
 	v.Cursor = m.Draw(canvas, canvas.Bounds())
 
 	content := strings.ReplaceAll(canvas.Render(), "\r\n", "\n") // normalize newlines
@@ -2357,7 +2390,7 @@ func (m *UI) View() tea.View {
 	if m.progressBarEnabled && m.sendProgressBar && m.isAgentBusy() {
 		// HACK: use a random percentage to prevent ghostty from hiding it
 		// after a timeout.
-		v.ProgressBar = tea.NewProgressBar(tea.ProgressBarIndeterminate, rand.Intn(100))
+		v.ProgressBar = bubble.NewProgressBar(bubble.ProgressBarIndeterminate, rand.Intn(100))
 	}
 
 	return v
@@ -2416,7 +2449,7 @@ func (m *UI) ShortHelp() []key.Binding {
 				k.Chat.PageDown,
 				k.Chat.Copy,
 			)
-			if m.pillsExpanded && hasIncompleteTodos(m.session.Todos) && m.promptQueue > 0 {
+			if m.pillsExpanded && m.promptQueue > 0 {
 				binds = append(binds, k.Chat.PillLeft)
 			}
 		}
@@ -2535,7 +2568,7 @@ func (m *UI) FullHelp() [][]key.Binding {
 					k.Chat.ClearHighlight,
 				},
 			)
-			if m.pillsExpanded && hasIncompleteTodos(m.session.Todos) && m.promptQueue > 0 {
+			if m.pillsExpanded && m.promptQueue > 0 {
 				binds = append(binds, []key.Binding{k.Chat.PillLeft})
 			}
 		}
@@ -2598,7 +2631,7 @@ func (m *UI) currentModelSupportsImages() bool {
 }
 
 // toggleCompactMode toggles compact mode between uiChat and uiChatCompact states.
-func (m *UI) toggleCompactMode() tea.Cmd {
+func (m *UI) toggleCompactMode() bubble.Cmd {
 	m.forceCompactMode = !m.forceCompactMode
 
 	err := m.com.Workspace.SetCompactMode(config.ScopeGlobal, m.forceCompactMode)
@@ -2641,7 +2674,7 @@ func (m *UI) updateLayoutAndSize() {
 // if so, recalculates the layout. When the chat is in follow mode it keeps
 // the view scrolled to the bottom. The returned command, if non-nil, must be
 // batched by the caller.
-func (m *UI) handleTextareaHeightChange(prevHeight int) tea.Cmd {
+func (m *UI) handleTextareaHeightChange(prevHeight int) bubble.Cmd {
 	if m.textarea.Height() == prevHeight {
 		return nil
 	}
@@ -2654,7 +2687,7 @@ func (m *UI) handleTextareaHeightChange(prevHeight int) tea.Cmd {
 
 // updateTextarea updates the textarea for msg and then reconciles layout if
 // the textarea height changed as a result.
-func (m *UI) updateTextarea(msg tea.Msg) tea.Cmd {
+func (m *UI) updateTextarea(msg bubble.Msg) bubble.Cmd {
 	return m.updateTextareaWithPrevHeight(msg, m.textarea.Height())
 }
 
@@ -2666,10 +2699,10 @@ func (m *UI) updateTextarea(msg tea.Msg) tea.Cmd {
 // pass the height from before those changes took place so we can compare
 // "before" vs "after" sizing and recalculate the layout if the textarea grew
 // or shrank.
-func (m *UI) updateTextareaWithPrevHeight(msg tea.Msg, prevHeight int) tea.Cmd {
+func (m *UI) updateTextareaWithPrevHeight(msg bubble.Msg, prevHeight int) bubble.Cmd {
 	ta, cmd := m.textarea.Update(msg)
 	m.textarea = ta
-	return tea.Batch(cmd, m.handleTextareaHeightChange(prevHeight))
+	return bubble.Batch(cmd, m.handleTextareaHeightChange(prevHeight))
 }
 
 // updateSize updates the sizes of UI components based on the current layout.
@@ -2685,9 +2718,6 @@ func (m *UI) updateSize() {
 	// Handle different app states
 	switch m.state {
 	case uiChat:
-		if !m.isCompact {
-			m.cacheSidebarLogo(m.layout.sidebar.Dx())
-		}
 	}
 }
 
@@ -2881,34 +2911,34 @@ func (m *UI) generateLayout(w, h int) uiLayout {
 // uiLayout defines the positioning of UI elements.
 type uiLayout struct {
 	// area is the overall available area.
-	area uv.Rectangle
+	area term.Rectangle
 
 	// header is the header shown in special cases
 	// e.x when the sidebar is collapsed
 	// or when in the landing page
 	// or in init/config
-	header uv.Rectangle
+	header term.Rectangle
 
 	// main is the area for the main pane. (e.x chat, configure, landing)
-	main uv.Rectangle
+	main term.Rectangle
 
 	// pills is the area for the pills panel.
-	pills uv.Rectangle
+	pills term.Rectangle
 
 	// editor is the area for the editor pane.
-	editor uv.Rectangle
+	editor term.Rectangle
 
 	// sidebar is the area for the sidebar.
-	sidebar uv.Rectangle
+	sidebar term.Rectangle
 
 	// status is the area for the status view.
-	status uv.Rectangle
+	status term.Rectangle
 
 	// session details is the area for the session details overlay in compact mode.
-	sessionDetails uv.Rectangle
+	sessionDetails term.Rectangle
 }
 
-func (m *UI) openEditor(value string) tea.Cmd {
+func (m *UI) openEditor(value string) bubble.Cmd {
 	tmpfile, err := os.CreateTemp("", "msg_*.md")
 	if err != nil {
 		return util.ReportError(err)
@@ -2919,7 +2949,7 @@ func (m *UI) openEditor(value string) tea.Cmd {
 		return util.ReportError(err)
 	}
 	cmd, err := editor.Command(
-		"spectre",
+		"talon",
 		tmpPath,
 		editor.AtPosition(
 			m.textarea.Line()+1,
@@ -2929,7 +2959,7 @@ func (m *UI) openEditor(value string) tea.Cmd {
 	if err != nil {
 		return util.ReportError(err)
 	}
-	return tea.ExecProcess(cmd, func(err error) tea.Msg {
+	return bubble.ExecProcess(cmd, func(err error) bubble.Msg {
 		defer func() {
 			_ = os.Remove(tmpPath)
 		}()
@@ -3020,14 +3050,14 @@ func (m *UI) insertCompletionText(text string) bool {
 
 // insertFileCompletion inserts the selected file path into the textarea,
 // replacing the @query, and adds the file as an attachment.
-func (m *UI) insertFileCompletion(path string) tea.Cmd {
+func (m *UI) insertFileCompletion(path string) bubble.Cmd {
 	prevHeight := m.textarea.Height()
 	if !m.insertCompletionText(path) {
 		return nil
 	}
 	heightCmd := m.handleTextareaHeightChange(prevHeight)
 
-	fileCmd := func() tea.Msg {
+	fileCmd := func() bubble.Msg {
 		absPath, _ := filepath.Abs(path)
 
 		if m.hasSession() {
@@ -3058,12 +3088,12 @@ func (m *UI) insertFileCompletion(path string) tea.Cmd {
 			Content:  content,
 		}
 	}
-	return tea.Batch(heightCmd, fileCmd)
+	return bubble.Batch(heightCmd, fileCmd)
 }
 
 // insertMCPResourceCompletion inserts the selected resource into the textarea,
 // replacing the @query, and adds the resource as an attachment.
-func (m *UI) insertMCPResourceCompletion(item completions.ResourceCompletionValue) tea.Cmd {
+func (m *UI) insertMCPResourceCompletion(item completions.ResourceCompletionValue) bubble.Cmd {
 	displayText := cmp.Or(item.Title, item.URI)
 
 	prevHeight := m.textarea.Height()
@@ -3072,7 +3102,7 @@ func (m *UI) insertMCPResourceCompletion(item completions.ResourceCompletionValu
 	}
 	heightCmd := m.handleTextareaHeightChange(prevHeight)
 
-	resourceCmd := func() tea.Msg {
+	resourceCmd := func() bubble.Msg {
 		contents, err := m.com.Workspace.ReadMCPResource(
 			context.Background(),
 			item.MCPName,
@@ -3112,7 +3142,7 @@ func (m *UI) insertMCPResourceCompletion(item completions.ResourceCompletionValu
 			Content:  data,
 		}
 	}
-	return tea.Batch(heightCmd, resourceCmd)
+	return bubble.Batch(heightCmd, resourceCmd)
 }
 
 // completionsPosition returns the X and Y position for the completions popup.
@@ -3194,11 +3224,6 @@ func (m *UI) renderEditorView(width int) string {
 	}, "\n")
 }
 
-// cacheSidebarLogo renders and caches the sidebar logo at the specified width.
-func (m *UI) cacheSidebarLogo(width int) {
-	m.sidebarLogo = renderLogo(m.com.Styles, true, m.com.IsHyper(), width)
-}
-
 // applyTheme replaces the active styles with the given theme, drops the
 // shared markdown renderer cache, and refreshes every component that
 // caches style data.
@@ -3214,7 +3239,6 @@ func (m *UI) refreshStyles() {
 	t := m.com.Styles
 	m.header.refresh()
 	if m.layout.sidebar.Dx() > 0 {
-		m.cacheSidebarLogo(m.layout.sidebar.Dx())
 	}
 	m.textarea.SetStyles(t.Editor.Textarea)
 	m.completions.SetStyles(t.Completions.Normal, t.Completions.Focused, t.Completions.Match)
@@ -3235,8 +3259,8 @@ func (m *UI) refreshStyles() {
 // compose a message and send it with the skill attached.
 // The name parameter is used as a fallback when the server does not
 // return one.
-func (m *UI) attachSkill(skillID, name string) tea.Cmd {
-	return func() tea.Msg {
+func (m *UI) attachSkill(skillID, name string) bubble.Cmd {
+	return func() bubble.Msg {
 		content, result, err := m.com.Workspace.ReadSkill(context.Background(), skillID)
 		if err != nil {
 			return util.NewErrorMsg(err)
@@ -3255,12 +3279,12 @@ func (m *UI) attachSkill(skillID, name string) tea.Cmd {
 }
 
 // sendMessage sends a message with the given content and attachments.
-func (m *UI) sendMessage(content string, attachments ...message.Attachment) tea.Cmd {
+func (m *UI) sendMessage(content string, attachments ...message.Attachment) bubble.Cmd {
 	if !m.com.Workspace.AgentIsReady() {
 		return util.ReportError(fmt.Errorf("coder agent is not initialized"))
 	}
 
-	var cmds []tea.Cmd
+	var cmds []bubble.Cmd
 	if !m.hasSession() {
 		newSession, err := m.com.Workspace.CreateSession(context.Background(), "New Session")
 		if err != nil {
@@ -3277,7 +3301,7 @@ func (m *UI) sendMessage(content string, attachments ...message.Attachment) tea.
 	}
 
 	ctx := context.Background()
-	cmds = append(cmds, func() tea.Msg {
+	cmds = append(cmds, func() bubble.Msg {
 		for _, path := range m.sessionFileReads {
 			m.com.Workspace.FileTrackerRecordRead(ctx, m.session.ID, path)
 			m.com.Workspace.LSPStart(ctx, path)
@@ -3287,7 +3311,7 @@ func (m *UI) sendMessage(content string, attachments ...message.Attachment) tea.
 
 	// Capture session ID to avoid race with main goroutine updating m.session.
 	sessionID := m.session.ID
-	cmds = append(cmds, func() tea.Msg {
+	cmds = append(cmds, func() bubble.Msg {
 		// AgentRun is fire-and-forget: it returns once the prompt has
 		// been accepted (HTTP 202) or synchronously with a validation
 		// or transport error. Run failures and cancellation surface
@@ -3301,14 +3325,14 @@ func (m *UI) sendMessage(content string, attachments ...message.Attachment) tea.
 		}
 		return nil
 	})
-	return tea.Batch(cmds...)
+	return bubble.Batch(cmds...)
 }
 
 const cancelTimerDuration = 2 * time.Second
 
 // cancelTimerCmd creates a command that expires the cancel timer.
-func cancelTimerCmd() tea.Cmd {
-	return tea.Tick(cancelTimerDuration, func(time.Time) tea.Msg {
+func cancelTimerCmd() bubble.Cmd {
+	return bubble.Tick(cancelTimerDuration, func(time.Time) bubble.Msg {
 		return cancelTimerExpiredMsg{}
 	})
 }
@@ -3316,7 +3340,7 @@ func cancelTimerCmd() tea.Cmd {
 // cancelAgent handles the cancel key press. The first press sets isCanceling to true
 // and starts a timer. The second press (before the timer expires) actually
 // cancels the agent.
-func (m *UI) cancelAgent() tea.Cmd {
+func (m *UI) cancelAgent() bubble.Cmd {
 	if !m.hasSession() {
 		return nil
 	}
@@ -3347,8 +3371,8 @@ func (m *UI) cancelAgent() tea.Cmd {
 }
 
 // openDialog opens a dialog by its ID.
-func (m *UI) openDialog(id string) tea.Cmd {
-	var cmds []tea.Cmd
+func (m *UI) openDialog(id string) bubble.Cmd {
+	var cmds []bubble.Cmd
 	switch id {
 	case dialog.SessionsID:
 		if cmd := m.openSessionsDialog(); cmd != nil {
@@ -3382,11 +3406,11 @@ func (m *UI) openDialog(id string) tea.Cmd {
 		// Unknown dialog
 		break
 	}
-	return tea.Batch(cmds...)
+	return bubble.Batch(cmds...)
 }
 
 // openQuitDialog opens the quit confirmation dialog.
-func (m *UI) openQuitDialog() tea.Cmd {
+func (m *UI) openQuitDialog() bubble.Cmd {
 	if m.dialog.ContainsDialog(dialog.QuitID) {
 		// Bring to front
 		m.dialog.BringToFront(dialog.QuitID)
@@ -3399,7 +3423,7 @@ func (m *UI) openQuitDialog() tea.Cmd {
 }
 
 // openModelsDialog opens the models dialog.
-func (m *UI) openModelsDialog() tea.Cmd {
+func (m *UI) openModelsDialog() bubble.Cmd {
 	if m.dialog.ContainsDialog(dialog.ModelsID) {
 		// Bring to front
 		m.dialog.BringToFront(dialog.ModelsID)
@@ -3418,7 +3442,7 @@ func (m *UI) openModelsDialog() tea.Cmd {
 }
 
 // openCommandsDialog opens the commands dialog.
-func (m *UI) openCommandsDialog() tea.Cmd {
+func (m *UI) openCommandsDialog() bubble.Cmd {
 	if m.dialog.ContainsDialog(dialog.CommandsID) {
 		// Bring to front
 		m.dialog.BringToFront(dialog.CommandsID)
@@ -3444,7 +3468,7 @@ func (m *UI) openCommandsDialog() tea.Cmd {
 }
 
 // openReasoningDialog opens the reasoning effort dialog.
-func (m *UI) openReasoningDialog() tea.Cmd {
+func (m *UI) openReasoningDialog() bubble.Cmd {
 	if m.dialog.ContainsDialog(dialog.ReasoningID) {
 		m.dialog.BringToFront(dialog.ReasoningID)
 		return nil
@@ -3460,7 +3484,7 @@ func (m *UI) openReasoningDialog() tea.Cmd {
 }
 
 // openNotificationsDialog opens the notification style picker dialog.
-func (m *UI) openNotificationsDialog() tea.Cmd {
+func (m *UI) openNotificationsDialog() bubble.Cmd {
 	if m.dialog.ContainsDialog(dialog.NotificationsID) {
 		m.dialog.BringToFront(dialog.NotificationsID)
 		return nil
@@ -3474,7 +3498,7 @@ func (m *UI) openNotificationsDialog() tea.Cmd {
 // openSessionsDialog opens the sessions dialog. If the dialog is already open,
 // it brings it to the front. Otherwise, it will list all the sessions and open
 // the dialog.
-func (m *UI) openSessionsDialog() tea.Cmd {
+func (m *UI) openSessionsDialog() bubble.Cmd {
 	if m.dialog.ContainsDialog(dialog.SessionsID) {
 		// Bring to front
 		m.dialog.BringToFront(dialog.SessionsID)
@@ -3496,7 +3520,7 @@ func (m *UI) openSessionsDialog() tea.Cmd {
 }
 
 // openFilesDialog opens the file picker dialog.
-func (m *UI) openFilesDialog() tea.Cmd {
+func (m *UI) openFilesDialog() bubble.Cmd {
 	if m.dialog.ContainsDialog(dialog.FilePickerID) {
 		// Bring to front
 		m.dialog.BringToFront(dialog.FilePickerID)
@@ -3511,7 +3535,7 @@ func (m *UI) openFilesDialog() tea.Cmd {
 }
 
 // openPermissionsDialog opens the permissions dialog for a permission request.
-func (m *UI) openPermissionsDialog(perm permission.PermissionRequest) tea.Cmd {
+func (m *UI) openPermissionsDialog(perm permission.PermissionRequest) bubble.Cmd {
 	// Close any existing permissions dialog first.
 	m.dialog.CloseDialog(dialog.PermissionsID)
 
@@ -3553,18 +3577,18 @@ func (m *UI) handlePermissionNotification(notification permission.PermissionNoti
 
 // handleAgentNotification translates domain agent events into desktop
 // notifications using the UI notification backend.
-func (m *UI) handleAgentNotification(n notify.Notification) tea.Cmd {
+func (m *UI) handleAgentNotification(n notify.Notification) bubble.Cmd {
 	switch n.Type {
 	case notify.TypeAgentFinished:
-		var cmds []tea.Cmd
+		var cmds []bubble.Cmd
 		cmds = append(cmds, m.sendNotification(notification.Notification{
-			Title:   "Spectre is waiting...",
+			Title:   "Talon is waiting...",
 			Message: fmt.Sprintf("Agent's turn completed in \"%s\"", n.SessionTitle),
 		}))
 		if m.com.IsHyper() {
 			cmds = append(cmds, m.fetchHyperCredits())
 		}
-		return tea.Batch(cmds...)
+		return bubble.Batch(cmds...)
 	case notify.TypeReAuthenticate:
 		return m.handleReAuthenticate(n.ProviderID)
 	default:
@@ -3572,7 +3596,7 @@ func (m *UI) handleAgentNotification(n notify.Notification) tea.Cmd {
 	}
 }
 
-func (m *UI) handleReAuthenticate(providerID string) tea.Cmd {
+func (m *UI) handleReAuthenticate(providerID string) bubble.Cmd {
 	cfg := m.com.Config()
 	if cfg == nil {
 		return nil
@@ -3591,7 +3615,7 @@ func (m *UI) handleReAuthenticate(providerID string) tea.Cmd {
 // newSession clears the current session state and prepares for a new session.
 // The actual session creation happens when the user sends their first message.
 // Returns a command to reload prompt history.
-func (m *UI) newSession() tea.Cmd {
+func (m *UI) newSession() bubble.Cmd {
 	if !m.hasSession() {
 		return nil
 	}
@@ -3607,10 +3631,12 @@ func (m *UI) newSession() tea.Cmd {
 	m.pillsAutoExpanded = false
 	m.promptQueue = 0
 	m.pillsView = ""
+	m.lastCompressionSavings = 0
+	m.lastInputSavings = 0
 	m.historyReset()
 	agenttools.ResetCache()
-	return tea.Batch(
-		func() tea.Msg {
+	return bubble.Batch(
+		func() bubble.Msg {
 			m.com.Workspace.LSPStopAll(context.Background())
 			return nil
 		},
@@ -3620,7 +3646,7 @@ func (m *UI) newSession() tea.Cmd {
 }
 
 // handlePasteMsg handles a paste message.
-func (m *UI) handlePasteMsg(msg tea.PasteMsg) tea.Cmd {
+func (m *UI) handlePasteMsg(msg bubble.PasteMsg) bubble.Cmd {
 	// Normalize \r\n before the textarea sanitizer sees it.
 	msg.Content = strings.ReplaceAll(msg.Content, "\r\n", "\n")
 
@@ -3633,7 +3659,7 @@ func (m *UI) handlePasteMsg(msg tea.PasteMsg) tea.Cmd {
 	}
 
 	if hasPasteExceededThreshold(msg) {
-		return func() tea.Msg {
+		return func() bubble.Msg {
 			content := []byte(msg.Content)
 			if int64(len(content)) > common.MaxAttachmentSize {
 				return util.ReportWarn("Paste is too big (>5mb)")
@@ -3682,14 +3708,14 @@ func (m *UI) handlePasteMsg(msg tea.PasteMsg) tea.Cmd {
 		return m.updateTextareaWithPrevHeight(msg, prevHeight)
 	}
 
-	var cmds []tea.Cmd
+	var cmds []bubble.Cmd
 	for _, path := range paths {
 		cmds = append(cmds, m.handleFilePathPaste(path))
 	}
-	return tea.Batch(cmds...)
+	return bubble.Batch(cmds...)
 }
 
-func hasPasteExceededThreshold(msg tea.PasteMsg) bool {
+func hasPasteExceededThreshold(msg bubble.PasteMsg) bool {
 	var (
 		lineCount = 0
 		colCount  = 0
@@ -3706,8 +3732,8 @@ func hasPasteExceededThreshold(msg tea.PasteMsg) bool {
 }
 
 // handleFilePathPaste handles a pasted file path.
-func (m *UI) handleFilePathPaste(path string) tea.Cmd {
-	return func() tea.Msg {
+func (m *UI) handleFilePathPaste(path string) bubble.Cmd {
+	return func() bubble.Msg {
 		fileInfo, err := os.Stat(path)
 		if err != nil {
 			return util.ReportError(err)
@@ -3739,7 +3765,7 @@ func (m *UI) handleFilePathPaste(path string) tea.Cmd {
 // pasteImageFromClipboard reads image data from the system clipboard and
 // creates an attachment. If no image data is found, it falls back to
 // interpreting clipboard text as a file path.
-func (m *UI) pasteImageFromClipboard() tea.Msg {
+func (m *UI) pasteImageFromClipboard() bubble.Msg {
 	imageData, err := readClipboard(clipboardFormatImage)
 	if int64(len(imageData)) > common.MaxAttachmentSize {
 		return util.InfoMsg{
@@ -3828,7 +3854,7 @@ func (m *UI) pasteIdx() int {
 }
 
 // drawSessionDetails draws the session details in compact mode.
-func (m *UI) drawSessionDetails(scr uv.Screen, area uv.Rectangle) {
+func (m *UI) drawSessionDetails(scr term.Screen, area term.Rectangle) {
 	if m.session == nil {
 		return
 	}
@@ -3846,14 +3872,14 @@ func (m *UI) drawSessionDetails(scr uv.Screen, area uv.Rectangle) {
 		"",
 	}
 
-	detailsHeader := lipgloss.JoinVertical(
-		lipgloss.Left,
+	detailsHeader := style.JoinVertical(
+		style.Left,
 		blocks...,
 	)
 
-	version := s.CompactDetails.Version.Width(width).AlignHorizontal(lipgloss.Right).Render(version.Version)
+	version := s.CompactDetails.Version.Width(width).AlignHorizontal(style.Right).Render(version.Version)
 
-	remainingHeight := height - lipgloss.Height(detailsHeader) - lipgloss.Height(version)
+	remainingHeight := height - style.Height(detailsHeader) - style.Height(version)
 
 	const maxSectionWidth = 50
 	sectionWidth := max(1, min(maxSectionWidth, width/4-2)) // account for spacing between sections
@@ -3863,13 +3889,23 @@ func (m *UI) drawSessionDetails(scr uv.Screen, area uv.Rectangle) {
 	mcpSection := m.mcpInfo(sectionWidth, maxItemsPerSection, false)
 	skillsSection := m.skillsInfo(sectionWidth, maxItemsPerSection, false)
 	filesSection := m.filesInfo(m.com.Workspace.WorkingDir(), sectionWidth, maxItemsPerSection, false)
-	sections := lipgloss.JoinHorizontal(lipgloss.Top, filesSection, " ", lspSection, " ", mcpSection, " ", skillsSection)
-	uv.NewStyledString(
+	var sectionParts []string
+	for _, s := range []string{filesSection, lspSection, mcpSection, skillsSection} {
+		if s != "" {
+			sectionParts = append(sectionParts, s)
+		}
+	}
+	sections := strings.Join(sectionParts, "  ")
+	if sections == "" {
+		sections = " "
+	}
+	sections = style.NewStyle().Width(width).Render(sections)
+	term.NewStyledString(
 		s.CompactDetails.View.
 			Width(area.Dx()).
 			Render(
-				lipgloss.JoinVertical(
-					lipgloss.Left,
+				style.JoinVertical(
+					style.Left,
 					detailsHeader,
 					sections,
 					version,
@@ -3878,8 +3914,8 @@ func (m *UI) drawSessionDetails(scr uv.Screen, area uv.Rectangle) {
 	).Draw(scr, area)
 }
 
-func (m *UI) runMCPPrompt(clientID, promptID string, arguments map[string]string) tea.Cmd {
-	load := func() tea.Msg {
+func (m *UI) runMCPPrompt(clientID, promptID string, arguments map[string]string) bubble.Cmd {
+	load := func() bubble.Msg {
 		prompt, err := m.com.Workspace.GetMCPPrompt(clientID, promptID, arguments)
 		if err != nil {
 			// TODO: make this better
@@ -3894,19 +3930,19 @@ func (m *UI) runMCPPrompt(clientID, promptID string, arguments map[string]string
 		}
 	}
 
-	var cmds []tea.Cmd
+	var cmds []bubble.Cmd
 	if cmd := m.dialog.StartLoading(); cmd != nil {
 		cmds = append(cmds, cmd)
 	}
-	cmds = append(cmds, load, func() tea.Msg {
+	cmds = append(cmds, load, func() bubble.Msg {
 		return closeDialogMsg{}
 	})
 
-	return tea.Sequence(cmds...)
+	return bubble.Sequence(cmds...)
 }
 
-func (m *UI) handleStateChanged() tea.Cmd {
-	return func() tea.Msg {
+func (m *UI) handleStateChanged() bubble.Cmd {
+	return func() bubble.Msg {
 		m.com.Workspace.UpdateAgentModel(context.Background())
 		return mcpStateChangedMsg{
 			states: m.com.Workspace.MCPGetStates(),
@@ -3914,40 +3950,40 @@ func (m *UI) handleStateChanged() tea.Cmd {
 	}
 }
 
-func handleMCPPromptsEvent(ws workspace.Workspace, name string) tea.Cmd {
-	return func() tea.Msg {
+func handleMCPPromptsEvent(ws workspace.Workspace, name string) bubble.Cmd {
+	return func() bubble.Msg {
 		ws.MCPRefreshPrompts(context.Background(), name)
 		return nil
 	}
 }
 
-func handleMCPToolsEvent(ws workspace.Workspace, name string) tea.Cmd {
-	return func() tea.Msg {
+func handleMCPToolsEvent(ws workspace.Workspace, name string) bubble.Cmd {
+	return func() bubble.Msg {
 		ws.RefreshMCPTools(context.Background(), name)
 		return nil
 	}
 }
 
-func handleMCPResourcesEvent(ws workspace.Workspace, name string) tea.Cmd {
-	return func() tea.Msg {
+func handleMCPResourcesEvent(ws workspace.Workspace, name string) bubble.Cmd {
+	return func() bubble.Msg {
 		ws.MCPRefreshResources(context.Background(), name)
 		return nil
 	}
 }
 
-func (m *UI) copyChatHighlight() tea.Cmd {
+func (m *UI) copyChatHighlight() bubble.Cmd {
 	text := m.chat.HighlightContent()
 	return common.CopyToClipboardWithCallback(
 		text,
 		"Selected text copied to clipboard",
-		func() tea.Msg {
+		func() bubble.Msg {
 			m.chat.ClearMouse()
 			return nil
 		},
 	)
 }
 
-func (m *UI) enableDockerMCP() tea.Msg {
+func (m *UI) enableDockerMCP() bubble.Msg {
 	ctx := context.Background()
 	if err := m.com.Workspace.EnableDockerMCP(ctx); err != nil {
 		return util.ReportError(err)()
@@ -3956,7 +3992,7 @@ func (m *UI) enableDockerMCP() tea.Msg {
 	return util.NewInfoMsg("Docker MCP enabled and started successfully")
 }
 
-func (m *UI) disableDockerMCP() tea.Msg {
+func (m *UI) disableDockerMCP() bubble.Msg {
 	if err := m.com.Workspace.DisableDockerMCP(); err != nil {
 		return util.ReportError(err)()
 	}
@@ -3966,7 +4002,7 @@ func (m *UI) disableDockerMCP() tea.Msg {
 
 // renderLogo renders the brand text for the CLI header.
 func renderLogo(t *styles.Styles, compact, hyper bool, width int) string {
-	return lipgloss.NewStyle().
+	return style.NewStyle().
 		Foreground(t.Logo.TitleColorB).
-		Render(fmt.Sprintf("spectre-proxy (%s)", version.Version))
+		Render(fmt.Sprintf("talon (%s)", version.Version))
 }

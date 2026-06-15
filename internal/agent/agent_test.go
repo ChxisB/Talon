@@ -10,11 +10,11 @@ import (
 	"testing"
 	"time"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/deps/util/vcr"
-	"github.com/ChxisB/spectre-proxy/internal/agent/tools"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/session"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/deps/util/vcr"
+	"github.com/ChxisB/talon/internal/agent/tools"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/session"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -30,7 +30,7 @@ var modelPairs = []modelPair{
 	{"glm-5.1", hyperBuilder("glm-5.1"), hyperBuilder("gpt-oss-120b")},
 }
 
-func getModels(t *testing.T, r *vcr.Recorder, pair modelPair) (fantasy.LanguageModel, fantasy.LanguageModel) {
+func getModels(t *testing.T, r *vcr.Recorder, pair modelPair) (llm.LanguageModel, llm.LanguageModel) {
 	large, err := pair.largeModel(t, r)
 	require.NoError(t, err)
 	small, err := pair.smallModel(t, r)
@@ -122,7 +122,7 @@ func TestCoderAgent(t *testing.T) {
 				require.NoError(t, err)
 
 				res, err := agent.Run(t.Context(), SessionAgentCall{
-					Prompt:          "update the main.go file by changing the print to say hello from spectre",
+					Prompt:          "update the main.go file by changing the print to say hello from talon",
 					SessionID:       session.ID,
 					MaxOutputTokens: 10000,
 				})
@@ -165,7 +165,7 @@ func TestCoderAgent(t *testing.T) {
 				mainGoPath := filepath.Join(env.workingDir, "main.go")
 				content, err := os.ReadFile(mainGoPath)
 				require.NoError(t, err)
-				require.Contains(t, strings.ToLower(string(content)), "hello from spectre")
+				require.Contains(t, strings.ToLower(string(content)), "hello from talon")
 			})
 			t.Run("bash tool", func(t *testing.T) {
 				agent, env := setupAgent(t, pair)
@@ -421,7 +421,7 @@ func TestCoderAgent(t *testing.T) {
 				require.NoError(t, err)
 
 				res, err := agent.Run(t.Context(), SessionAgentCall{
-					Prompt:          "use multiedit to change 'Hello, World!' to 'Hello, Spectre!' and add a comment '// Greeting' above the fmt.Println line in main.go",
+					Prompt:          "use multiedit to change 'Hello, World!' to 'Hello, Talon!' and add a comment '// Greeting' above the fmt.Println line in main.go",
 					SessionID:       session.ID,
 					MaxOutputTokens: 10000,
 				})
@@ -456,7 +456,7 @@ func TestCoderAgent(t *testing.T) {
 				mainGoPath := filepath.Join(env.workingDir, "main.go")
 				content, err := os.ReadFile(mainGoPath)
 				require.NoError(t, err)
-				require.Contains(t, string(content), "Hello, Spectre!", "Expected file to contain 'Hello, Spectre!'")
+				require.Contains(t, string(content), "Hello, Talon!", "Expected file to contain 'Hello, Talon!'")
 			})
 			t.Run("sourcegraph tool", func(t *testing.T) {
 				agent, env := setupAgent(t, pair)
@@ -684,7 +684,7 @@ func TestPreparePrompt_FiltersImageAttachments(t *testing.T) {
 	// First message is the system reminder, second is the user message.
 	require.Len(t, history, 2)
 	require.Len(t, history[1].Content, 1)
-	text, ok := fantasy.AsMessagePart[fantasy.TextPart](history[1].Content[0])
+	text, ok := llm.AsMessagePart[llm.TextPart](history[1].Content[0])
 	require.True(t, ok)
 	require.Contains(t, text.Text, "hello world")
 	require.Contains(t, text.Text, "important notes")
@@ -693,10 +693,10 @@ func TestPreparePrompt_FiltersImageAttachments(t *testing.T) {
 	history, _ = agent.preparePrompt(msgs, true)
 	require.Len(t, history, 2)
 	require.Len(t, history[1].Content, 2)
-	text, ok = fantasy.AsMessagePart[fantasy.TextPart](history[1].Content[0])
+	text, ok = llm.AsMessagePart[llm.TextPart](history[1].Content[0])
 	require.True(t, ok)
 	require.Contains(t, text.Text, "hello world")
-	file, ok := fantasy.AsMessagePart[fantasy.FilePart](history[1].Content[1])
+	file, ok := llm.AsMessagePart[llm.FilePart](history[1].Content[1])
 	require.True(t, ok)
 	require.Equal(t, "image.png", file.Filename)
 }
@@ -752,14 +752,14 @@ func TestPreparePrompt_OrphanedToolUse(t *testing.T) {
 	// The history must contain a synthetic tool result for the orphaned call.
 	found := false
 	for _, msg := range history {
-		if msg.Role != fantasy.MessageRoleTool {
+		if msg.Role != llm.MessageRoleTool {
 			continue
 		}
 		for _, part := range msg.Content {
-			if tr, ok := fantasy.AsMessagePart[fantasy.ToolResultPart](part); ok {
+			if tr, ok := llm.AsMessagePart[llm.ToolResultPart](part); ok {
 				if tr.ToolCallID == "call_orphaned_1" {
 					found = true
-					_, isError := tr.Output.(fantasy.ToolResultOutputContentError)
+					_, isError := tr.Output.(llm.ToolResultOutputContentError)
 					require.True(t, isError, "orphaned tool result should be an error")
 				}
 			}
@@ -826,11 +826,11 @@ func TestPreparePrompt_OrphanedToolUseMixed(t *testing.T) {
 	// Should have a synthetic result only for the orphaned call.
 	var syntheticCount int
 	for _, msg := range history {
-		if msg.Role != fantasy.MessageRoleTool {
+		if msg.Role != llm.MessageRoleTool {
 			continue
 		}
 		for _, part := range msg.Content {
-			if tr, ok := fantasy.AsMessagePart[fantasy.ToolResultPart](part); ok {
+			if tr, ok := llm.AsMessagePart[llm.ToolResultPart](part); ok {
 				if tr.ToolCallID == "call_orphaned" {
 					syntheticCount++
 				}
@@ -847,7 +847,7 @@ func TestProviderRetryLogFields(t *testing.T) {
 	})
 
 	t.Run("provider error with title and message", func(t *testing.T) {
-		fields := providerRetryLogFields(&fantasy.ProviderError{
+		fields := providerRetryLogFields(&llm.ProviderError{
 			StatusCode: 429,
 			Title:      "rate limit",
 			Message:    "too many requests",
@@ -861,7 +861,7 @@ func TestProviderRetryLogFields(t *testing.T) {
 	})
 
 	t.Run("provider error without optional strings", func(t *testing.T) {
-		fields := providerRetryLogFields(&fantasy.ProviderError{
+		fields := providerRetryLogFields(&llm.ProviderError{
 			StatusCode: 503,
 		}, time.Second)
 		require.Equal(t, []any{

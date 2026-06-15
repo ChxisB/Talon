@@ -13,11 +13,11 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/deps/util/powernap/pkg/lsp/protocol"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/proto"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
+	"github.com/ChxisB/talon/deps/util/powernap/pkg/lsp/protocol"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/proto"
+	"github.com/ChxisB/talon/internal/pubsub"
 )
 
 // ListWorkspaces retrieves all workspaces from the server.

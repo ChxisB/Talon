@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/internal/env"
+	"github.com/ChxisB/talon/internal/env"
 	"github.com/stretchr/testify/require"
 )
 
@@ -61,7 +61,7 @@ func TestEnableDockerMCP(t *testing.T) {
 
 		// Create a temporary directory for config.
 		tmpDir := t.TempDir()
-		configPath := filepath.Join(tmpDir, "spectre.json")
+		configPath := filepath.Join(tmpDir, "talon.json")
 
 		cfg := &Config{
 			MCP: make(map[string]MCPConfig),
@@ -96,7 +96,7 @@ func TestEnableDockerMCP(t *testing.T) {
 
 		// Create a temporary directory for config.
 		tmpDir := t.TempDir()
-		configPath := filepath.Join(tmpDir, "spectre.json")
+		configPath := filepath.Join(tmpDir, "talon.json")
 
 		cfg := &Config{
 			MCP: make(map[string]MCPConfig),
@@ -121,7 +121,7 @@ func TestDisableDockerMCP(t *testing.T) {
 
 		// Create a temporary directory for config.
 		tmpDir := t.TempDir()
-		configPath := filepath.Join(tmpDir, "spectre.json")
+		configPath := filepath.Join(tmpDir, "talon.json")
 
 		cfg := &Config{
 			MCP: map[string]MCPConfig{
@@ -159,7 +159,7 @@ func TestDisableDockerMCP(t *testing.T) {
 		}
 		store := &ConfigStore{
 			config:         cfg,
-			globalDataPath: filepath.Join(t.TempDir(), "spectre.json"),
+			globalDataPath: filepath.Join(t.TempDir(), "talon.json"),
 			resolver:       NewShellVariableResolver(env.New()),
 		}
 
@@ -176,7 +176,7 @@ func TestEnableDockerMCPWithRealDockerWhenAvailable(t *testing.T) {
 	}
 
 	tmpDir := t.TempDir()
-	configPath := filepath.Join(tmpDir, "spectre.json")
+	configPath := filepath.Join(tmpDir, "talon.json")
 
 	cfg := &Config{
 		MCP: make(map[string]MCPConfig),

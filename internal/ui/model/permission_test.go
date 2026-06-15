@@ -3,8 +3,8 @@ package model
 import (
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/internal/permission"
-	"github.com/ChxisB/spectre-proxy/internal/ui/dialog"
+	"github.com/ChxisB/talon/internal/permission"
+	"github.com/ChxisB/talon/internal/ui/dialog"
 	"github.com/stretchr/testify/require"
 )
 

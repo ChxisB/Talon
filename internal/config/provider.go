@@ -15,12 +15,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/embedded"
-	"github.com/ChxisB/spectre-proxy/deps/util/etag"
-	"github.com/ChxisB/spectre-proxy/internal/agent/hyper"
-	"github.com/ChxisB/spectre-proxy/internal/csync"
-	"github.com/ChxisB/spectre-proxy/internal/home"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	"github.com/ChxisB/talon/deps/testing/pkg/embedded"
+	"github.com/ChxisB/talon/deps/util/etag"
+	"github.com/ChxisB/talon/internal/agent/hyper"
+	"github.com/ChxisB/talon/internal/csync"
+	"github.com/ChxisB/talon/internal/home"
 )
 
 type syncer[T any] interface {
@@ -41,8 +41,8 @@ func cachePathFor(name string) string {
 	}
 
 	// return the path to the main data directory
-	// for windows, it should be in `%LOCALAPPDATA%/spectre/`
-	// for linux and macOS, it should be in `$HOME/.local/share/spectre/`
+	// for windows, it should be in `%LOCALAPPDATA%/talon/`
+	// for linux and macOS, it should be in `$HOME/.local/share/talon/`
 	if runtime.GOOS == "windows" {
 		localAppData := os.Getenv("LOCALAPPDATA")
 		if localAppData == "" {
@@ -162,7 +162,7 @@ func Providers(cfg *Config) ([]catwalk.Provider, error) {
 			items, err := catwalkSyncer.Get(ctx)
 			if err != nil {
 				catwalkURL := fmt.Sprintf("%s/v2/providers", cmp.Or(os.Getenv("CATWALK_URL"), defaultCatwalkURL))
-				errs = append(errs, fmt.Errorf("spectre was unable to fetch an updated list of providers from %s. Consider setting SPECTRE_DISABLE_PROVIDER_AUTO_UPDATE=1 to use the embedded providers bundled at the time of this spectre release. You can also update providers manually. For more info see spectre update-providers --help.\n\nCause: %w", catwalkURL, err)) //nolint:staticcheck
+				errs = append(errs, fmt.Errorf("talon was unable to fetch an updated list of providers from %s. Consider setting TALON_DISABLE_PROVIDER_AUTO_UPDATE=1 to use the embedded providers bundled at the time of this talon release. You can also update providers manually. For more info see talon update-providers --help.\n\nCause: %w", catwalkURL, err)) //nolint:staticcheck
 				return
 			}
 			providers.Append(items...)
@@ -177,7 +177,7 @@ func Providers(cfg *Config) ([]catwalk.Provider, error) {
 
 			item, err := hyperSyncer.Get(ctx)
 			if err != nil {
-				errs = append(errs, fmt.Errorf("spectre was unable to fetch updated information from Hyper: %w", err)) //nolint:staticcheck
+				errs = append(errs, fmt.Errorf("talon was unable to fetch updated information from Hyper: %w", err)) //nolint:staticcheck
 				return
 			}
 			hyperProvider = item

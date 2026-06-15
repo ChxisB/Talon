@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/internal/csync"
-	"github.com/ChxisB/spectre-proxy/internal/home"
+	"github.com/ChxisB/talon/internal/csync"
+	"github.com/ChxisB/talon/internal/home"
 	"github.com/bmatcuk/doublestar/v4"
 	"github.com/charlievieth/fastwalk"
 )
@@ -28,7 +28,7 @@ func SkipHidden(path string) bool {
 	}
 
 	commonIgnoredDirs := map[string]bool{
-		".spectre":         true,
+		".talon":         true,
 		"node_modules":     true,
 		"vendor":           true,
 		"dist":             true,
@@ -58,7 +58,7 @@ func SkipHidden(path string) bool {
 }
 
 // FastGlobWalker provides gitignore-aware file walking with fastwalk
-// It uses hierarchical ignore checking like git does, checking .gitignore/.spectreignore
+// It uses hierarchical ignore checking like git does, checking .gitignore/.talonignore
 // files in each directory from the root to the target path.
 type FastGlobWalker struct {
 	directoryLister *directoryLister
@@ -71,13 +71,13 @@ func NewFastGlobWalker(searchPath string) *FastGlobWalker {
 }
 
 // ShouldSkip checks if a file path should be skipped based on hierarchical gitignore,
-// spectreignore, and hidden file rules.
+// talonignore, and hidden file rules.
 func (w *FastGlobWalker) ShouldSkip(path string) bool {
 	return w.directoryLister.shouldIgnore(path, nil, false)
 }
 
 // ShouldSkipDir checks if a directory path should be skipped based on hierarchical
-// gitignore, spectreignore, and hidden file rules.
+// gitignore, talonignore, and hidden file rules.
 func (w *FastGlobWalker) ShouldSkipDir(path string) bool {
 	return w.directoryLister.shouldIgnore(path, nil, true)
 }

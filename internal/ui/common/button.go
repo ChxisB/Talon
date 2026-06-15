@@ -3,8 +3,8 @@ package common
 import (
 	"strings"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	lip "github.com/ChxisB/talon/deps/style/v2"
+	"github.com/ChxisB/talon/internal/ui/styles"
 )
 
 // ButtonOpts defines the configuration for a single button
@@ -40,7 +40,7 @@ func Button(t *styles.Styles, opts ButtonOpts) string {
 	text = style.Padding(0, opts.Padding).Render(text)
 
 	if opts.UnderlineIndex != -1 {
-		text = lipgloss.StyleRanges(text, lipgloss.NewRange(opts.Padding+opts.UnderlineIndex, opts.Padding+opts.UnderlineIndex+1, style.Underline(true)))
+		text = lip.StyleRanges(text, lip.NewRange(opts.Padding+opts.UnderlineIndex, opts.Padding+opts.UnderlineIndex+1, style.Underline(true)))
 	}
 
 	return text

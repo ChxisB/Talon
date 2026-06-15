@@ -10,10 +10,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/deps/util/term"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	spectrelog "github.com/ChxisB/spectre-proxy/internal/log"
-	"github.com/ChxisB/spectre-proxy/internal/server"
+	"github.com/ChxisB/talon/deps/util/term"
+	"github.com/ChxisB/talon/internal/config"
+	talonlog "github.com/ChxisB/talon/internal/log"
+	"github.com/ChxisB/talon/internal/server"
 	"github.com/spf13/cobra"
 )
 
@@ -26,7 +26,7 @@ func init() {
 
 var serverCmd = &cobra.Command{
 	Use:   "server",
-	Short: "Start the spectre server",
+	Short: "Start the talon server",
 	RunE: func(cmd *cobra.Command, _ []string) error {
 		dataDir, err := cmd.Flags().GetString("data-dir")
 		if err != nil {
@@ -47,17 +47,17 @@ var serverCmd = &cobra.Command{
 			return fmt.Errorf("invalid server host: %v", err)
 		}
 
-		logFile := filepath.Join(config.GlobalCacheDir(), "server-"+safeHostName(hostURL), "spectre.log")
+		logFile := filepath.Join(config.GlobalCacheDir(), "server-"+safeHostName(hostURL), "talon.log")
 
 		if term.IsTerminal(os.Stderr.Fd()) {
-			spectrelog.Setup(logFile, debug, os.Stderr)
+			talonlog.Setup(logFile, debug, os.Stderr)
 		} else {
-			spectrelog.Setup(logFile, debug)
+			talonlog.Setup(logFile, debug)
 		}
 
 		srv := server.NewServer(cfg, hostURL.Scheme, hostURL.Host)
 		srv.SetLogger(slog.Default())
-		slog.Info("Starting Spectre server...", "addr", serverHost)
+		slog.Info("Starting Talon server...", "addr", serverHost)
 
 		errch := make(chan error, 1)
 		sigch := make(chan os.Signal, 1)

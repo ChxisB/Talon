@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	xstrings "github.com/ChxisB/spectre-proxy/deps/util/exp/strings"
-	"github.com/ChxisB/spectre-proxy/internal/config"
+	xstr "github.com/ChxisB/talon/deps/util/exp/strings"
+	"github.com/ChxisB/talon/internal/config"
 )
 
 // parseModelStr parses a model string into provider filter and model ID.
@@ -45,7 +45,7 @@ func findModels(providers map[string]config.ProviderConfig, largeModel, smallMod
 	} {
 		if pf.filter != "" {
 			if _, ok := providers[pf.filter]; !ok {
-				return nil, nil, fmt.Errorf("%s model: provider %q not found in configuration. Use 'spectre models' to list available models", pf.label, pf.filter)
+				return nil, nil, fmt.Errorf("%s model: provider %q not found in configuration. Use 'talon models' to list available models", pf.label, pf.filter)
 			}
 		}
 	}
@@ -88,7 +88,7 @@ func validateMatches(matches []modelMatch, modelID, label string) (modelMatch, e
 			"%s model: model %q found in multiple providers: %s. Please specify provider using 'provider/model' format",
 			label,
 			modelID,
-			xstrings.EnglishJoin(names, true),
+			xstr.EnglishJoin(names, true),
 		)
 	}
 	return matches[0], nil

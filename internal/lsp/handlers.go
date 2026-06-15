@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"log/slog"
 
-	powernap "github.com/ChxisB/spectre-proxy/deps/util/powernap/pkg/lsp"
-	"github.com/ChxisB/spectre-proxy/deps/util/powernap/pkg/lsp/protocol"
-	"github.com/ChxisB/spectre-proxy/internal/lsp/util"
+	powernap "github.com/ChxisB/talon/deps/util/powernap/pkg/lsp"
+	"github.com/ChxisB/talon/deps/util/powernap/pkg/lsp/protocol"
+	"github.com/ChxisB/talon/internal/lsp/util"
 )
 
 // HandleWorkspaceConfiguration handles workspace configuration requests

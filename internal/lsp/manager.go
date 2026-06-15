@@ -13,11 +13,11 @@ import (
 	"sync"
 	"time"
 
-	powernapconfig "github.com/ChxisB/spectre-proxy/deps/util/powernap/pkg/config"
-	powernap "github.com/ChxisB/spectre-proxy/deps/util/powernap/pkg/lsp"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/csync"
-	"github.com/ChxisB/spectre-proxy/internal/fsext"
+	powernapconfig "github.com/ChxisB/talon/deps/util/powernap/pkg/config"
+	powernap "github.com/ChxisB/talon/deps/util/powernap/pkg/lsp"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/csync"
+	"github.com/ChxisB/talon/internal/fsext"
 	"github.com/sourcegraph/jsonrpc2"
 )
 
@@ -355,7 +355,7 @@ func handles(server *powernapconfig.ServerConfig, filePath, workDir string) bool
 // This is generally faster than [Manager.StopAll] because it doesn't wait for
 // the server to exit gracefully, but it can lead to data loss if the server is
 // in the middle of writing something.
-// Generally it doesn't matter when shutting down Spectre, though.
+// Generally it doesn't matter when shutting down Talon, though.
 func (s *Manager) KillAll(context.Context) {
 	var wg sync.WaitGroup
 	for name, client := range s.clients.Seq2() {

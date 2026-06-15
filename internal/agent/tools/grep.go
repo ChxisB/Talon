@@ -19,10 +19,10 @@ import (
 	"strings"
 	"time"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/csync"
-	"github.com/ChxisB/spectre-proxy/internal/fsext"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/csync"
+	"github.com/ChxisB/talon/internal/fsext"
 )
 
 // regexCache provides thread-safe caching of compiled regex patterns
@@ -120,13 +120,13 @@ func escapeRegexPattern(pattern string) string {
 	return escaped
 }
 
-func NewGrepTool(workingDir string, config config.ToolGrep) fantasy.AgentTool {
-	return fantasy.NewAgentTool(
+func NewGrepTool(workingDir string, config config.ToolGrep) llm.AgentTool {
+	return llm.NewAgentTool(
 		GrepToolName,
 		grepDescription(),
-		func(ctx context.Context, params GrepParams, call fantasy.ToolCall) (fantasy.ToolResponse, error) {
+		func(ctx context.Context, params GrepParams, call llm.ToolCall) (llm.ToolResponse, error) {
 			if params.Pattern == "" {
-				return fantasy.NewTextErrorResponse("pattern is required"), nil
+				return llm.NewTextErrorResponse("pattern is required"), nil
 			}
 
 			searchPattern := params.Pattern
@@ -141,7 +141,7 @@ func NewGrepTool(workingDir string, config config.ToolGrep) fantasy.AgentTool {
 
 			matches, truncated, err := searchFiles(searchCtx, searchPattern, searchPath, params.Include, 100)
 			if err != nil {
-				return fantasy.NewTextErrorResponse(fmt.Sprintf("error searching files: %v", err)), nil
+				return llm.NewTextErrorResponse(fmt.Sprintf("error searching files: %v", err)), nil
 			}
 
 			var output strings.Builder
@@ -179,8 +179,8 @@ func NewGrepTool(workingDir string, config config.ToolGrep) fantasy.AgentTool {
 				}
 			}
 
-			return fantasy.WithResponseMetadata(
-				fantasy.NewTextResponse(output.String()),
+			return llm.WithResponseMetadata(
+				llm.NewTextResponse(output.String()),
 				GrepResponseMetadata{
 					NumberOfMatches: len(matches),
 					Truncated:       truncated,
@@ -218,7 +218,7 @@ func searchWithRipgrep(ctx context.Context, pattern, path, include string) ([]gr
 	}
 
 	// Only add ignore files if they exist
-	for _, ignoreFile := range []string{".gitignore", ".spectreignore"} {
+	for _, ignoreFile := range []string{".gitignore", ".talonignore"} {
 		ignorePath := filepath.Join(path, ignoreFile)
 		if _, err := os.Stat(ignorePath); err == nil {
 			cmd.Args = append(cmd.Args, "--ignore-file", ignorePath)
@@ -298,7 +298,7 @@ func searchFilesWithRegex(pattern, rootPath, include string) ([]grepMatch, error
 		}
 	}
 
-	// Create walker with gitignore and spectreignore support
+	// Create walker with gitignore and talonignore support
 	walker := fsext.NewFastGlobWalker(rootPath)
 
 	err = filepath.Walk(rootPath, func(path string, info os.FileInfo, err error) error {

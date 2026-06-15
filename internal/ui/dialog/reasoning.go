@@ -3,15 +3,15 @@ package dialog
 import (
 	"errors"
 
-	uv "github.com/ChxisB/spectre-proxy/deps/terminal"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/help"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/key"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/textinput"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/ui/list"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	term "github.com/ChxisB/talon/deps/terminal"
+	"github.com/ChxisB/talon/deps/ui/core/v2/help"
+	"github.com/ChxisB/talon/deps/ui/core/v2/key"
+	"github.com/ChxisB/talon/deps/ui/core/v2/textinput"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/ui/list"
+	"github.com/ChxisB/talon/internal/ui/styles"
 	"github.com/sahilm/fuzzy"
 )
 
@@ -109,9 +109,9 @@ func (r *Reasoning) ID() string {
 }
 
 // HandleMsg implements [Dialog].
-func (r *Reasoning) HandleMsg(msg tea.Msg) Action {
+func (r *Reasoning) HandleMsg(msg bubble.Msg) Action {
 	switch msg := msg.(type) {
-	case tea.KeyPressMsg:
+	case bubble.KeyPressMsg:
 		switch {
 		case key.Matches(msg, r.keyMap.Close):
 			return ActionClose{}
@@ -144,7 +144,7 @@ func (r *Reasoning) HandleMsg(msg tea.Msg) Action {
 			}
 			return ActionSelectReasoningEffort{Effort: reasoningItem.effort}
 		default:
-			var cmd tea.Cmd
+			var cmd bubble.Cmd
 			r.input, cmd = r.input.Update(msg)
 			value := r.input.Value()
 			r.list.SetFilter(value)
@@ -157,12 +157,12 @@ func (r *Reasoning) HandleMsg(msg tea.Msg) Action {
 }
 
 // Cursor returns the cursor position relative to the dialog.
-func (r *Reasoning) Cursor() *tea.Cursor {
+func (r *Reasoning) Cursor() *bubble.Cursor {
 	return InputCursor(r.com.Styles, r.input.Cursor())
 }
 
 // Draw implements [Dialog].
-func (r *Reasoning) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
+func (r *Reasoning) Draw(scr term.Screen, area term.Rectangle) *bubble.Cursor {
 	t := r.com.Styles
 	width := max(0, min(reasoningDialogMaxWidth, area.Dx()))
 	height := max(0, min(reasoningDialogMaxHeight, area.Dy()))

@@ -3,7 +3,7 @@ package notification
 import (
 	"log/slog"
 
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
 	"github.com/gen2brain/beeep"
 )
 
@@ -18,7 +18,7 @@ type NativeBackend struct {
 
 // NewNativeBackend creates a new native notification backend.
 func NewNativeBackend(icon []byte) *NativeBackend {
-	beeep.AppName = "Spectre"
+	beeep.AppName = "Talon"
 	return &NativeBackend{
 		icon:       icon,
 		notifyFunc: beeep.Notify,
@@ -27,8 +27,8 @@ func NewNativeBackend(icon []byte) *NativeBackend {
 
 // Send returns a command that sends a desktop notification using the native
 // OS notification system.
-func (b *NativeBackend) Send(n Notification) tea.Cmd {
-	return func() tea.Msg {
+func (b *NativeBackend) Send(n Notification) bubble.Cmd {
+	return func() bubble.Msg {
 		slog.Debug("Sending native notification", "title", n.Title, "message", n.Message)
 
 		if err := b.notifyFunc(n.Title, n.Message, b.icon); err != nil {

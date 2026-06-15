@@ -17,14 +17,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	powernapConfig "github.com/ChxisB/spectre-proxy/deps/util/powernap/pkg/config"
-	"github.com/ChxisB/spectre-proxy/internal/agent/hyper"
-	"github.com/ChxisB/spectre-proxy/internal/csync"
-	"github.com/ChxisB/spectre-proxy/internal/env"
-	"github.com/ChxisB/spectre-proxy/internal/filepathext"
-	"github.com/ChxisB/spectre-proxy/internal/fsext"
-	"github.com/ChxisB/spectre-proxy/internal/home"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	powernapConfig "github.com/ChxisB/talon/deps/util/powernap/pkg/config"
+	"github.com/ChxisB/talon/internal/agent/hyper"
+	"github.com/ChxisB/talon/internal/csync"
+	"github.com/ChxisB/talon/internal/env"
+	"github.com/ChxisB/talon/internal/filepathext"
+	"github.com/ChxisB/talon/internal/fsext"
+	"github.com/ChxisB/talon/internal/home"
 	"github.com/qjebbs/go-jsons"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
@@ -110,9 +110,9 @@ func Load(workingDir, dataDir string, debug bool) (*ConfigStore, error) {
 		store.modelsOnDisk = true
 	}
 
-	// Load env vars from ~/.spectre/.env so that dashboard-saved
+	// Load env vars from ~/.talon/.env so that dashboard-saved
 	// API keys and model configs are visible to the CLI.
-	loadSpectreEnv()
+	loadTalonEnv()
 
 	env := env.New()
 	// Configure providers
@@ -159,15 +159,15 @@ func mustMarshalConfig(cfg *Config) []byte {
 	return data
 }
 
-// loadSpectreEnv reads ~/.spectre/.env and sets its contents as process
+// loadTalonEnv reads ~/.talon/.env and sets its contents as process
 // environment variables. This ensures API keys and model config saved via
 // the dashboard are visible to the CLI's provider resolution.
-func loadSpectreEnv() {
+func loadTalonEnv() {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return
 	}
-	envFile := filepath.Join(home, ".spectre", ".env")
+	envFile := filepath.Join(home, ".talon", ".env")
 	data, err := os.ReadFile(envFile)
 	if err != nil {
 		return // file doesn't exist yet
@@ -197,15 +197,15 @@ func loadSpectreEnv() {
 	}
 }
 
-func PushPopSpectreEnv() func() {
+func PushPopTalonEnv() func() {
 	var found []string
 	for _, ev := range os.Environ() {
-		if strings.HasPrefix(ev, "SPECTRE_") {
+		if strings.HasPrefix(ev, "TALON_") {
 			pair := strings.SplitN(ev, "=", 2)
 			if len(pair) != 2 {
 				continue
 			}
-			found = append(found, strings.TrimPrefix(pair[0], "SPECTRE_"))
+			found = append(found, strings.TrimPrefix(pair[0], "TALON_"))
 		}
 	}
 	backups := make(map[string]string)
@@ -214,7 +214,7 @@ func PushPopSpectreEnv() func() {
 	}
 
 	for _, ev := range found {
-		os.Setenv(ev, os.Getenv("SPECTRE_"+ev))
+		os.Setenv(ev, os.Getenv("TALON_"+ev))
 	}
 
 	restore := func() {
@@ -227,7 +227,7 @@ func PushPopSpectreEnv() func() {
 
 func (c *Config) configureProviders(store *ConfigStore, env env.Env, resolver VariableResolver, knownProviders []catwalk.Provider) error {
 	knownProviderNames := make(map[string]bool)
-	restore := PushPopSpectreEnv()
+	restore := PushPopTalonEnv()
 	defer restore()
 
 	// When disable_default_providers is enabled, skip all default/embedded
@@ -472,10 +472,10 @@ func (c *Config) setDefaults(workingDir, dataDir string) {
 		c.Options.TUI = &TUIOptions{}
 	}
 	if len(c.Options.GlobalContextPaths) == 0 {
-		spectreConfigDir := filepath.Dir(GlobalConfig())
+		talonConfigDir := filepath.Dir(GlobalConfig())
 		c.Options.GlobalContextPaths = []string{
-			filepath.Join(spectreConfigDir, "SPECTRE.md"),
-			filepath.Join(filepath.Dir(spectreConfigDir), "AGENTS.md"),
+			filepath.Join(talonConfigDir, "TALON.md"),
+			filepath.Join(filepath.Dir(talonConfigDir), "AGENTS.md"),
 		}
 	}
 	slices.Sort(c.Options.GlobalContextPaths)
@@ -526,11 +526,11 @@ func (c *Config) setDefaults(workingDir, dataDir string) {
 	// Project specific skills dirs.
 	c.Options.SkillsPaths = append(c.Options.SkillsPaths, ProjectSkillsDir(workingDir)...)
 
-	if str, ok := os.LookupEnv("SPECTRE_DISABLE_PROVIDER_AUTO_UPDATE"); ok {
+	if str, ok := os.LookupEnv("TALON_DISABLE_PROVIDER_AUTO_UPDATE"); ok {
 		c.Options.DisableProviderAutoUpdate, _ = strconv.ParseBool(str)
 	}
 
-	if str, ok := os.LookupEnv("SPECTRE_DISABLE_DEFAULT_PROVIDERS"); ok {
+	if str, ok := os.LookupEnv("TALON_DISABLE_DEFAULT_PROVIDERS"); ok {
 		c.Options.DisableDefaultProviders, _ = strconv.ParseBool(str)
 	}
 
@@ -792,7 +792,7 @@ func configureSelectedModels(store *ConfigStore, knownProviders []catwalk.Provid
 // lookupConfigs searches config files starting at cwd and walking up
 // through the current project. The upward walk stops at the git
 // working tree root when one can be detected, otherwise at cwd itself,
-// so an unrelated spectre.json placed above the project is never picked
+// so an unrelated talon.json placed above the project is never picked
 // up. Global user-level config locations are always included
 // regardless of the boundary.
 func lookupConfigs(cwd string) []string {
@@ -958,8 +958,8 @@ func migrateDisableNotifications() {
 
 // GlobalConfig returns the global configuration file path for the application.
 func GlobalConfig() string {
-	if spectreGlobal := os.Getenv("SPECTRE_GLOBAL_CONFIG"); spectreGlobal != "" {
-		return filepath.Join(spectreGlobal, fmt.Sprintf("%s.json", appName))
+	if talonGlobal := os.Getenv("TALON_GLOBAL_CONFIG"); talonGlobal != "" {
+		return filepath.Join(talonGlobal, fmt.Sprintf("%s.json", appName))
 	}
 	return filepath.Join(home.Config(), appName, fmt.Sprintf("%s.json", appName))
 }
@@ -967,8 +967,8 @@ func GlobalConfig() string {
 // GlobalCacheDir returns the path to the global cache directory for the
 // application.
 func GlobalCacheDir() string {
-	if spectreCache := os.Getenv("SPECTRE_CACHE_DIR"); spectreCache != "" {
-		return spectreCache
+	if talonCache := os.Getenv("TALON_CACHE_DIR"); talonCache != "" {
+		return talonCache
 	}
 	if xdgCacheHome := os.Getenv("XDG_CACHE_HOME"); xdgCacheHome != "" {
 		return filepath.Join(xdgCacheHome, appName)
@@ -991,16 +991,16 @@ func ProjectConfigs(cwd string) []string {
 // GlobalConfigData returns the path to the main data directory for the application.
 // this config is used when the app overrides configurations instead of updating the global config.
 func GlobalConfigData() string {
-	if spectreData := os.Getenv("SPECTRE_GLOBAL_DATA"); spectreData != "" {
-		return filepath.Join(spectreData, fmt.Sprintf("%s.json", appName))
+	if talonData := os.Getenv("TALON_GLOBAL_DATA"); talonData != "" {
+		return filepath.Join(talonData, fmt.Sprintf("%s.json", appName))
 	}
 	if xdgDataHome := os.Getenv("XDG_DATA_HOME"); xdgDataHome != "" {
 		return filepath.Join(xdgDataHome, appName, fmt.Sprintf("%s.json", appName))
 	}
 
 	// return the path to the main data directory
-	// for windows, it should be in `%LOCALAPPDATA%/spectre/`
-	// for linux and macOS, it should be in `$HOME/.local/share/spectre/`
+	// for windows, it should be in `%LOCALAPPDATA%/talon/`
+	// for linux and macOS, it should be in `$HOME/.local/share/talon/`
 	if runtime.GOOS == "windows" {
 		localAppData := cmp.Or(
 			os.Getenv("LOCALAPPDATA"),
@@ -1065,7 +1065,7 @@ func worktreeRoot(dir string) string {
 // projectBoundary returns the directory at which an upward configuration
 // search rooted at dir should stop. It is the git working tree root when
 // one can be detected, otherwise dir itself. Returning dir as a
-// fallback keeps spectre from silently adopting state files placed above
+// fallback keeps talon from silently adopting state files placed above
 // the current project.
 func projectBoundary(dir string) string {
 	if root := worktreeRoot(dir); root != "" {
@@ -1082,8 +1082,8 @@ func projectBoundary(dir string) string {
 // Skills in these directories are auto-discovered and their files can be read
 // without permission prompts.
 func GlobalSkillsDirs() []string {
-	if spectreSkills := os.Getenv("SPECTRE_SKILLS_DIR"); spectreSkills != "" {
-		return []string{spectreSkills}
+	if talonSkills := os.Getenv("TALON_SKILLS_DIR"); talonSkills != "" {
+		return []string{talonSkills}
 	}
 
 	paths := []string{
@@ -1094,7 +1094,7 @@ func GlobalSkillsDirs() []string {
 		filepath.Join(home.Dir(), ".claude", "skills"),
 	}
 
-	// On Windows, also load from app data on top of `$HOME/.config/spectre`.
+	// On Windows, also load from app data on top of `$HOME/.config/talon`.
 	// This is here mostly for backwards compatibility.
 	if runtime.GOOS == "windows" {
 		appData := cmp.Or(
@@ -1116,12 +1116,12 @@ func GlobalSkillsDirs() []string {
 // git-root lookups to prevent drift when a new convention is added.
 var projectSkillSubdirs = []string{
 	".agents/skills",
-	".spectre/skills",
+	".talon/skills",
 	".claude/skills",
 	".cursor/skills",
 }
 
-// ProjectSkillsDir returns the default project directories for which spectre
+// ProjectSkillsDir returns the default project directories for which talon
 // will look for skills. In addition to the working directory, it also
 // checks the git working tree root so that monorepo-level skills are
 // discovered when the user is inside a subdirectory.

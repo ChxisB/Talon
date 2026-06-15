@@ -3,8 +3,8 @@ package model
 import (
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/ui/chat"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/ui/chat"
 	"github.com/stretchr/testify/require"
 )
 

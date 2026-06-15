@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/internal/shell"
+	"github.com/ChxisB/talon/internal/shell"
 	"github.com/stretchr/testify/require"
 )
 

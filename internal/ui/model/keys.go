@@ -1,6 +1,6 @@
 package model
 
-import "github.com/ChxisB/spectre-proxy/deps/ui/core/v2/key"
+import "github.com/ChxisB/talon/deps/ui/core/v2/key"
 
 type KeyMap struct {
 	Editor struct {

@@ -10,17 +10,17 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/internal/lock"
-	"github.com/ChxisB/spectre-proxy/internal/version"
+	"github.com/ChxisB/talon/internal/lock"
+	"github.com/ChxisB/talon/internal/version"
 )
 
 // ErrDataDirLocked is returned by Connect when the data directory is
-// already in use by another spectre process.
-var ErrDataDirLocked = errors.New("data directory already in use by another spectre process")
+// already in use by another talon process.
+var ErrDataDirLocked = errors.New("data directory already in use by another talon process")
 
 // dataDirLockFile is the name of the lock file inside the data
-// directory. It lives next to spectre.db so users can `ls` and find it.
-const dataDirLockFile = "spectre.lock"
+// directory. It lives next to talon.db so users can `ls` and find it.
+const dataDirLockFile = "talon.lock"
 
 // dataDirOwnerInfo is the JSON payload written into the lock file by
 // the process that currently owns it. It is purely informational; the
@@ -40,12 +40,12 @@ type dataDirLock struct {
 }
 
 // acquireDataDirLock takes an exclusive non-blocking lock on
-// {dataDir}/spectre.lock. If the lock is already held by another
+// {dataDir}/talon.lock. If the lock is already held by another
 // process, it returns ErrDataDirLocked wrapped with a diagnostic that
 // includes whatever owner info that process wrote.
 //
 // Acquisition is skipped (returning a no-op lock) when
-// SPECTRE_SKIP_DATADIR_LOCK is set to a truthy value. This is intended
+// TALON_SKIP_DATADIR_LOCK is set to a truthy value. This is intended
 // as an escape hatch for hostile filesystems that do not implement
 // advisory locking; it should not be used in normal operation.
 func acquireDataDirLock(dataDir string) (*dataDirLock, error) {
@@ -81,7 +81,7 @@ func acquireDataDirLock(dataDir string) (*dataDirLock, error) {
 
 // skipDataDirLock reports whether the data-dir lock should be bypassed.
 func skipDataDirLock() bool {
-	v, _ := strconv.ParseBool(os.Getenv("SPECTRE_SKIP_DATADIR_LOCK"))
+	v, _ := strconv.ParseBool(os.Getenv("TALON_SKIP_DATADIR_LOCK"))
 	return v
 }
 

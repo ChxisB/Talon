@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/oauth/copilot"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/oauth/copilot"
+	"github.com/ChxisB/talon/internal/ui/common"
 )
 
 func NewOAuthCopilot(
@@ -18,7 +18,7 @@ func NewOAuthCopilot(
 	provider catwalk.Provider,
 	model config.SelectedModel,
 	modelType config.SelectedModelType,
-) (*OAuth, tea.Cmd) {
+) (*OAuth, bubble.Cmd) {
 	return newOAuth(com, isOnboarding, provider, model, modelType, &OAuthCopilot{})
 }
 
@@ -33,7 +33,7 @@ func (m *OAuthCopilot) name() string {
 	return "GitHub Copilot"
 }
 
-func (m *OAuthCopilot) initiateAuth() tea.Msg {
+func (m *OAuthCopilot) initiateAuth() bubble.Msg {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -53,8 +53,8 @@ func (m *OAuthCopilot) initiateAuth() tea.Msg {
 	}
 }
 
-func (m *OAuthCopilot) startPolling(deviceCode string, expiresIn int) tea.Cmd {
-	return func() tea.Msg {
+func (m *OAuthCopilot) startPolling(deviceCode string, expiresIn int) bubble.Cmd {
+	return func() bubble.Msg {
 		ctx, cancel := context.WithCancel(context.Background())
 		m.cancelFunc = cancel
 
@@ -70,7 +70,7 @@ func (m *OAuthCopilot) startPolling(deviceCode string, expiresIn int) tea.Cmd {
 	}
 }
 
-func (m *OAuthCopilot) stopPolling() tea.Msg {
+func (m *OAuthCopilot) stopPolling() bubble.Msg {
 	if m.cancelFunc != nil {
 		m.cancelFunc()
 	}

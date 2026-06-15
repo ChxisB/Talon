@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/ChxisB/spectre-proxy/deps/graph"
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	"github.com/ChxisB/spectre-proxy/internal/backend"
-	"github.com/ChxisB/spectre-proxy/internal/proto"
-	"github.com/ChxisB/spectre-proxy/internal/session"
+	"github.com/ChxisB/talon/deps/graph"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	"github.com/ChxisB/talon/internal/backend"
+	"github.com/ChxisB/talon/internal/db"
+	"github.com/ChxisB/talon/internal/proto"
+	"github.com/ChxisB/talon/internal/session"
 	"github.com/google/uuid"
 )
 
@@ -364,6 +365,59 @@ func (c *controllerV1) handleGetWorkspaceLSPDiagnostics(w http.ResponseWriter, r
 		return
 	}
 	jsonEncode(w, diagnostics)
+}
+
+// handleGetWorkspaceStats returns aggregated token usage statistics.
+//
+//	@Summary		Workspace token stats
+//	@Tags			workspace
+//	@Produce		json
+//	@Param			id	path	string	true	"Workspace ID"
+//	@Success		200	{object}	map[string]any
+//	@Failure		404	{object}	proto.Error
+//	@Failure		500	{object}	proto.Error
+//	@Router			/workspaces/{id}/stats [get]
+func (c *controllerV1) handleGetWorkspaceStats(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	ws, err := c.backend.GetWorkspace(id)
+	if err != nil {
+		c.handleError(w, r, err)
+		return
+	}
+
+	if ws.DB == nil {
+		jsonError(w, http.StatusInternalServerError, "database not available")
+		return
+	}
+
+	q := db.New(ws.DB)
+
+	total, err := q.GetTotalStats(r.Context())
+	if err != nil {
+		c.server.logError(r, "Failed to get total stats", "error", err)
+		jsonError(w, http.StatusInternalServerError, "failed to query stats")
+		return
+	}
+
+	daily, err := q.GetUsageByDay(r.Context())
+	if err != nil {
+		c.server.logError(r, "Failed to get daily usage", "error", err)
+		jsonError(w, http.StatusInternalServerError, "failed to query daily usage")
+		return
+	}
+
+	models, err := q.GetUsageByModel(r.Context())
+	if err != nil {
+		c.server.logError(r, "Failed to get model usage", "error", err)
+		jsonError(w, http.StatusInternalServerError, "failed to query model usage")
+		return
+	}
+
+	jsonEncode(w, map[string]any{
+		"total":  total,
+		"daily":  daily,
+		"models": models,
+	})
 }
 
 // handleGetWorkspaceSessions lists sessions for a workspace.

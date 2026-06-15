@@ -1,8 +1,5 @@
-// Package synth embeds Andrej Karpathy's four coding principles for LLM
-// assistants and provides a prompt template engine that injects them into
-// agent system prompts automatically.
-//
-// Reference: andrej-karpathy-skills (MIT License)
+// Package synth provides coding principles for LLM assistants and a prompt
+// template engine that injects them into agent prompts automatically.
 package synth
 
 import (
@@ -25,14 +22,14 @@ var principleGoalDriven string
 //go:embed principles/skill-header.md
 var skillHeader string
 
-// Principle represents one of Karpathy's four coding guidelines.
+// Principle represents one of the four coding guidelines.
 type Principle struct {
 	ID      string
 	Title   string
 	Content string
 }
 
-// AllPrinciples returns the four Karpathy coding principles in order.
+// AllPrinciples returns the four coding principles in order.
 func AllPrinciples() []Principle {
 	return []Principle{
 		{ID: "thinking", Title: "Think Before Coding", Content: strings.TrimSpace(principleThinking)},
@@ -42,7 +39,7 @@ func AllPrinciples() []Principle {
 	}
 }
 
-// Inject takes a base system prompt and appends the Karpathy principles
+// Inject takes a base system prompt and appends the coding principles
 // as an additional context block. The principles are formatted as markdown
 // sections with clear separators.
 func Inject(basePrompt string) string {
@@ -74,12 +71,12 @@ success criteria upfront, verify with tests before declaring done.`
 }
 
 // ShouldActivate returns true if the user message contains signals that
-// the Karpathy principles should be activated (e.g., "think before coding",
-// "karpathy mode", "best practices").
+// the coding principles should be activated (e.g., "think before coding",
+// "best practices").
 func ShouldActivate(msg string) bool {
 	lower := strings.ToLower(msg)
 	triggers := []string{
-		"karpathy", "think before coding", "simplicity first",
+		"think before coding", "simplicity first",
 		"surgical changes", "goal driven", "best practices",
 		"coding principles", "code guidelines",
 	}

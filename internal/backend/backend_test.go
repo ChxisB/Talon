@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/internal/csync"
-	"github.com/ChxisB/spectre-proxy/internal/proto"
+	"github.com/ChxisB/talon/internal/csync"
+	"github.com/ChxisB/talon/internal/proto"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )

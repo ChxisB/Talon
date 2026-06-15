@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/internal/config"
+	"github.com/ChxisB/talon/internal/config"
 	"github.com/invopop/jsonschema"
 	"github.com/stretchr/testify/require"
 )

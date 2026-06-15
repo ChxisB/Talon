@@ -1,8 +1,8 @@
 package backend
 
 import (
-	"github.com/ChxisB/spectre-proxy/internal/permission"
-	"github.com/ChxisB/spectre-proxy/internal/proto"
+	"github.com/ChxisB/talon/internal/permission"
+	"github.com/ChxisB/talon/internal/proto"
 )
 
 // GrantPermission grants, denies, or persistently grants a permission

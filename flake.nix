@@ -1,5 +1,5 @@
 {
-  description = "Spectre development environment";
+  description = "Talon development environment";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";

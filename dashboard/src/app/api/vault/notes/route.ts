@@ -12,8 +12,8 @@ function findVault(): string {
   if (envPath && existsSync(envPath)) return envPath;
   const home = os.homedir();
   const candidates = [
-    path.join(home, ".spectre", "vault"),
-    path.join(home, "Spectre Proxy", "agent-vault"),
+    path.join(home, ".talon", "vault"),
+    path.join(home, "Talon", "agent-vault"),
     path.join(home, "agent-vault"),
     "/vault",
   ];

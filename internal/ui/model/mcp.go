@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	"github.com/ChxisB/spectre-proxy/internal/agent/tools/mcp"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	"github.com/ChxisB/talon/internal/agent/tools/mcp"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/ui/styles"
 )
 
 // mcpInfo renders the MCP status section showing active MCP clients and their
@@ -27,12 +27,13 @@ func (m *UI) mcpInfo(width, maxItems int, isSection bool) string {
 	if isSection {
 		title = common.Section(t, title, width)
 	}
-	list := t.Resource.AdditionalText.Render("None")
-	if len(mcps) > 0 {
-		list = mcpList(t, mcps, width, maxItems)
+	if len(mcps) == 0 {
+		return ""
 	}
 
-	return lipgloss.NewStyle().Width(width).Render(fmt.Sprintf("%s\n\n%s", title, list))
+	list := mcpList(t, mcps, width, maxItems)
+
+	return style.NewStyle().Width(width).Render(fmt.Sprintf("%s\n\n%s", title, list))
 }
 
 // mcpCounts formats tool, prompt, and resource counts for display.
@@ -101,7 +102,7 @@ func mcpList(t *styles.Styles, mcps []mcp.ClientInfo, width, maxItems int) strin
 		visibleItems := renderedMcps[:maxItems-1]
 		remaining := len(renderedMcps) - maxItems
 		visibleItems = append(visibleItems, t.Resource.AdditionalText.Render(fmt.Sprintf("…and %d more", remaining)))
-		return lipgloss.JoinVertical(lipgloss.Left, visibleItems...)
+		return style.JoinVertical(style.Left, visibleItems...)
 	}
-	return lipgloss.JoinVertical(lipgloss.Left, renderedMcps...)
+	return style.JoinVertical(style.Left, renderedMcps...)
 }

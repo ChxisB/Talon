@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
 	"github.com/stretchr/testify/require"
 )
 
@@ -116,7 +116,7 @@ func TestHyperSync_GetClientError(t *testing.T) {
 
 	provider, err := syncer.Get(t.Context())
 	require.NoError(t, err) // Should fall back to embedded.
-	require.Equal(t, "Spectre Hyper", provider.Name)
+	require.Equal(t, "Talon Hyper", provider.Name)
 	require.Equal(t, catwalk.InferenceProvider("hyper"), provider.ID)
 }
 

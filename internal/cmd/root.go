@@ -20,30 +20,30 @@ import (
 	"strings"
 	"time"
 
-	colorprofile "github.com/ChxisB/spectre-proxy/deps/color"
-	fang "github.com/ChxisB/spectre-proxy/deps/config/v2"
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	uv "github.com/ChxisB/spectre-proxy/deps/terminal"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
-	xstrings "github.com/ChxisB/spectre-proxy/deps/util/exp/strings"
-	"github.com/ChxisB/spectre-proxy/deps/util/term"
-	"github.com/ChxisB/spectre-proxy/internal/app"
-	"github.com/ChxisB/spectre-proxy/internal/client"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/db"
-	"github.com/ChxisB/spectre-proxy/internal/event"
-	"github.com/ChxisB/spectre-proxy/internal/lock"
-	spectrelog "github.com/ChxisB/spectre-proxy/internal/log"
-	"github.com/ChxisB/spectre-proxy/internal/projects"
-	"github.com/ChxisB/spectre-proxy/internal/proto"
-	"github.com/ChxisB/spectre-proxy/internal/server"
-	"github.com/ChxisB/spectre-proxy/internal/session"
-	"github.com/ChxisB/spectre-proxy/internal/skills"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	ui "github.com/ChxisB/spectre-proxy/internal/ui/model"
-	"github.com/ChxisB/spectre-proxy/internal/version"
-	"github.com/ChxisB/spectre-proxy/internal/workspace"
+	colorprofile "github.com/ChxisB/talon/deps/color"
+	cfg "github.com/ChxisB/talon/deps/config/v2"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	trm "github.com/ChxisB/talon/deps/terminal"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/deps/util/ansi"
+	xstr "github.com/ChxisB/talon/deps/util/exp/strings"
+	"github.com/ChxisB/talon/deps/util/term"
+	"github.com/ChxisB/talon/internal/app"
+	"github.com/ChxisB/talon/internal/client"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/db"
+	"github.com/ChxisB/talon/internal/event"
+	"github.com/ChxisB/talon/internal/lock"
+	talonlog "github.com/ChxisB/talon/internal/log"
+	"github.com/ChxisB/talon/internal/projects"
+	"github.com/ChxisB/talon/internal/proto"
+	"github.com/ChxisB/talon/internal/server"
+	"github.com/ChxisB/talon/internal/session"
+	"github.com/ChxisB/talon/internal/skills"
+	"github.com/ChxisB/talon/internal/ui/common"
+	ui "github.com/ChxisB/talon/internal/ui/model"
+	"github.com/ChxisB/talon/internal/version"
+	"github.com/ChxisB/talon/internal/workspace"
 	"github.com/spf13/cobra"
 )
 
@@ -75,33 +75,33 @@ func init() {
 }
 
 var rootCmd = &cobra.Command{
-	Use:   "spectre",
+	Use:   "talon",
 	Short: "A terminal-first AI assistant for software development",
 	Long:  "A terminal-first AI assistant for software development with multi-provider support",
 	Example: `
 # Run in interactive mode
-spectre
+talon
 
 # Run non-interactively
-spectre run "Guess my 5 favorite Pokémon"
+talon run "Guess my 5 favorite Pokémon"
 
 # Run a non-interactively with pipes and redirection
-cat README.md | spectre run "make this more glamorous" > GLAMOROUS_README.md
+cat README.md | talon run "make this more glamorous" > GLAMOROUS_README.md
 
 # Run with debug logging in a specific directory
-spectre --debug --cwd /path/to/project
+talon --debug --cwd /path/to/project
 
 # Run in yolo mode (auto-accept all permissions; use with care)
-spectre --yolo
+talon --yolo
 
 # Run with custom data directory
-spectre --data-dir /path/to/custom/.spectre
+talon --data-dir /path/to/custom/.talon
 
 # Continue a previous session
-spectre --session {session-id}
+talon --session {session-id}
 
 # Continue the most recent session
-spectre --continue
+talon --continue
   `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		sessionID, _ := cmd.Flags().GetString("session")
@@ -126,25 +126,25 @@ spectre --continue
 		com := common.DefaultCommon(ws)
 		model := ui.New(com, sessionID, continueLast)
 
-		var env uv.Environ = os.Environ()
-		program := tea.NewProgram(
+		var env trm.Environ = os.Environ()
+		program := bubble.NewProgram(
 			model,
-			tea.WithEnvironment(env),
-			tea.WithContext(cmd.Context()),
-			tea.WithFilter(ui.MouseEventFilter),
+			bubble.WithEnvironment(env),
+			bubble.WithContext(cmd.Context()),
+			bubble.WithFilter(ui.MouseEventFilter),
 		)
 		go ws.Subscribe(program)
 
 		if _, err := program.Run(); err != nil {
 			event.Error(err)
 			slog.Error("TUI run error", "error", err)
-			return errors.New("Spectre crashed. If metrics are enabled, we were notified about it. If you'd like to report it, please copy the stacktrace above and open an issue at https://github.com/ChxisB/spectre-proxy/issues/new?template=bug.yml") //nolint:staticcheck
+			return errors.New("Talon crashed. If metrics are enabled, we were notified about it. If you'd like to report it, please copy the stacktrace above and open an issue at https://github.com/ChxisB/talon/issues/new?template=bug.yml") //nolint:staticcheck
 		}
 		return nil
 	},
 }
 
-var ghostLogo = lipgloss.NewStyle().Foreground(lipgloss.Color("#8b5cf6")).SetString(`
+var ghostLogo = style.NewStyle().Foreground(style.Color("#8b5cf6")).SetString(`
      ████████████████████
    ██                  ██
  ██    ████    ████    ██
@@ -184,11 +184,11 @@ func Execute() {
 		_, _ = w.WriteString(ghostLogo.String())
 		rootCmd.SetVersionTemplate(b.String() + "\n" + defaultVersionTemplate)
 	}
-	if err := fang.Execute(
+	if err := cfg.Execute(
 		context.Background(),
 		rootCmd,
-		fang.WithVersion(version.Version),
-		fang.WithNotifySignal(os.Interrupt),
+		cfg.WithVersion(version.Version),
+		cfg.WithNotifySignal(os.Interrupt),
 	); err != nil {
 		os.Exit(1)
 	}
@@ -203,13 +203,13 @@ func supportsProgressBar() bool {
 	termProg := os.Getenv("TERM_PROGRAM")
 	_, isWindowsTerminal := os.LookupEnv("WT_SESSION")
 
-	return isWindowsTerminal || xstrings.ContainsAnyOf(strings.ToLower(termProg), "ghostty", "iterm2", "rio")
+	return isWindowsTerminal || xstr.ContainsAnyOf(strings.ToLower(termProg), "ghostty", "iterm2", "rio")
 }
 
 // useClientServer returns true when the client/server architecture is
-// enabled via the SPECTRE_CLIENT_SERVER environment variable.
+// enabled via the TALON_CLIENT_SERVER environment variable.
 func useClientServer() bool {
-	v, _ := strconv.ParseBool(os.Getenv("SPECTRE_CLIENT_SERVER"))
+	v, _ := strconv.ParseBool(os.Getenv("TALON_CLIENT_SERVER"))
 	return v
 }
 
@@ -231,7 +231,7 @@ func setupWorkspaceWithProgressBar(cmd *cobra.Command) (workspace.Workspace, fun
 }
 
 // setupWorkspace returns a Workspace and cleanup function. When
-// SPECTRE_CLIENT_SERVER=1, it connects to a server process and returns a
+// TALON_CLIENT_SERVER=1, it connects to a server process and returns a
 // ClientWorkspace. Otherwise it creates an in-process app.App and
 // returns an AppWorkspace.
 func setupWorkspace(cmd *cobra.Command) (workspace.Workspace, func(), error) {
@@ -282,8 +282,8 @@ func setupLocalWorkspace(cmd *cobra.Command) (workspace.Workspace, func(), error
 		return nil, nil, err
 	}
 
-	logFile := filepath.Join(cfg.Options.DataDirectory, "logs", "spectre.log")
-	spectrelog.Setup(logFile, debug)
+	logFile := filepath.Join(cfg.Options.DataDirectory, "logs", "talon.log")
+	talonlog.Setup(logFile, debug)
 
 	// Discover skills once before app.New. Local mode hosts a single
 	// workspace per process, so WithGlobalMirror keeps the package
@@ -400,8 +400,8 @@ func connectToServer(cmd *cobra.Command) (*client.Client, *proto.Workspace, func
 	}
 
 	if ws.Config != nil {
-		logFile := filepath.Join(ws.Config.Options.DataDirectory, "logs", "spectre.log")
-		spectrelog.Setup(logFile, debug)
+		logFile := filepath.Join(ws.Config.Options.DataDirectory, "logs", "talon.log")
+		talonlog.Setup(logFile, debug)
 	}
 
 	cleanup := func() { _ = c.DeleteWorkspace(context.Background(), ws.ID) }
@@ -415,11 +415,11 @@ func connectToServer(cmd *cobra.Command) (*client.Client, *proto.Workspace, func
 func ensureServer(cmd *cobra.Command, hostURL *url.URL) error {
 	// Initialize the persistent log here so stale-socket diagnostics
 	// emitted before connectToServer runs are captured in the per-host
-	// server log file. spectrelog.Setup uses sync.Once internally, so the
+	// server log file. talonlog.Setup uses sync.Once internally, so the
 	// later call from connectToServer becomes a no-op.
 	debug, _ := cmd.Flags().GetBool("debug")
-	logFile := filepath.Join(config.GlobalCacheDir(), "server-"+safeHostName(hostURL), "spectre.log")
-	spectrelog.Setup(logFile, debug)
+	logFile := filepath.Join(config.GlobalCacheDir(), "server-"+safeHostName(hostURL), "talon.log")
+	talonlog.Setup(logFile, debug)
 
 	switch hostURL.Scheme {
 	case "unix", "npipe":
@@ -467,13 +467,13 @@ func ensureServer(cmd *cobra.Command, hostURL *url.URL) error {
 
 		if needsStart {
 			if err := spawnAndWaitReady(cmd, hostURL); err != nil {
-				return fmt.Errorf("failed to initialize spectre server: %v", err)
+				return fmt.Errorf("failed to initialize talon server: %v", err)
 			}
 			return nil
 		}
 
 		if err := waitForServerReady(cmd.Context(), hostURL); err != nil {
-			return fmt.Errorf("failed to initialize spectre server: %v", err)
+			return fmt.Errorf("failed to initialize talon server: %v", err)
 		}
 	}
 
@@ -482,7 +482,7 @@ func ensureServer(cmd *cobra.Command, hostURL *url.URL) error {
 
 // spawnAndWaitReady serializes the spawn-and-wait-for-readiness sequence
 // across concurrent clients via an exclusive flock on
-// $XDG_CACHE_HOME/spectre/server-<safeHost>/start.lock.
+// $XDG_CACHE_HOME/talon/server-<safeHost>/start.lock.
 //
 // After acquiring the lock it re-probes readiness so that a client that
 // blocked while another client was spawning can skip its own spawn and
@@ -554,10 +554,10 @@ func safeHostName(hostURL *url.URL) string {
 }
 
 // serverReadyTimeout returns the total budget for the readiness probe.
-// Overridable via SPECTRE_SERVER_READY_TIMEOUT (parsed as a Go duration).
+// Overridable via TALON_SERVER_READY_TIMEOUT (parsed as a Go duration).
 func serverReadyTimeout() time.Duration {
 	const def = 10 * time.Second
-	v := os.Getenv("SPECTRE_SERVER_READY_TIMEOUT")
+	v := os.Getenv("TALON_SERVER_READY_TIMEOUT")
 	if v == "" {
 		return def
 	}
@@ -747,18 +747,18 @@ func startDetachedServer(cmd *cobra.Command, hostURL *url.URL) error {
 	c.Stderr = stderr
 
 	if err := c.Start(); err != nil {
-		return fmt.Errorf("failed to start spectre server: %v", err)
+		return fmt.Errorf("failed to start talon server: %v", err)
 	}
 
 	if err := c.Process.Release(); err != nil {
-		return fmt.Errorf("failed to detach spectre server process: %v", err)
+		return fmt.Errorf("failed to detach talon server process: %v", err)
 	}
 
 	return nil
 }
 
 func shouldEnableMetrics(cfg *config.Config) bool {
-	if v, _ := strconv.ParseBool(os.Getenv("SPECTRE_DISABLE_METRICS")); v {
+	if v, _ := strconv.ParseBool(os.Getenv("TALON_DISABLE_METRICS")); v {
 		return false
 	}
 	if v, _ := strconv.ParseBool(os.Getenv("DO_NOT_TRACK")); v {
@@ -837,7 +837,7 @@ func ResolveCwd(cmd *cobra.Command) (string, error) {
 	return cwd, nil
 }
 
-func createDotSpectreDir(dir string) error {
+func createDotTalonDir(dir string) error {
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return fmt.Errorf("failed to create data directory: %q %w", dir, err)
 	}

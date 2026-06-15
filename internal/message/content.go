@@ -8,12 +8,12 @@ import (
 	"strings"
 	"time"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/deps/llm/providers/anthropic"
-	"github.com/ChxisB/spectre-proxy/deps/llm/providers/google"
-	"github.com/ChxisB/spectre-proxy/deps/llm/providers/openai"
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	"github.com/ChxisB/spectre-proxy/internal/stringext"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/deps/llm/providers/anthropic"
+	"github.com/ChxisB/talon/deps/llm/providers/google"
+	"github.com/ChxisB/talon/deps/llm/providers/openai"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	"github.com/ChxisB/talon/internal/stringext"
 )
 
 type MessageRole string
@@ -130,15 +130,17 @@ type Finish struct {
 func (Finish) isPart() {}
 
 type Message struct {
-	ID               string
-	Role             MessageRole
-	SessionID        string
-	Parts            []ContentPart
-	Model            string
-	Provider         string
-	CreatedAt        int64
-	UpdatedAt        int64
-	IsSummaryMessage bool
+	ID                 string
+	Role               MessageRole
+	SessionID          string
+	Parts              []ContentPart
+	Model              string
+	Provider           string
+	CreatedAt          int64
+	UpdatedAt          int64
+	IsSummaryMessage   bool
+	CompressionSavings float64 // actual token savings % from output compression (0 if not compressed)
+	InputSavings       float64 // actual token savings % from input compression (0 if not compressed or unknown)
 }
 
 func (m *Message) Content() TextContent {
@@ -464,11 +466,11 @@ func PromptWithTextAttachments(prompt string, attachments []Attachment) string {
 	return sb.String()
 }
 
-func (m *Message) ToAIMessage() []fantasy.Message {
-	var messages []fantasy.Message
+func (m *Message) ToAIMessage() []llm.Message {
+	var messages []llm.Message
 	switch m.Role {
 	case User:
-		var parts []fantasy.MessagePart
+		var parts []llm.MessagePart
 		text := strings.TrimSpace(m.Content().Text)
 		var textAttachments []Attachment
 		for _, content := range m.BinaryContent() {
@@ -483,32 +485,32 @@ func (m *Message) ToAIMessage() []fantasy.Message {
 		}
 		text = PromptWithTextAttachments(text, textAttachments)
 		if text != "" {
-			parts = append(parts, fantasy.TextPart{Text: text})
+			parts = append(parts, llm.TextPart{Text: text})
 		}
 		for _, content := range m.BinaryContent() {
 			// skip text attachements
 			if strings.HasPrefix(content.MIMEType, "text/") {
 				continue
 			}
-			parts = append(parts, fantasy.FilePart{
+			parts = append(parts, llm.FilePart{
 				Filename:  content.Path,
 				Data:      content.Data,
 				MediaType: content.MIMEType,
 			})
 		}
-		messages = append(messages, fantasy.Message{
-			Role:    fantasy.MessageRoleUser,
+		messages = append(messages, llm.Message{
+			Role:    llm.MessageRoleUser,
 			Content: parts,
 		})
 	case Assistant:
-		var parts []fantasy.MessagePart
+		var parts []llm.MessagePart
 		text := strings.TrimSpace(m.Content().Text)
 		if text != "" {
-			parts = append(parts, fantasy.TextPart{Text: text})
+			parts = append(parts, llm.TextPart{Text: text})
 		}
 		reasoning := m.ReasoningContent()
 		if reasoning.Thinking != "" {
-			reasoningPart := fantasy.ReasoningPart{Text: reasoning.Thinking, ProviderOptions: fantasy.ProviderOptions{}}
+			reasoningPart := llm.ReasoningPart{Text: reasoning.Thinking, ProviderOptions: llm.ProviderOptions{}}
 			if reasoning.Signature != "" {
 				reasoningPart.ProviderOptions[anthropic.Name] = &anthropic.ReasoningOptionMetadata{
 					Signature: reasoning.Signature,
@@ -526,48 +528,48 @@ func (m *Message) ToAIMessage() []fantasy.Message {
 			parts = append(parts, reasoningPart)
 		}
 		for _, call := range m.ToolCalls() {
-			parts = append(parts, fantasy.ToolCallPart{
+			parts = append(parts, llm.ToolCallPart{
 				ToolCallID:       call.ID,
 				ToolName:         call.Name,
 				Input:            call.Input,
 				ProviderExecuted: call.ProviderExecuted,
 			})
 		}
-		messages = append(messages, fantasy.Message{
-			Role:    fantasy.MessageRoleAssistant,
+		messages = append(messages, llm.Message{
+			Role:    llm.MessageRoleAssistant,
 			Content: parts,
 		})
 	case Tool:
-		var parts []fantasy.MessagePart
+		var parts []llm.MessagePart
 		for _, result := range m.ToolResults() {
-			var content fantasy.ToolResultOutputContent
+			var content llm.ToolResultOutputContent
 			if result.IsError {
-				content = fantasy.ToolResultOutputContentError{
+				content = llm.ToolResultOutputContentError{
 					Error: errors.New(result.Content),
 				}
 			} else if result.Data != "" {
 				if stringext.IsValidBase64(result.Data) {
-					content = fantasy.ToolResultOutputContentMedia{
+					content = llm.ToolResultOutputContentMedia{
 						Data:      result.Data,
 						MediaType: result.MIMEType,
 					}
 				} else {
-					content = fantasy.ToolResultOutputContentText{
+					content = llm.ToolResultOutputContentText{
 						Text: mediaLoadFailedPlaceholder,
 					}
 				}
 			} else {
-				content = fantasy.ToolResultOutputContentText{
+				content = llm.ToolResultOutputContentText{
 					Text: result.Content,
 				}
 			}
-			parts = append(parts, fantasy.ToolResultPart{
+			parts = append(parts, llm.ToolResultPart{
 				ToolCallID: result.ToolCallID,
 				Output:     content,
 			})
 		}
-		messages = append(messages, fantasy.Message{
-			Role:    fantasy.MessageRoleTool,
+		messages = append(messages, llm.Message{
+			Role:    llm.MessageRoleTool,
 			Content: parts,
 		})
 	}

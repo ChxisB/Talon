@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/internal/proto"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
+	"github.com/ChxisB/talon/internal/proto"
+	"github.com/ChxisB/talon/internal/pubsub"
 	"github.com/stretchr/testify/require"
 )
 

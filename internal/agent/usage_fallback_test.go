@@ -4,35 +4,35 @@ import (
 	"errors"
 	"testing"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/session"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/session"
 	"github.com/stretchr/testify/require"
 )
 
 func TestUsageIsZero(t *testing.T) {
 	t.Parallel()
 
-	require.True(t, usageIsZero(fantasy.Usage{}))
-	require.False(t, usageIsZero(fantasy.Usage{InputTokens: 1}))
-	require.False(t, usageIsZero(fantasy.Usage{OutputTokens: 1}))
-	require.False(t, usageIsZero(fantasy.Usage{TotalTokens: 1}))
-	require.False(t, usageIsZero(fantasy.Usage{ReasoningTokens: 1}))
-	require.False(t, usageIsZero(fantasy.Usage{CacheCreationTokens: 1}))
-	require.False(t, usageIsZero(fantasy.Usage{CacheReadTokens: 1}))
+	require.True(t, usageIsZero(llm.Usage{}))
+	require.False(t, usageIsZero(llm.Usage{InputTokens: 1}))
+	require.False(t, usageIsZero(llm.Usage{OutputTokens: 1}))
+	require.False(t, usageIsZero(llm.Usage{TotalTokens: 1}))
+	require.False(t, usageIsZero(llm.Usage{ReasoningTokens: 1}))
+	require.False(t, usageIsZero(llm.Usage{CacheCreationTokens: 1}))
+	require.False(t, usageIsZero(llm.Usage{CacheReadTokens: 1}))
 }
 
 func TestFallbackStepUsageKeepsProviderUsage(t *testing.T) {
 	t.Parallel()
 
-	usage := fantasy.Usage{
+	usage := llm.Usage{
 		InputTokens:  10,
 		OutputTokens: 5,
 		TotalTokens:  15,
 	}
-	step := fantasy.StepResult{
-		Response: fantasy.Response{Usage: usage},
+	step := llm.StepResult{
+		Response: llm.Response{Usage: usage},
 	}
 
 	fallbackUsage, estimated := fallbackStepUsage(nil, step)
@@ -43,13 +43,13 @@ func TestFallbackStepUsageKeepsProviderUsage(t *testing.T) {
 func TestFallbackStepUsageEstimatesPromptAndAssistantText(t *testing.T) {
 	t.Parallel()
 
-	messages := []fantasy.Message{
-		fantasy.NewUserMessage("please explain the implementation details"),
+	messages := []llm.Message{
+		llm.NewUserMessage("please explain the implementation details"),
 	}
-	step := fantasy.StepResult{
-		Response: fantasy.Response{
-			Content: fantasy.ResponseContent{
-				fantasy.TextContent{Text: "the implementation stores state safely"},
+	step := llm.StepResult{
+		Response: llm.Response{
+			Content: llm.ResponseContent{
+				llm.TextContent{Text: "the implementation stores state safely"},
 			},
 		},
 	}
@@ -64,18 +64,18 @@ func TestFallbackStepUsageEstimatesPromptAndAssistantText(t *testing.T) {
 func TestFallbackStepUsageEstimatesReasoning(t *testing.T) {
 	t.Parallel()
 
-	messages := []fantasy.Message{
+	messages := []llm.Message{
 		{
-			Role: fantasy.MessageRoleAssistant,
-			Content: []fantasy.MessagePart{
-				fantasy.ReasoningPart{Text: "first reason about the request"},
+			Role: llm.MessageRoleAssistant,
+			Content: []llm.MessagePart{
+				llm.ReasoningPart{Text: "first reason about the request"},
 			},
 		},
 	}
-	step := fantasy.StepResult{
-		Response: fantasy.Response{
-			Content: fantasy.ResponseContent{
-				fantasy.ReasoningContent{Text: "second reason about the answer"},
+	step := llm.StepResult{
+		Response: llm.Response{
+			Content: llm.ResponseContent{
+				llm.ReasoningContent{Text: "second reason about the answer"},
 			},
 		},
 	}
@@ -89,10 +89,10 @@ func TestFallbackStepUsageEstimatesReasoning(t *testing.T) {
 func TestFallbackStepUsageEstimatesToolCalls(t *testing.T) {
 	t.Parallel()
 
-	step := fantasy.StepResult{
-		Response: fantasy.Response{
-			Content: fantasy.ResponseContent{
-				fantasy.ToolCallContent{
+	step := llm.StepResult{
+		Response: llm.Response{
+			Content: llm.ResponseContent{
+				llm.ToolCallContent{
 					ToolCallID: "tool-call-1",
 					ToolName:   "view",
 					Input:      `{"file_path":"/tmp/example.go"}`,
@@ -111,25 +111,25 @@ func TestFallbackStepUsageEstimatesToolCalls(t *testing.T) {
 func TestFallbackStepUsageEstimatesToolResults(t *testing.T) {
 	t.Parallel()
 
-	messages := []fantasy.Message{
+	messages := []llm.Message{
 		{
-			Role: fantasy.MessageRoleTool,
-			Content: []fantasy.MessagePart{
-				fantasy.ToolResultPart{
+			Role: llm.MessageRoleTool,
+			Content: []llm.MessagePart{
+				llm.ToolResultPart{
 					ToolCallID: "tool-call-1",
-					Output: fantasy.ToolResultOutputContentText{
+					Output: llm.ToolResultOutputContentText{
 						Text: "file contents returned by the tool",
 					},
 				},
-				fantasy.ToolResultPart{
+				llm.ToolResultPart{
 					ToolCallID: "tool-call-2",
-					Output: fantasy.ToolResultOutputContentError{
+					Output: llm.ToolResultOutputContentError{
 						Error: errors.New("permission denied"),
 					},
 				},
-				fantasy.ToolResultPart{
+				llm.ToolResultPart{
 					ToolCallID: "tool-call-3",
-					Output: fantasy.ToolResultOutputContentMedia{
+					Output: llm.ToolResultOutputContentMedia{
 						MediaType: "image/png",
 						Text:      "screenshot",
 						Data:      "abc123",
@@ -139,7 +139,7 @@ func TestFallbackStepUsageEstimatesToolResults(t *testing.T) {
 		},
 	}
 
-	usage, estimated := fallbackStepUsage(messages, fantasy.StepResult{})
+	usage, estimated := fallbackStepUsage(messages, llm.StepResult{})
 	require.True(t, estimated)
 	require.Positive(t, usage.InputTokens)
 	require.Zero(t, usage.OutputTokens)
@@ -149,13 +149,13 @@ func TestFallbackStepUsageEstimatesToolResults(t *testing.T) {
 func TestFallbackStepUsageSkipsClientToolResultsAsOutput(t *testing.T) {
 	t.Parallel()
 
-	step := fantasy.StepResult{
-		Response: fantasy.Response{
-			Content: fantasy.ResponseContent{
-				fantasy.ToolResultContent{
+	step := llm.StepResult{
+		Response: llm.Response{
+			Content: llm.ResponseContent{
+				llm.ToolResultContent{
 					ToolCallID: "tool-call-1",
 					ToolName:   "bash",
-					Result: fantasy.ToolResultOutputContentText{
+					Result: llm.ToolResultOutputContentText{
 						Text: "large client-executed payload that should not count as model output tokens",
 					},
 				},
@@ -171,15 +171,15 @@ func TestFallbackStepUsageSkipsClientToolResultsAsOutput(t *testing.T) {
 func TestFallbackStepUsageCountsProviderToolResultsAsOutput(t *testing.T) {
 	t.Parallel()
 
-	step := fantasy.StepResult{
-		Response: fantasy.Response{
-			Content: fantasy.ResponseContent{
-				fantasy.ToolResultContent{
+	step := llm.StepResult{
+		Response: llm.Response{
+			Content: llm.ResponseContent{
+				llm.ToolResultContent{
 					ToolCallID:       "tool-call-1",
 					ToolName:         "web_search",
 					ProviderExecuted: true,
 					ClientMetadata:   "provider metadata",
-					Result:           fantasy.ToolResultOutputContentText{Text: "provider-executed result"},
+					Result:           llm.ToolResultOutputContentText{Text: "provider-executed result"},
 				},
 			},
 		},
@@ -194,7 +194,7 @@ func TestFallbackStepUsageCountsProviderToolResultsAsOutput(t *testing.T) {
 func TestFallbackStepUsageReturnsZeroWithoutContent(t *testing.T) {
 	t.Parallel()
 
-	usage, estimated := fallbackStepUsage(nil, fantasy.StepResult{})
+	usage, estimated := fallbackStepUsage(nil, llm.StepResult{})
 	require.False(t, estimated)
 	require.True(t, usageIsZero(usage))
 }
@@ -205,7 +205,7 @@ func TestUpdateSessionUsageSkipsEstimatedCost(t *testing.T) {
 	agent := &sessionAgent{}
 	currentSession := &session.Session{ID: "session-id", Cost: 1.25}
 	model := Model{CatwalkCfg: catwalk.Model{CostPer1MIn: 10, CostPer1MOut: 20}}
-	usage := fantasy.Usage{InputTokens: 1000, OutputTokens: 2000}
+	usage := llm.Usage{InputTokens: 1000, OutputTokens: 2000}
 
 	agent.updateSessionUsage(model, currentSession, usage, nil, true)
 
@@ -227,7 +227,7 @@ func TestUpdateSessionUsageKeepsCountersForZeroUsage(t *testing.T) {
 	}
 	model := Model{CatwalkCfg: catwalk.Model{CostPer1MIn: 10, CostPer1MOut: 20}}
 
-	agent.updateSessionUsage(model, currentSession, fantasy.Usage{}, nil, false)
+	agent.updateSessionUsage(model, currentSession, llm.Usage{}, nil, false)
 
 	require.Equal(t, 1.25, currentSession.Cost)
 	require.Equal(t, int64(123), currentSession.PromptTokens)
@@ -244,7 +244,7 @@ func TestUpdateSessionUsagePreservesOmittedCountersForPartialUsage(t *testing.T)
 		CompletionTokens: 456,
 	}
 	model := Model{CatwalkCfg: catwalk.Model{CostPer1MIn: 10, CostPer1MOut: 20}}
-	usage := fantasy.Usage{InputTokens: 789}
+	usage := llm.Usage{InputTokens: 789}
 
 	agent.updateSessionUsage(model, currentSession, usage, nil, false)
 
@@ -262,7 +262,7 @@ func TestUpdateSessionUsagePreservesCountersForTotalOnlyUsage(t *testing.T) {
 		CompletionTokens: 456,
 	}
 	model := Model{CatwalkCfg: catwalk.Model{CostPer1MIn: 10, CostPer1MOut: 20}}
-	usage := fantasy.Usage{TotalTokens: 100}
+	usage := llm.Usage{TotalTokens: 100}
 
 	agent.updateSessionUsage(model, currentSession, usage, nil, false)
 
@@ -280,7 +280,7 @@ func TestUpdateSessionUsagePreservesPromptForOutputOnlyUsage(t *testing.T) {
 		CompletionTokens: 456,
 	}
 	model := Model{CatwalkCfg: catwalk.Model{CostPer1MIn: 10, CostPer1MOut: 20}}
-	usage := fantasy.Usage{OutputTokens: 50}
+	usage := llm.Usage{OutputTokens: 50}
 
 	agent.updateSessionUsage(model, currentSession, usage, nil, false)
 
@@ -300,7 +300,7 @@ func TestUpdateSessionUsageKeepsCountersForEstimatedZeroUsage(t *testing.T) {
 	}
 	model := Model{CatwalkCfg: catwalk.Model{CostPer1MIn: 10, CostPer1MOut: 20}}
 
-	agent.updateSessionUsage(model, currentSession, fantasy.Usage{}, nil, true)
+	agent.updateSessionUsage(model, currentSession, llm.Usage{}, nil, true)
 
 	require.Equal(t, 1.25, currentSession.Cost)
 	require.Equal(t, int64(123), currentSession.PromptTokens)
@@ -317,9 +317,9 @@ func TestSummaryCompletionTokens(t *testing.T) {
 		},
 	}
 
-	require.Equal(t, int64(42), summaryCompletionTokens(fantasy.Usage{OutputTokens: 42}, summaryMessage))
-	require.Equal(t, approxTokenCount("summary text")+approxTokenCount("reasoning text"), summaryCompletionTokens(fantasy.Usage{}, summaryMessage))
-	require.Zero(t, summaryCompletionTokens(fantasy.Usage{}, message.Message{}))
+	require.Equal(t, int64(42), summaryCompletionTokens(llm.Usage{OutputTokens: 42}, summaryMessage))
+	require.Equal(t, approxTokenCount("summary text")+approxTokenCount("reasoning text"), summaryCompletionTokens(llm.Usage{}, summaryMessage))
+	require.Zero(t, summaryCompletionTokens(llm.Usage{}, message.Message{}))
 }
 
 func TestUpdateSessionUsageAddsProviderCost(t *testing.T) {
@@ -328,7 +328,7 @@ func TestUpdateSessionUsageAddsProviderCost(t *testing.T) {
 	agent := &sessionAgent{}
 	currentSession := &session.Session{ID: "session-id", Cost: 1.25}
 	model := Model{CatwalkCfg: catwalk.Model{CostPer1MIn: 10, CostPer1MOut: 20}}
-	usage := fantasy.Usage{InputTokens: 1000, OutputTokens: 2000}
+	usage := llm.Usage{InputTokens: 1000, OutputTokens: 2000}
 
 	agent.updateSessionUsage(model, currentSession, usage, nil, false)
 

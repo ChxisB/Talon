@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	"github.com/ChxisB/talon/deps/util/ansi"
+	"github.com/ChxisB/talon/internal/ui/styles"
 	"github.com/stretchr/testify/require"
 )
 
@@ -14,7 +14,13 @@ func TestFormatTokensAndCostPrefixesEstimatedUsage(t *testing.T) {
 
 	sty := styles.DefaultPantera()
 
-	rendered := formatTokensAndCost(&sty, 120, 1000, 0, true)
+	ctx := &ModelContextInfo{
+		ContextUsed:      120,
+		ModelContext:     1000,
+		Cost:             0,
+		EstimatedUsage:   true,
+	}
+	rendered := formatTokensAndCost(&sty, ctx)
 	actual := ansi.Strip(rendered)
 
 	require.Contains(t, actual, "~12%")
@@ -28,7 +34,13 @@ func TestFormatTokensAndCostOmitsEstimatedPrefix(t *testing.T) {
 
 	sty := styles.DefaultPantera()
 
-	actual := ansi.Strip(formatTokensAndCost(&sty, 120, 1000, 0, false))
+	ctx := &ModelContextInfo{
+		ContextUsed:      120,
+		ModelContext:     1000,
+		Cost:             0,
+		EstimatedUsage:   false,
+	}
+	actual := ansi.Strip(formatTokensAndCost(&sty, ctx))
 
 	require.Contains(t, actual, "12%")
 	require.NotContains(t, actual, "~12%")

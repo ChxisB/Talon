@@ -9,9 +9,9 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/oauth"
-	"github.com/ChxisB/spectre-proxy/internal/proto"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/oauth"
+	"github.com/ChxisB/talon/internal/proto"
 	"github.com/stretchr/testify/require"
 )
 

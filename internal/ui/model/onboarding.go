@@ -5,18 +5,18 @@ import (
 	"strings"
 	"time"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/key"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	"github.com/ChxisB/talon/deps/ui/core/v2/key"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
 
-	"github.com/ChxisB/spectre-proxy/internal/home"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/ui/util"
+	"github.com/ChxisB/talon/internal/home"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/ui/util"
 )
 
 // markProjectInitializedCmd marks the current project as initialized in the config.
-func (m *UI) markProjectInitializedCmd() tea.Cmd {
-	return func() tea.Msg {
+func (m *UI) markProjectInitializedCmd() bubble.Cmd {
+	return func() bubble.Msg {
 		if err := m.com.Workspace.MarkProjectInitialized(); err != nil {
 			return util.InfoMsg{
 				Type: util.InfoTypeError,
@@ -29,7 +29,7 @@ func (m *UI) markProjectInitializedCmd() tea.Cmd {
 }
 
 // updateInitializeView handles keyboard input for the project initialization prompt.
-func (m *UI) updateInitializeView(msg tea.KeyPressMsg) (cmds []tea.Cmd) {
+func (m *UI) updateInitializeView(msg bubble.KeyPressMsg) (cmds []bubble.Cmd) {
 	switch {
 	case key.Matches(msg, m.keyMap.Initialize.Enter):
 		if m.onboarding.yesInitializeSelected {
@@ -48,13 +48,13 @@ func (m *UI) updateInitializeView(msg tea.KeyPressMsg) (cmds []tea.Cmd) {
 }
 
 // initializeProject starts project initialization and transitions to the landing view.
-func (m *UI) initializeProject() tea.Cmd {
+func (m *UI) initializeProject() bubble.Cmd {
 	// clear the session
-	var cmds []tea.Cmd
+	var cmds []bubble.Cmd
 	if cmd := m.newSession(); cmd != nil {
 		cmds = append(cmds, cmd)
 	}
-	initialize := func() tea.Msg {
+	initialize := func() bubble.Msg {
 		initPrompt, err := m.com.Workspace.InitializePrompt()
 		if err != nil {
 			return util.InfoMsg{
@@ -67,11 +67,11 @@ func (m *UI) initializeProject() tea.Cmd {
 	// Mark the project as initialized
 	cmds = append(cmds, initialize, m.markProjectInitializedCmd())
 
-	return tea.Sequence(cmds...)
+	return bubble.Sequence(cmds...)
 }
 
 // skipInitializeProject skips project initialization and transitions to the landing view.
-func (m *UI) skipInitializeProject() tea.Cmd {
+func (m *UI) skipInitializeProject() bubble.Cmd {
 	// TODO: initialize the project
 	m.setState(uiLanding, uiFocusEditor)
 	// mark the project as initialized
@@ -98,11 +98,11 @@ func (m *UI) initializeView() string {
 	// max width 60 so the text is compact
 	width := min(m.layout.main.Dx(), 60)
 
-	return lipgloss.NewStyle().
+	return style.NewStyle().
 		Width(width).
 		Height(m.layout.main.Dy()).
 		PaddingBottom(1).
-		AlignVertical(lipgloss.Bottom).
+		AlignVertical(style.Bottom).
 		Render(strings.Join(
 			[]string{
 				header,

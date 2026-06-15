@@ -3,10 +3,10 @@ package dialog
 import (
 	"testing"
 
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/internal/permission"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/internal/permission"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/ui/styles"
 	"github.com/stretchr/testify/require"
 )
 
@@ -28,7 +28,7 @@ func TestPermissions_ActionKeysResolve(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		key    tea.KeyPressMsg
+		key    bubble.KeyPressMsg
 		action PermissionAction
 	}{
 		{keyMsg('a'), PermissionAllow},
@@ -57,14 +57,14 @@ func TestPermissions_NavigationCyclesOptions(t *testing.T) {
 	require.Equal(t, 0, p.selectedOption)
 
 	// Tab cycles forward.
-	p.HandleMsg(tea.KeyPressMsg{Code: tea.KeyTab})
+	p.HandleMsg(bubble.KeyPressMsg{Code: bubble.KeyTab})
 	require.Equal(t, 1, p.selectedOption)
 
-	p.HandleMsg(tea.KeyPressMsg{Code: tea.KeyTab})
+	p.HandleMsg(bubble.KeyPressMsg{Code: bubble.KeyTab})
 	require.Equal(t, 2, p.selectedOption)
 
 	// Wrap around.
-	p.HandleMsg(tea.KeyPressMsg{Code: tea.KeyTab})
+	p.HandleMsg(bubble.KeyPressMsg{Code: bubble.KeyTab})
 	require.Equal(t, 0, p.selectedOption)
 
 	// Left cycles backward.
@@ -80,7 +80,7 @@ func TestPermissions_EnterConfirmsSelection(t *testing.T) {
 	p := newTestPermissions(t)
 	p.selectedOption = 1 // Allow for session.
 
-	action := p.HandleMsg(tea.KeyPressMsg{Code: tea.KeyEnter})
+	action := p.HandleMsg(bubble.KeyPressMsg{Code: bubble.KeyEnter})
 	resp, ok := action.(ActionPermissionResponse)
 	require.True(t, ok)
 	require.Equal(t, PermissionAllowForSession, resp.Action)
@@ -91,7 +91,7 @@ func TestPermissions_EscapeDenies(t *testing.T) {
 	t.Parallel()
 
 	p := newTestPermissions(t)
-	action := p.HandleMsg(tea.KeyPressMsg{Code: tea.KeyEscape})
+	action := p.HandleMsg(bubble.KeyPressMsg{Code: bubble.KeyEscape})
 	resp, ok := action.(ActionPermissionResponse)
 	require.True(t, ok)
 	require.Equal(t, PermissionDeny, resp.Action)

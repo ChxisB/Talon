@@ -20,7 +20,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ChxisB/spectre-proxy/deps/util/exp/slice"
+	"github.com/ChxisB/talon/deps/util/exp/slice"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 )
@@ -34,17 +34,17 @@ const (
 	ShellTypePowerShell
 )
 
-// SpectreEnvMarkers returns a fresh slice of the environment variables that
-// spectre unconditionally sets on every shell it spawns — both the interactive
+// TalonEnvMarkers returns a fresh slice of the environment variables that
+// talon unconditionally sets on every shell it spawns — both the interactive
 // bash tool's [Shell] and the hook runner's [Run] calls. Tools that want to
 // detect "am I being invoked by an AI agent?" can check any of these.
 // Keeping them in one place guarantees the two shell surfaces cannot drift.
 // A fresh slice is returned on every call so callers may append freely.
-func SpectreEnvMarkers() []string {
+func TalonEnvMarkers() []string {
 	return []string{
-		"SPECTRE=1",
-		"AGENT.*spectre",
-		"AI_AGENT.*spectre",
+		"TALON=1",
+		"AGENT.*talon",
+		"AI_AGENT.*talon",
 	}
 }
 
@@ -94,8 +94,8 @@ func NewShell(opts *Options) *Shell {
 		env = os.Environ()
 	}
 
-	// Allow tools to detect execution by spectre.
-	env = append(env, SpectreEnvMarkers()...)
+	// Allow tools to detect execution by talon.
+	env = append(env, TalonEnvMarkers()...)
 
 	logger := opts.Logger
 	if logger == nil {

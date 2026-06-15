@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/internal/agent/tools/mcp"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/home"
-	"github.com/ChxisB/spectre-proxy/internal/skills"
+	"github.com/ChxisB/talon/internal/agent/tools/mcp"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/home"
+	"github.com/ChxisB/talon/internal/skills"
 )
 
 var namedArgPattern = regexp.MustCompile(`\$([A-Z][A-Z0-9_]*)`)
@@ -121,11 +121,11 @@ func LoadMCPPrompts() ([]MCPPrompt, error) {
 func buildCommandSources(cfg *config.Config) []commandSource {
 	return []commandSource{
 		{
-			path:   filepath.Join(home.Config(), "spectre", "commands"),
+			path:   filepath.Join(home.Config(), "talon", "commands"),
 			prefix: userCommandPrefix,
 		},
 		{
-			path:   filepath.Join(home.Dir(), ".spectre", "commands"),
+			path:   filepath.Join(home.Dir(), ".talon", "commands"),
 			prefix: userCommandPrefix,
 		},
 		{
@@ -226,7 +226,7 @@ func isMarkdownFile(name string) bool {
 }
 
 func GetMCPPrompt(cfg *config.ConfigStore, clientID, promptID string, args map[string]string) (string, error) {
-	// Create a context with timeout since tea.Cmd doesn't support context passing.
+	// Create a context with timeout since bubble.Cmd doesn't support context passing.
 	// The MCP client has its own timeout, but this provides an additional safeguard.
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()

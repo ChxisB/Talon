@@ -5,13 +5,13 @@ import (
 	"testing"
 	"time"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/internal/agent"
-	"github.com/ChxisB/spectre-proxy/internal/agent/agenttest"
-	"github.com/ChxisB/spectre-proxy/internal/db"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/proto"
-	"github.com/ChxisB/spectre-proxy/internal/session"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/internal/agent"
+	"github.com/ChxisB/talon/internal/agent/agenttest"
+	"github.com/ChxisB/talon/internal/db"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/proto"
+	"github.com/ChxisB/talon/internal/session"
 	"github.com/stretchr/testify/require"
 )
 
@@ -30,7 +30,7 @@ type gatedCoordinator struct {
 	gate    chan struct{}
 }
 
-func (c *gatedCoordinator) RunAccepted(ctx context.Context, accept *agent.AcceptedRun, sessionID, prompt string, attachments ...message.Attachment) (*fantasy.AgentResult, error) {
+func (c *gatedCoordinator) RunAccepted(ctx context.Context, accept *agent.AcceptedRun, sessionID, prompt string, attachments ...message.Attachment) (*llm.AgentResult, error) {
 	close(c.entered)
 	<-c.gate
 	return c.Coordinator.RunAccepted(ctx, accept, sessionID, prompt, attachments...)

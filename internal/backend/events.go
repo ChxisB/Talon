@@ -3,17 +3,17 @@ package backend
 import (
 	"context"
 
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
 
-	mcptools "github.com/ChxisB/spectre-proxy/internal/agent/tools/mcp"
-	"github.com/ChxisB/spectre-proxy/internal/app"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
+	mcptools "github.com/ChxisB/talon/internal/agent/tools/mcp"
+	"github.com/ChxisB/talon/internal/app"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/pubsub"
 )
 
 // SubscribeEvents returns a per-caller event channel for a workspace.
 // Each caller receives all events; multiple callers do not compete.
-func (b *Backend) SubscribeEvents(ctx context.Context, workspaceID string) (<-chan pubsub.Event[tea.Msg], error) {
+func (b *Backend) SubscribeEvents(ctx context.Context, workspaceID string) (<-chan pubsub.Event[bubble.Msg], error) {
 	ws, err := b.GetWorkspace(workspaceID)
 	if err != nil {
 		return nil, err

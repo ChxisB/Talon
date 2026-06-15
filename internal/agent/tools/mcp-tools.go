@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"slices"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/internal/agent/tools/mcp"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/permission"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/internal/agent/tools/mcp"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/permission"
 )
 
 // whitelistDockerTools contains Docker MCP tools that don't require permission.
@@ -44,14 +44,14 @@ type Tool struct {
 	cfg             *config.ConfigStore
 	permissions     permission.Service
 	workingDir      string
-	providerOptions fantasy.ProviderOptions
+	providerOptions llm.ProviderOptions
 }
 
-func (m *Tool) SetProviderOptions(opts fantasy.ProviderOptions) {
+func (m *Tool) SetProviderOptions(opts llm.ProviderOptions) {
 	m.providerOptions = opts
 }
 
-func (m *Tool) ProviderOptions() fantasy.ProviderOptions {
+func (m *Tool) ProviderOptions() llm.ProviderOptions {
 	return m.providerOptions
 }
 
@@ -67,7 +67,7 @@ func (m *Tool) MCPToolName() string {
 	return m.tool.Name
 }
 
-func (m *Tool) Info() fantasy.ToolInfo {
+func (m *Tool) Info() llm.ToolInfo {
 	parameters := make(map[string]any)
 	required := make([]string, 0)
 
@@ -88,7 +88,7 @@ func (m *Tool) Info() fantasy.ToolInfo {
 		}
 	}
 
-	return fantasy.ToolInfo{
+	return llm.ToolInfo{
 		Name:        m.Name(),
 		Description: m.tool.Description,
 		Parameters:  parameters,
@@ -96,10 +96,10 @@ func (m *Tool) Info() fantasy.ToolInfo {
 	}
 }
 
-func (m *Tool) Run(ctx context.Context, params fantasy.ToolCall) (fantasy.ToolResponse, error) {
+func (m *Tool) Run(ctx context.Context, params llm.ToolCall) (llm.ToolResponse, error) {
 	sessionID := GetSessionFromContext(ctx)
 	if sessionID == "" {
-		return fantasy.ToolResponse{}, fmt.Errorf("session ID is required for creating a new file")
+		return llm.ToolResponse{}, fmt.Errorf("session ID is required for creating a new file")
 	}
 
 	// Skip permission for whitelisted Docker MCP tools.
@@ -118,7 +118,7 @@ func (m *Tool) Run(ctx context.Context, params fantasy.ToolCall) (fantasy.ToolRe
 			},
 		)
 		if err != nil {
-			return fantasy.ToolResponse{}, err
+			return llm.ToolResponse{}, err
 		}
 		if !p {
 			return NewPermissionDeniedResponse(), nil
@@ -127,25 +127,25 @@ func (m *Tool) Run(ctx context.Context, params fantasy.ToolCall) (fantasy.ToolRe
 
 	result, err := mcp.RunTool(ctx, m.cfg, m.mcpName, m.tool.Name, params.Input)
 	if err != nil {
-		return fantasy.NewTextErrorResponse(err.Error()), nil
+		return llm.NewTextErrorResponse(err.Error()), nil
 	}
 
 	switch result.Type {
 	case "image", "media":
 		if !GetSupportsImagesFromContext(ctx) {
 			modelName := GetModelNameFromContext(ctx)
-			return fantasy.NewTextErrorResponse(fmt.Sprintf("This model (%s) does not support image data.", modelName)), nil
+			return llm.NewTextErrorResponse(fmt.Sprintf("This model (%s) does not support image data.", modelName)), nil
 		}
 
-		var response fantasy.ToolResponse
+		var response llm.ToolResponse
 		if result.Type == "image" {
-			response = fantasy.NewImageResponse(result.Data, result.MediaType)
+			response = llm.NewImageResponse(result.Data, result.MediaType)
 		} else {
-			response = fantasy.NewMediaResponse(result.Data, result.MediaType)
+			response = llm.NewMediaResponse(result.Data, result.MediaType)
 		}
 		response.Content = result.Content
 		return response, nil
 	default:
-		return fantasy.NewTextResponse(result.Content), nil
+		return llm.NewTextResponse(result.Content), nil
 	}
 }

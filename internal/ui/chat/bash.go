@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"strings"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
-	"github.com/ChxisB/spectre-proxy/internal/agent/tools"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	"github.com/ChxisB/talon/deps/util/ansi"
+	"github.com/ChxisB/talon/internal/agent/tools"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/ui/styles"
 )
 
 // -----------------------------------------------------------------------------
@@ -232,7 +232,7 @@ func jobHeader(sty *styles.Styles, status ToolStatus, action, shellID, descripti
 		return prefix
 	}
 
-	prefixWidth := lipgloss.Width(prefix)
+	prefixWidth := style.Width(prefix)
 	availableWidth := width - prefixWidth - 1
 	if availableWidth < 10 {
 		return prefix

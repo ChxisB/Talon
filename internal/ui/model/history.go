@@ -4,9 +4,9 @@ import (
 	"context"
 	"log/slog"
 
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
 
-	"github.com/ChxisB/spectre-proxy/internal/message"
+	"github.com/ChxisB/talon/internal/message"
 )
 
 // promptHistoryLoadedMsg is sent when prompt history is loaded.
@@ -15,8 +15,8 @@ type promptHistoryLoadedMsg struct {
 }
 
 // loadPromptHistory loads user messages for history navigation.
-func (m *UI) loadPromptHistory() tea.Cmd {
-	return func() tea.Msg {
+func (m *UI) loadPromptHistory() bubble.Cmd {
+	return func() bubble.Msg {
 		ctx := context.Background()
 		var messages []message.Message
 		var err error
@@ -42,7 +42,7 @@ func (m *UI) loadPromptHistory() tea.Cmd {
 }
 
 // handleHistoryUp handles up arrow for history navigation.
-func (m *UI) handleHistoryUp(msg tea.Msg) tea.Cmd {
+func (m *UI) handleHistoryUp(msg bubble.Msg) bubble.Cmd {
 	prevHeight := m.textarea.Height()
 	// Navigate to older history entry from cursor position (0,0).
 	if m.textarea.Length() == 0 || m.isAtEditorStart() {
@@ -64,7 +64,7 @@ func (m *UI) handleHistoryUp(msg tea.Msg) tea.Cmd {
 }
 
 // handleHistoryDown handles down arrow for history navigation.
-func (m *UI) handleHistoryDown(msg tea.Msg) tea.Cmd {
+func (m *UI) handleHistoryDown(msg bubble.Msg) bubble.Cmd {
 	prevHeight := m.textarea.Height()
 	// Navigate to newer history entry from end of text.
 	if m.isAtEditorEnd() {
@@ -86,7 +86,7 @@ func (m *UI) handleHistoryDown(msg tea.Msg) tea.Cmd {
 }
 
 // handleHistoryEscape handles escape for exiting history navigation.
-func (m *UI) handleHistoryEscape(msg tea.Msg) tea.Cmd {
+func (m *UI) handleHistoryEscape(msg bubble.Msg) bubble.Cmd {
 	prevHeight := m.textarea.Height()
 	// Return to current draft when browsing history.
 	if m.promptHistory.index >= 0 {

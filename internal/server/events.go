@@ -6,20 +6,20 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/ChxisB/spectre-proxy/internal/agent/notify"
-	"github.com/ChxisB/spectre-proxy/internal/agent/tools/mcp"
-	"github.com/ChxisB/spectre-proxy/internal/app"
-	"github.com/ChxisB/spectre-proxy/internal/backend"
-	"github.com/ChxisB/spectre-proxy/internal/history"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/permission"
-	"github.com/ChxisB/spectre-proxy/internal/proto"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
-	"github.com/ChxisB/spectre-proxy/internal/session"
-	"github.com/ChxisB/spectre-proxy/internal/skills"
+	"github.com/ChxisB/talon/internal/agent/notify"
+	"github.com/ChxisB/talon/internal/agent/tools/mcp"
+	"github.com/ChxisB/talon/internal/app"
+	"github.com/ChxisB/talon/internal/backend"
+	"github.com/ChxisB/talon/internal/history"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/permission"
+	"github.com/ChxisB/talon/internal/proto"
+	"github.com/ChxisB/talon/internal/pubsub"
+	"github.com/ChxisB/talon/internal/session"
+	"github.com/ChxisB/talon/internal/skills"
 )
 
-// wrapEvent converts a raw tea.Msg (a pubsub.Event[T] from the app
+// wrapEvent converts a raw bubble.Msg (a pubsub.Event[T] from the app
 // event fan-in) into a pubsub.Payload envelope with the correct
 // PayloadType discriminator and a proto-typed inner payload that has
 // proper JSON tags. Returns nil if the event type is unrecognized.

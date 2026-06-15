@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSpectreIgnore(t *testing.T) {
+func TestTalonIgnore(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Chdir(tempDir)
 
@@ -17,8 +17,8 @@ func TestSpectreIgnore(t *testing.T) {
 	require.NoError(t, os.WriteFile("test2.log", []byte("test"), 0o644))
 	require.NoError(t, os.WriteFile("test3.tmp", []byte("test"), 0o644))
 
-	// Create a .spectreignore file that ignores .log files
-	require.NoError(t, os.WriteFile(".spectreignore", []byte("*.log\n"), 0o644))
+	// Create a .talonignore file that ignores .log files
+	require.NoError(t, os.WriteFile(".talonignore", []byte("*.log\n"), 0o644))
 
 	dl := NewDirectoryLister(tempDir)
 	require.True(t, dl.shouldIgnore("test2.log", nil, false), ".log files should be ignored")
@@ -50,16 +50,16 @@ func TestShouldExcludeFile(t *testing.T) {
 		t.Fatalf("Failed to create .gitignore: %v", err)
 	}
 
-	// Create .spectreignore file
-	spectreignoreContent := "custom_ignored/\n"
-	if err := os.WriteFile(filepath.Join(tempDir, ".spectreignore"), []byte(spectreignoreContent), 0o644); err != nil {
-		t.Fatalf("Failed to create .spectreignore: %v", err)
+	// Create .talonignore file
+	talonignoreContent := "custom_ignored/\n"
+	if err := os.WriteFile(filepath.Join(tempDir, ".talonignore"), []byte(talonignoreContent), 0o644); err != nil {
+		t.Fatalf("Failed to create .talonignore: %v", err)
 	}
 
 	// Test that ignored directories are properly ignored
 	require.True(t, ShouldExcludeFile(tempDir, nodeModules), "Expected node_modules to be ignored by .gitignore")
 	require.True(t, ShouldExcludeFile(tempDir, target), "Expected target to be ignored by .gitignore")
-	require.True(t, ShouldExcludeFile(tempDir, customIgnored), "Expected custom_ignored to be ignored by .spectreignore")
+	require.True(t, ShouldExcludeFile(tempDir, customIgnored), "Expected custom_ignored to be ignored by .talonignore")
 
 	// Test that normal directories are not ignored
 	require.False(t, ShouldExcludeFile(tempDir, normalDir), "Expected src directory to not be ignored")
@@ -84,14 +84,14 @@ func TestShouldExcludeFileHierarchical(t *testing.T) {
 		}
 	}
 
-	// Create .spectreignore in subdir that ignores normal_nested
-	subSpectreignore := "normal_nested/\n"
-	if err := os.WriteFile(filepath.Join(subDir, ".spectreignore"), []byte(subSpectreignore), 0o644); err != nil {
-		t.Fatalf("Failed to create subdir .spectreignore: %v", err)
+	// Create .talonignore in subdir that ignores normal_nested
+	subTalonignore := "normal_nested/\n"
+	if err := os.WriteFile(filepath.Join(subDir, ".talonignore"), []byte(subTalonignore), 0o644); err != nil {
+		t.Fatalf("Failed to create subdir .talonignore: %v", err)
 	}
 
-	// Test hierarchical ignore behavior - this should work because the .spectreignore is in the parent directory
-	require.True(t, ShouldExcludeFile(tempDir, nestedNormal), "Expected normal_nested to be ignored by subdir .spectreignore")
+	// Test hierarchical ignore behavior - this should work because the .talonignore is in the parent directory
+	require.True(t, ShouldExcludeFile(tempDir, nestedNormal), "Expected normal_nested to be ignored by subdir .talonignore")
 	require.False(t, ShouldExcludeFile(tempDir, subDir), "Expected subdir itself to not be ignored")
 }
 

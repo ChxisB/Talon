@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ───────────────────────────────────────────────────────────────
-# Spectre Proxy — One-time setup script
+# Talon — One-time setup script
 #   - Checks prerequisites (Docker, Go, config)
 #   - Configures your shell profile (~/.zshrc / ~/.bashrc)
 #   - Builds and starts Docker containers
@@ -32,7 +32,7 @@ header(){ echo -e "\n${CYAN}$1${NC}"; echo "────────────
 cat << 'WELCOME'
 
   ╔══════════════════════════════════════════════════╗
-  ║                Spectre Proxy                     ║
+  ║                Talon                     ║
   ║                One-time Setup                    ║
   ╚══════════════════════════════════════════════════╝
 
@@ -47,7 +47,7 @@ WELCOME
 # ─── Install Mode ────────────────────────────────────────────────
 header "Choose installation method"
 
-echo "  How would you like to install Spectre Proxy?"
+echo "  How would you like to install Talon?"
 echo ""
 echo "  1) Docker (recommended) — containers for proxy + dashboard"
 echo "     Requires: Docker Desktop"
@@ -124,7 +124,7 @@ configure_vscode_extension() {
   header "Configuring VS Code extension"
 
   local ext_src="$SCRIPT_DIR/ide/vscode"
-  local ext_name="spectre-proxy"
+  local ext_name="talon"
   local ext_dir="$HOME/.vscode/extensions/$ext_name"
 
   # ── Build the extension ──
@@ -167,9 +167,9 @@ try:
         settings = json.load(f)
 except:
     settings = {}
-settings["spectre-proxy.proxyPort"] = 8082
-settings["spectre-proxy.dashboardUrl"] = "http://localhost:3000"
-settings["spectre-proxy.proxyApiKey"] = "spectre-proxy"
+settings["talon.proxyPort"] = 8082
+settings["talon.dashboardUrl"] = "http://localhost:3000"
+settings["talon.proxyApiKey"] = "talon"
 with open(path, "w") as f:
     json.dump(settings, f, indent=2)
 print("OK")
@@ -178,16 +178,16 @@ PYEOF
     else
       warn "python3 not found — could not auto-write settings.json"
       info "Add these to your VS Code settings manually:"
-      echo '  "spectre-proxy.proxyPort": 8082'
-      echo '  "spectre-proxy.dashboardUrl": "http://localhost:3000"'
-      echo '  "spectre-proxy.proxyApiKey": "spectre-proxy"'
+      echo '  "talon.proxyPort": 8082'
+      echo '  "talon.dashboardUrl": "http://localhost:3000"'
+      echo '  "talon.proxyApiKey": "talon"'
     fi
   else
     warn "VS Code settings.json not found at expected paths."
     info "Add these to your VS Code settings manually:"
-    echo '  "spectre-proxy.proxyPort": 8082'
-    echo '  "spectre-proxy.dashboardUrl": "http://localhost:3000"'
-    echo '  "spectre-proxy.proxyApiKey": "spectre-proxy"'
+    echo '  "talon.proxyPort": 8082'
+    echo '  "talon.dashboardUrl": "http://localhost:3000"'
+    echo '  "talon.proxyApiKey": "talon"'
   fi
 
   # ── Try code --install-extension as fallback ──
@@ -198,7 +198,7 @@ PYEOF
 
   echo ""
   ok "VS Code extension configured!"
-  info "Restart VS Code if it's running. The Spectre icon will appear in the activity bar."
+  info "Restart VS Code if it's running. The Talon icon will appear in the activity bar."
 }
 
 configure_zed_extension() {
@@ -214,10 +214,10 @@ configure_zed_extension() {
   # Determine proxy port from install type
   local proxy_port=8082
   if [ "$INSTALL_DIRECT" = true ]; then
-    # Could read from ~/.spectre-proxy/.env if user set custom port
-    if [ -f "$HOME/.spectre-proxy/.env" ]; then
+    # Could read from ~/.talon/.env if user set custom port
+    if [ -f "$HOME/.talon/.env" ]; then
       local custom_port
-      custom_port=$(grep -oP 'PROXY_PORT[=:]\s*\K\d+' "$HOME/.spectre-proxy/.env" 2>/dev/null || echo "")
+      custom_port=$(grep -oP 'PROXY_PORT[=:]\s*\K\d+' "$HOME/.talon/.env" 2>/dev/null || echo "")
       [ -n "$custom_port" ] && proxy_port="$custom_port"
     fi
   fi
@@ -237,17 +237,17 @@ except:
 # Update existing or add new
 updated = False
 for server in data.get("mcp", []):
-    if server.get("name") == "Spectre Proxy":
+    if server.get("name") == "Talon":
         server["url"] = f"http://127.0.0.1:{port}/v1/messages"
         updated = True
         break
 if not updated:
     data.setdefault("mcp", []).append({
-        "name": "Spectre Proxy",
+        "name": "Talon",
         "url": f"http://127.0.0.1:{port}/v1/messages",
         "headers": {
             "Content-Type": "application/json",
-            "x-api-key": "spectre-proxy"
+            "x-api-key": "talon"
         }
     })
 with open(path, "w") as f:
@@ -262,11 +262,11 @@ PYEOF
 {
   "mcp": [
     {
-      "name": "Spectre Proxy",
+      "name": "Talon",
       "url": "http://127.0.0.1:${proxy_port}/v1/messages",
       "headers": {
         "Content-Type": "application/json",
-        "x-api-key": "spectre-proxy"
+        "x-api-key": "talon"
       }
     }
   ]
@@ -277,7 +277,7 @@ MCPJSON
 
   echo ""
   ok "Zed extension configured!"
-  info "Copy the .zed folder into any project to use Spectre MCP:"
+  info "Copy the .zed folder into any project to use Talon MCP:"
   echo "  cp -r $SCRIPT_DIR/ide/zed/.zed /path/to/your/project/"
   echo ""
   info "Or add the MCP server to your global Zed settings:"
@@ -291,9 +291,9 @@ configure_antigravity_extension() {
   info "Auto-config for Antigravity is not yet supported."
   info "Please configure manually — see ide/README.md for details."
   info ""
-  info "You'll need to point it at the Spectre proxy:"
+  info "You'll need to point it at the Talon proxy:"
   echo "  Proxy URL:  http://127.0.0.1:8082/v1/messages"
-  echo "  API Key:    spectre-proxy (x-api-key header)"
+  echo "  API Key:    talon (x-api-key header)"
 }
 
 # ─── Apply IDE config ────────────────────────────────────────────
@@ -358,34 +358,34 @@ else
 fi
 
 # ── Config directory ──
-SPECTRE_DIR="$HOME/.spectre-proxy"
-mkdir -p "$SPECTRE_DIR/bin"
+TALON_DIR="$HOME/.talon"
+mkdir -p "$TALON_DIR/bin"
 
-if [ -d "$SPECTRE_DIR" ]; then
-  ok "Config directory: $SPECTRE_DIR"
+if [ -d "$TALON_DIR" ]; then
+  ok "Config directory: $TALON_DIR"
 else
   # shouldn't happen since we just created it, but just in case
-  info "Created $SPECTRE_DIR"
+  info "Created $TALON_DIR"
 fi
 
 # ── .env file ──
-ENV_FILE="$SPECTRE_DIR/.env"
+ENV_FILE="$TALON_DIR/.env"
 NEEDS_API_KEY=false
 
 if [ ! -f "$ENV_FILE" ]; then
   warn "No API keys configured yet."
   echo ""
-  echo "  You need at least one API key to use Spectre Proxy."
+  echo "  You need at least one API key to use Talon."
   echo "  Popular providers:"
   echo "    OpenRouter:   https://openrouter.ai/keys"
   echo "    Anthropic:    https://console.anthropic.com/"
   echo "    OpenAI:       https://platform.openai.com/api-keys"
   echo ""
-  read -p "  Create ~/.spectre-proxy/.env now? [Y/n] " -n 1 -r REPLY
+  read -p "  Create ~/.talon/.env now? [Y/n] " -n 1 -r REPLY
   echo
   if [[ -z "$REPLY" || "$REPLY" =~ ^[Yy]$ ]]; then
     cat > "$ENV_FILE" << 'ENVEOF'
-# ─── Spectre Proxy Configuration ──────────────────────────────
+# ─── Talon Configuration ──────────────────────────────
 # Uncomment and set at least one API key below.
 #
 # Get keys from:
@@ -417,7 +417,7 @@ ENVEOF
     echo ""
     exit 0
   else
-    warn "Skipping .env creation — you can add keys later with: spectre configure"
+    warn "Skipping .env creation — you can add keys later with: talon configure"
     NEEDS_API_KEY=true
   fi
 fi
@@ -434,7 +434,7 @@ if [ -f "$ENV_FILE" ]; then
 fi
 
 # ── Build CLI from Go source ──
-build_spectre_cli() {
+build_talon_cli() {
   local agent_dir="$SCRIPT_DIR/agent"
   if [ ! -f "$agent_dir/go.mod" ]; then
     warn "Go source not found at $agent_dir — cannot build CLI."
@@ -444,36 +444,36 @@ build_spectre_cli() {
     warn "Go is not installed — cannot build CLI."
     return 1
   fi
-  info "Building spectre CLI from source..."
-  mkdir -p "$SPECTRE_DIR/bin"
-  if CGO_ENABLED=0 go build -o "$SPECTRE_DIR/bin/spectre" "$agent_dir/cmd/spectre/" 2>&1; then
-    chmod +x "$SPECTRE_DIR/bin/spectre"
-    ok "Built spectre CLI → $SPECTRE_DIR/bin/spectre"
+  info "Building talon CLI from source..."
+  mkdir -p "$TALON_DIR/bin"
+  if CGO_ENABLED=0 go build talon
+    chmod +x "$TALON_DIR/bin/talon"
+    ok "Built talon CLI → $TALON_DIR/bin/talon"
   else
-    warn "Failed to build spectre CLI from source."
+    warn "Failed to build talon CLI from source."
     return 1
   fi
 }
 
-# ── Check / Build spectre CLI binary ──
-header "2. Checking Spectre CLI"
+# ── Check / Build talon CLI binary ──
+header "2. Checking Talon CLI"
 
-SPECTRE_BIN="$SPECTRE_DIR/bin/spectre"
+TALON_BIN="$TALON_DIR/bin/talon"
 
-if command -v spectre &>/dev/null; then
-  SPECTRE_PATH="$(which spectre)"
+if command -v talon &>/dev/null; then
+  TALON_PATH="$(which talon)"
   # Check if it's the Go-built CLI (built from this repo) vs a pre-existing binary
-  if "$SPECTRE_PATH" --version 2>/dev/null | grep -q "spectre v"; then
-    ok "spectre CLI found at: $SPECTRE_PATH"
+  if "$TALON_PATH" --version 2>/dev/null | grep -q "talonv"; then
+    ok "talonCLI found at: $TALON_PATH"
   else
-    warn "Existing spectre CLI at $SPECTRE_PATH may be a different version."
+    warn "Existing talon CLI at $TALON_PATH may be a different version."
     echo "  Building the latest CLI from source..."
-    build_spectre_cli
+    build_talon_cli
   fi
 else
-  warn "spectre CLI not found on PATH"
+  warn "talonCLI not found on PATH"
   echo "  Building from source..."
-  build_spectre_cli
+  build_talon_cli
 fi
 
 # ─── Shell Profile Setup ────────────────────────────────────────
@@ -500,31 +500,31 @@ touch "$PROFILE_FILE"
 PROFILE_RELOAD_CMD="source $PROFILE_FILE"
 
 # ── PATH entry ──
-if ! grep -q '\.spectre-proxy/bin' "$PROFILE_FILE" 2>/dev/null; then
+if ! grep -q '\.talon/bin' "$PROFILE_FILE" 2>/dev/null; then
   cat >> "$PROFILE_FILE" << 'PROFILEPATH'
 
-# Spectre Proxy
-export PATH="$PATH:$HOME/.spectre-proxy/bin"
+# Talon
+export PATH="$PATH:$HOME/.talon/bin"
 PROFILEPATH
-  ok "Added ~/.spectre-proxy/bin to PATH in $PROFILE_FILE"
+  ok "Added ~/.talon/bin to PATH in $PROFILE_FILE"
   PROFILE_UPDATED=true
 else
   ok "PATH already configured in $PROFILE_FILE"
 fi
 
-# ── spectre-dashboard function ──
-if ! grep -q 'spectre-dashboard' "$PROFILE_FILE" 2>/dev/null; then
+# ── talon-dashboard function ──
+if ! grep -q 'talon-dashboard' "$PROFILE_FILE" 2>/dev/null; then
   cat >> "$PROFILE_FILE" << 'PROFILEDASH'
 
-# Open Spectre Proxy dashboard in browser (requires containers running)
-spectre-dashboard() {
+# Open Talon dashboard in browser (requires containers running)
+talon-dashboard() {
   open http://localhost:3000
 }
 PROFILEDASH
-  ok "Added spectre-dashboard function to $PROFILE_FILE"
+  ok "Added talon-dashboard function to $PROFILE_FILE"
   PROFILE_UPDATED=true
 else
-  ok "spectre-dashboard already configured in $PROFILE_FILE"
+  ok "talon-dashboard already configured in $PROFILE_FILE"
 fi
 
 # ── Reload hint ──
@@ -572,7 +572,7 @@ NEEDS_KILL=false
 
 if ! check_port 8082 "agent proxy"; then
   echo "  The Docker agent needs port 8082."
-  if check_launchd "io.spectre.spectre-server"; then
+  if check_launchd "io.talon.talon-server"; then
     echo "  → This is the launchd service (auto-starts at login)."
     echo "    It will be unloaded and managed by Docker instead."
   fi
@@ -581,7 +581,7 @@ fi
 
 if ! check_port 3000 "dashboard"; then
   echo "  The Docker dashboard needs port 3000."
-  if check_launchd "io.spectre.dashboard"; then
+  if check_launchd "io.talon.dashboard"; then
     echo "  → This is the launchd service (auto-starts at login)."
   fi
   NEEDS_KILL=true
@@ -594,7 +594,7 @@ if [ "$NEEDS_KILL" = true ]; then
   if [[ -z "$REPLY" || "$REPLY" =~ ^[Yy]$ ]]; then
     echo ""
     # Unload launchd agents
-    for label in io.spectre.spectre-server io.spectre.dashboard; do
+    for label in io.talon.talon-server io.talon.dashboard; do
       if check_launchd "$label"; then
         info "Unloading launchd agent: $label"
         launchctl bootout gui/$(id -u)/"$label" 2>/dev/null || \
@@ -633,8 +633,8 @@ if [ "$NEEDS_KILL" = true ]; then
   else
     warn "Port conflicts may prevent containers from starting."
     echo "  Free them manually with:"
-    echo "    launchctl bootout gui/$(id -u)/io.spectre.spectre-server"
-    echo "    launchctl bootout gui/$(id -u)/io.spectre.dashboard"
+    echo "    launchctl bootout gui/$(id -u)/io.talon.talon-server"
+    echo "    launchctl bootout gui/$(id -u)/io.talon.dashboard"
     echo "    kill \$(lsof -ti :8082) \$(lsof -ti :3000)"
     echo ""
   fi
@@ -654,12 +654,12 @@ if [ "$INSTALL_DIRECT" = true ]; then
     echo ""
     info "Building Go proxy server..."
     cd "$SCRIPT_DIR/agent"
-    go build -o "$SPECTRE_DIR/bin/spectre-server" ./cmd/spectre-server/
-    ok "Built spectre-server"
+    go build -o "$TALON_DIR/bin/talon-server" ./cmd/talon-server/
+    ok "Built talon-server"
 
     info "Building CLI..."
-    go build -o "$SPECTRE_DIR/bin/spectre" ./cmd/spectre/
-    ok "Built spectre CLI"
+    go build talon
+    ok "Built talon CLI"
 
     info "Installing dashboard dependencies..."
     cd "$SCRIPT_DIR"
@@ -672,34 +672,34 @@ if [ "$INSTALL_DIRECT" = true ]; then
 
     echo ""
     info "Starting proxy server in background..."
-    export SPECTRE_PROXY_DIR="$SPECTRE_DIR"
-    nohup "$SPECTRE_DIR/bin/spectre-server" > "$SPECTRE_DIR/spectre-server.log" 2>&1 &
-    echo $! > "$SPECTRE_DIR/spectre-server.pid"
+    export TALON_PROXY_DIR="$TALON_DIR"
+    nohup "$TALON_DIR/bin/talon-server" > "$TALON_DIR/talon-server.log" 2>&1 &
+    echo $! > "$TALON_DIR/talon-server.pid"
     sleep 2
 
     info "Starting dashboard server in background..."
-    nohup npx next start -p 3000 > "$SPECTRE_DIR/dashboard.log" 2>&1 &
-    echo $! > "$SPECTRE_DIR/dashboard.pid"
+    nohup npx next start -p 3000 > "$TALON_DIR/dashboard.log" 2>&1 &
+    echo $! > "$TALON_DIR/dashboard.pid"
     echo ""
 
     # Add start/stop functions to shell profile
-    if ! grep -q 'spectre-start' "$PROFILE_FILE" 2>/dev/null; then
+    if ! grep -q 'talon-start' "$PROFILE_FILE" 2>/dev/null; then
       cat >> "$PROFILE_FILE" << 'PROFILESTART'
 
-# Spectre Proxy — start/stop services
-spectre-start() {
-  echo "Starting Spectre proxy..."
-  nohup "$HOME/.spectre-proxy/bin/spectre-server" > "$HOME/.spectre-proxy/spectre-server.log" 2>&1 &
-  echo $! > "$HOME/.spectre-proxy/spectre-server.pid"
-  echo "Starting Spectre dashboard..."
-  cd "$SPECTRE_PROXY_DIR" 2>/dev/null || cd "$HOME/Spectre Proxy/command-center-v2"
-  nohup npx next start -p 3000 > "$HOME/.spectre-proxy/dashboard.log" 2>&1 &
-  echo $! > "$HOME/.spectre-proxy/dashboard.pid"
+# Talon — start/stop services
+talon-start() {
+  echo "Starting Talon proxy..."
+  nohup "$HOME/.talon/bin/talon-server" > "$HOME/.talon/talon-server.log" 2>&1 &
+  echo $! > "$HOME/.talon/talon-server.pid"
+  echo "Starting Talon dashboard..."
+  cd "$TALON_PROXY_DIR" 2>/dev/null || cd "$HOME/Talon/command-center-v2"
+  nohup npx next start -p 3000 > "$HOME/.talon/dashboard.log" 2>&1 &
+  echo $! > "$HOME/.talon/dashboard.pid"
   echo "Services started."
 }
-spectre-stop() {
-  [ -f "$HOME/.spectre-proxy/spectre-server.pid" ] && kill $(cat "$HOME/.spectre-proxy/spectre-server.pid") 2>/dev/null; true
-  [ -f "$HOME/.spectre-proxy/dashboard.pid" ] && kill $(cat "$HOME/.spectre-proxy/dashboard.pid") 2>/dev/null; true
+talon-stop() {
+  [ -f "$HOME/.talon/talon-server.pid" ] && kill $(cat "$HOME/.talon/talon-server.pid") 2>/dev/null; true
+  [ -f "$HOME/.talon/dashboard.pid" ] && kill $(cat "$HOME/.talon/dashboard.pid") 2>/dev/null; true
   echo "Services stopped."
 }
 PROFILESTART
@@ -709,10 +709,10 @@ PROFILESTART
     ok "Services started!"
   else
     info "Skipping build. Build later with:"
-    echo "    cd agent && go build -o ~/.spectre-proxy/bin/spectre-server ./cmd/spectre-server/"
-    echo "    cd agent && go build -o ~/.spectre-proxy/bin/spectre ./cmd/spectre/"
+    echo "    cd agent && go build -o ~/.talon/bin/talon-server ./cmd/talon-server/"
+    echo "    cd agent && go build talon
     echo "    npm install && npm run build"
-    echo "    spectre-start    # start both servers"
+    echo "    talon-start    # start both servers"
   fi
 
 else
@@ -731,20 +731,20 @@ else
 
     echo "  Waiting for proxy to become healthy..."
     for i in {1..10}; do
-      HEALTHY=$(docker inspect --format='{{.State.Health.Status}}' spectre-proxy 2>/dev/null || echo "starting")
+      HEALTHY=$(docker inspect --format='{{.State.Health.Status}}' talon 2>/dev/null || echo "starting")
       if [ "$HEALTHY" = "healthy" ]; then
         break
       fi
       sleep 2
     done
 
-    if docker ps --filter "name=spectre-dashboard" --filter "status=running" --format "{{.Names}}" | grep -q "spectre-dashboard"; then
+    if docker ps --filter "name=talon-dashboard" --filter "status=running" --format "{{.Names}}" | grep -q "talon-dashboard"; then
       ok "Dashboard container is running"
     else
       warn "Dashboard container may still be starting..."
     fi
 
-    if docker inspect --format='{{.State.Health.Status}}' spectre-proxy 2>/dev/null | grep -q "healthy"; then
+    if docker inspect --format='{{.State.Health.Status}}' talon 2>/dev/null | grep -q "healthy"; then
       ok "Proxy is healthy"
     else
       warn "Proxy may still be starting — check with: ./docker/run.sh status"
@@ -762,29 +762,29 @@ if [ "$INSTALL_DIRECT" = true ]; then
   cat << SUMMARY
 
   ─────────────────────────────────────────────
-   Spectre Proxy is ready to use! (Direct install)
+   Talon is ready to use! (Direct install)
 
    Terminal commands:
-     spectre "your prompt"          CLI (single prompt)
-     spectre                        Launch interactive agent
-     spectre-dashboard              Open dashboard in browser
-     spectre-start                  Start proxy + dashboard
-     spectre-stop                   Stop proxy + dashboard
-     spectre status                 Check proxy health
-     spectre models                 List models
+     talon "your prompt"          CLI (single prompt)
+     talon                        Launch interactive agent
+     talon-dashboard              Open dashboard in browser
+     talon-start                  Start proxy + dashboard
+     talon-stop                   Stop proxy + dashboard
+     talon status                 Check proxy health
+     talon models                 List models
 
    URLs:
      Dashboard:  http://localhost:3000
      Proxy API:  http://localhost:8082
 
    Configuration:
-     ~/.spectre-proxy/.env             API keys and settings
-     ~/.spectre-proxy/agents/          Sub-agent definitions (.md)
-     ~/.spectre-proxy/mcp.json         MCP server config
+     ~/.talon/.env             API keys and settings
+     ~/.talon/agents/          Sub-agent definitions (.md)
+     ~/.talon/mcp.json         MCP server config
 
    Logs:
-     ~/.spectre-proxy/spectre-server.log
-     ~/.spectre-proxy/dashboard.log
+     ~/.talon/talon-server.log
+     ~/.talon/dashboard.log
   ─────────────────────────────────────────────
 
 SUMMARY
@@ -792,12 +792,12 @@ else
   cat << SUMMARY
 
   ─────────────────────────────────────────────
-   Spectre Proxy is ready to use! (Docker)
+   Talon is ready to use! (Docker)
 
    Terminal commands:
-     spectre "your prompt"          CLI (single prompt)
-     spectre                        Launch interactive agent
-     spectre-dashboard              Open dashboard in browser
+     talon "your prompt"          CLI (single prompt)
+     talon                        Launch interactive agent
+     talon-dashboard              Open dashboard in browser
      bash docker/run.sh status      Check container status
      bash docker/run.sh down        Stop containers
      bash docker/run.sh logs        View logs
@@ -807,9 +807,9 @@ else
      Proxy API:  http://localhost:8082
 
    Configuration:
-     ~/.spectre-proxy/.env             API keys and settings
-     ~/.spectre-proxy/agents/          Sub-agent definitions (.md)
-     ~/.spectre-proxy/mcp.json         MCP server config
+     ~/.talon/.env             API keys and settings
+     ~/.talon/agents/          Sub-agent definitions (.md)
+     ~/.talon/mcp.json         MCP server config
 
   ─────────────────────────────────────────────
 

@@ -3,7 +3,7 @@ package diffview
 import (
 	"slices"
 
-	"github.com/ChxisB/spectre-proxy/deps/util/exp/slice"
+	"github.com/ChxisB/talon/deps/util/exp/slice"
 	"github.com/aymanbagabas/go-udiff"
 )
 

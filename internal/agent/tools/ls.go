@@ -10,11 +10,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/filepathext"
-	"github.com/ChxisB/spectre-proxy/internal/fsext"
-	"github.com/ChxisB/spectre-proxy/internal/permission"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/filepathext"
+	"github.com/ChxisB/talon/internal/fsext"
+	"github.com/ChxisB/talon/internal/permission"
 )
 
 type LSParams struct {
@@ -71,14 +71,14 @@ func lsDescription() string {
 	})
 }
 
-func NewLsTool(permissions permission.Service, workingDir string, lsConfig config.ToolLs) fantasy.AgentTool {
-	return fantasy.NewAgentTool(
+func NewLsTool(permissions permission.Service, workingDir string, lsConfig config.ToolLs) llm.AgentTool {
+	return llm.NewAgentTool(
 		LSToolName,
 		lsDescription(),
-		func(ctx context.Context, params LSParams, call fantasy.ToolCall) (fantasy.ToolResponse, error) {
+		func(ctx context.Context, params LSParams, call llm.ToolCall) (llm.ToolResponse, error) {
 			searchPath, err := fsext.Expand(cmp.Or(params.Path, workingDir))
 			if err != nil {
-				return fantasy.NewTextErrorResponse(fmt.Sprintf("error expanding path: %v", err)), nil
+				return llm.NewTextErrorResponse(fmt.Sprintf("error expanding path: %v", err)), nil
 			}
 
 			searchPath = filepathext.SmartJoin(workingDir, searchPath)
@@ -86,12 +86,12 @@ func NewLsTool(permissions permission.Service, workingDir string, lsConfig confi
 			// Check if directory is outside working directory and request permission if needed
 			absWorkingDir, err := filepath.Abs(workingDir)
 			if err != nil {
-				return fantasy.NewTextErrorResponse(fmt.Sprintf("error resolving working directory: %v", err)), nil
+				return llm.NewTextErrorResponse(fmt.Sprintf("error resolving working directory: %v", err)), nil
 			}
 
 			absSearchPath, err := filepath.Abs(searchPath)
 			if err != nil {
-				return fantasy.NewTextErrorResponse(fmt.Sprintf("error resolving search path: %v", err)), nil
+				return llm.NewTextErrorResponse(fmt.Sprintf("error resolving search path: %v", err)), nil
 			}
 
 			relPath, err := filepath.Rel(absWorkingDir, absSearchPath)
@@ -99,7 +99,7 @@ func NewLsTool(permissions permission.Service, workingDir string, lsConfig confi
 				// Directory is outside working directory, request permission
 				sessionID := GetSessionFromContext(ctx)
 				if sessionID == "" {
-					return fantasy.ToolResponse{}, fmt.Errorf("session ID is required for accessing directories outside working directory")
+					return llm.ToolResponse{}, fmt.Errorf("session ID is required for accessing directories outside working directory")
 				}
 
 				granted, err := permissions.Request(
@@ -115,7 +115,7 @@ func NewLsTool(permissions permission.Service, workingDir string, lsConfig confi
 					},
 				)
 				if err != nil {
-					return fantasy.ToolResponse{}, err
+					return llm.ToolResponse{}, err
 				}
 				if !granted {
 					return NewPermissionDeniedResponse(), nil
@@ -124,11 +124,11 @@ func NewLsTool(permissions permission.Service, workingDir string, lsConfig confi
 
 			output, metadata, err := ListDirectoryTree(searchPath, params, lsConfig)
 			if err != nil {
-				return fantasy.NewTextErrorResponse(err.Error()), nil
+				return llm.NewTextErrorResponse(err.Error()), nil
 			}
 
-			return fantasy.WithResponseMetadata(
-				fantasy.NewTextResponse(output),
+			return llm.WithResponseMetadata(
+				llm.NewTextResponse(output),
 				metadata,
 			), nil
 		},

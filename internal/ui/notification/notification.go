@@ -11,13 +11,13 @@
 //     notifications are disabled or no suitable backend is available.
 //
 // Backend selection is based on terminal capabilities, environment, and user config:
-//   - Users can explicitly set notification_style in spectre.json (auto/native/osc/bell/disabled)
+//   - Users can explicitly set notification_style in talon.json (auto/native/osc/bell/disabled)
 //   - Auto mode: SSH sessions use OSC backend (auto-detects OSC 99 vs 777)
 //   - Auto mode: Local sessions use native OS notifications
 //   - If focus events are not supported in local sessions, notifications are disabled (NoopBackend)
 package notification
 
-import tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
+import bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
 
 // Notification represents a desktop notification request.
 type Notification struct {
@@ -26,10 +26,10 @@ type Notification struct {
 }
 
 // Backend defines the interface for sending desktop notifications.
-// Implementations return a tea.Cmd that performs the notification, allowing
+// Implementations return a bubble.Cmd that performs the notification, allowing
 // each backend to choose between synchronous (native OS) and asynchronous
 // (terminal escape sequences) delivery. Policy decisions (config checks,
 // focus state) are handled by the caller.
 type Backend interface {
-	Send(n Notification) tea.Cmd
+	Send(n Notification) bubble.Cmd
 }

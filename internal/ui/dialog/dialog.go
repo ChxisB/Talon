@@ -3,11 +3,11 @@ package dialog
 import (
 	"time"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	uv "github.com/ChxisB/spectre-proxy/deps/terminal"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/key"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	term "github.com/ChxisB/talon/deps/terminal"
+	"github.com/ChxisB/talon/deps/ui/core/v2/key"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/internal/ui/common"
 )
 
 // Dialog sizing constants.
@@ -37,15 +37,15 @@ type Dialog interface {
 	ID() string
 	// HandleMsg processes a message and returns an action. An [Action] can be
 	// anything and the caller is responsible for handling it appropriately.
-	HandleMsg(msg tea.Msg) Action
+	HandleMsg(msg bubble.Msg) Action
 	// Draw draws the dialog onto the provided screen within the specified area
 	// and returns the desired cursor position on the screen.
-	Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor
+	Draw(scr term.Screen, area term.Rectangle) *bubble.Cursor
 }
 
 // LoadingDialog is a dialog that can show a loading state.
 type LoadingDialog interface {
-	StartLoading() tea.Cmd
+	StartLoading() bubble.Cmd
 	StopLoading()
 }
 
@@ -186,13 +186,13 @@ func (d *Overlay) BringToFront(dialogID string) {
 }
 
 // Update handles dialog updates.
-func (d *Overlay) Update(msg tea.Msg) tea.Msg {
+func (d *Overlay) Update(msg bubble.Msg) bubble.Msg {
 	if len(d.dialogs) == 0 {
 		return nil
 	}
 
 	// Absorb keystrokes during the grace period for async dialogs.
-	if _, ok := msg.(tea.KeyPressMsg); ok && d.inGracePeriod() {
+	if _, ok := msg.(bubble.KeyPressMsg); ok && d.inGracePeriod() {
 		d.graceLastInputAt = time.Now()
 		return nil
 	}
@@ -208,7 +208,7 @@ func (d *Overlay) Update(msg tea.Msg) tea.Msg {
 
 // StartLoading starts the loading state for the front dialog if it
 // implements [LoadingDialog].
-func (d *Overlay) StartLoading() tea.Cmd {
+func (d *Overlay) StartLoading() bubble.Cmd {
 	dialog := d.DialogLast()
 	if ld, ok := dialog.(LoadingDialog); ok {
 		return ld.StartLoading()
@@ -227,41 +227,41 @@ func (d *Overlay) StopLoading() {
 
 // DrawCenterCursor draws the given string view centered in the screen area and
 // adjusts the cursor position accordingly.
-func DrawCenterCursor(scr uv.Screen, area uv.Rectangle, view string, cur *tea.Cursor) {
-	width, height := lipgloss.Size(view)
+func DrawCenterCursor(scr term.Screen, area term.Rectangle, view string, cur *bubble.Cursor) {
+	width, height := style.Size(view)
 	center := common.CenterRect(area, width, height)
 	if cur != nil {
 		cur.X += center.Min.X
 		cur.Y += center.Min.Y
 	}
-	uv.NewStyledString(view).Draw(scr, center)
+	term.NewStyledString(view).Draw(scr, center)
 }
 
 // DrawCenter draws the given string view centered in the screen area.
-func DrawCenter(scr uv.Screen, area uv.Rectangle, view string) {
+func DrawCenter(scr term.Screen, area term.Rectangle, view string) {
 	DrawCenterCursor(scr, area, view, nil)
 }
 
 // DrawOnboarding draws the given string view centered in the screen area.
-func DrawOnboarding(scr uv.Screen, area uv.Rectangle, view string) {
+func DrawOnboarding(scr term.Screen, area term.Rectangle, view string) {
 	DrawOnboardingCursor(scr, area, view, nil)
 }
 
 // DrawOnboardingCursor draws the given string view positioned at the bottom
 // left area of the screen.
-func DrawOnboardingCursor(scr uv.Screen, area uv.Rectangle, view string, cur *tea.Cursor) {
-	width, height := lipgloss.Size(view)
+func DrawOnboardingCursor(scr term.Screen, area term.Rectangle, view string, cur *bubble.Cursor) {
+	width, height := style.Size(view)
 	bottomLeft := common.BottomLeftRect(area, width, height)
 	if cur != nil {
 		cur.X += bottomLeft.Min.X
 		cur.Y += bottomLeft.Min.Y
 	}
-	uv.NewStyledString(view).Draw(scr, bottomLeft)
+	term.NewStyledString(view).Draw(scr, bottomLeft)
 }
 
 // Draw renders the overlay and its dialogs.
-func (d *Overlay) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
-	var cur *tea.Cursor
+func (d *Overlay) Draw(scr term.Screen, area term.Rectangle) *bubble.Cursor {
+	var cur *bubble.Cursor
 	for _, dialog := range d.dialogs {
 		cur = dialog.Draw(scr, area)
 	}

@@ -6,15 +6,15 @@ import (
 	"fmt"
 	"os"
 
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
-	"github.com/ChxisB/spectre-proxy/internal/ui/anim"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/deps/util/ansi"
+	"github.com/ChxisB/talon/internal/ui/anim"
 )
 
 // Spinner wraps the bubbles spinner for non-interactive mode
 type Spinner struct {
 	done chan struct{}
-	prog *tea.Program
+	prog *bubble.Program
 }
 
 type model struct {
@@ -22,17 +22,17 @@ type model struct {
 	anim   *anim.Anim
 }
 
-func (m model) Init() tea.Cmd  { return m.anim.Start() }
-func (m model) View() tea.View { return tea.NewView(m.anim.Render()) }
+func (m model) Init() bubble.Cmd  { return m.anim.Start() }
+func (m model) View() bubble.View { return bubble.NewView(m.anim.Render()) }
 
-// Update implements tea.Model.
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+// Update implements bubble.Model.
+func (m model) Update(msg bubble.Msg) (bubble.Model, bubble.Cmd) {
 	switch msg := msg.(type) {
-	case tea.KeyPressMsg:
+	case bubble.KeyPressMsg:
 		switch msg.String() {
 		case "ctrl+c", "esc":
 			m.cancel()
-			return m, tea.Quit
+			return m, bubble.Quit
 		}
 	case anim.StepMsg:
 		cmd := m.anim.Animate(msg)
@@ -48,7 +48,7 @@ func NewSpinner(ctx context.Context, cancel context.CancelFunc, animSettings ani
 		cancel: cancel,
 	}
 
-	p := tea.NewProgram(m, tea.WithOutput(os.Stderr), tea.WithContext(ctx))
+	p := bubble.NewProgram(m, bubble.WithOutput(os.Stderr), bubble.WithContext(ctx))
 
 	return &Spinner{
 		prog: p,
@@ -63,7 +63,7 @@ func (s *Spinner) Start() {
 		_, err := s.prog.Run()
 		// ensures line is cleared
 		fmt.Fprint(os.Stderr, ansi.EraseEntireLine)
-		if err != nil && !errors.Is(err, context.Canceled) && !errors.Is(err, tea.ErrInterrupted) {
+		if err != nil && !errors.Is(err, context.Canceled) && !errors.Is(err, bubble.ErrInterrupted) {
 			fmt.Fprintf(os.Stderr, "Error running spinner: %v\n", err)
 		}
 	}()

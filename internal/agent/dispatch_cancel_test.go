@@ -7,15 +7,15 @@ import (
 	"testing"
 	"time"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/internal/agent/notify"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/internal/agent/notify"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/pubsub"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-// finishStreamModel is a minimal fantasy.LanguageModel that streams a
+// finishStreamModel is a minimal llm.LanguageModel that streams a
 // single text part followed by a normal (FinishReasonStop) finish. It
 // is enough to drive sessionAgent.Run through PrepareStep and a clean
 // completion without a recorded provider cassette.
@@ -26,34 +26,34 @@ type finishStreamModel struct {
 func (m *finishStreamModel) Provider() string { return "fake" }
 func (m *finishStreamModel) Model() string    { return "fake-model" }
 
-func (m *finishStreamModel) Generate(ctx context.Context, call fantasy.Call) (*fantasy.Response, error) {
-	return &fantasy.Response{
-		Content:      fantasy.ResponseContent{fantasy.TextContent{Text: m.text}},
-		FinishReason: fantasy.FinishReasonStop,
+func (m *finishStreamModel) Generate(ctx context.Context, call llm.Call) (*llm.Response, error) {
+	return &llm.Response{
+		Content:      llm.ResponseContent{llm.TextContent{Text: m.text}},
+		FinishReason: llm.FinishReasonStop,
 	}, nil
 }
 
-func (m *finishStreamModel) Stream(ctx context.Context, call fantasy.Call) (fantasy.StreamResponse, error) {
+func (m *finishStreamModel) Stream(ctx context.Context, call llm.Call) (llm.StreamResponse, error) {
 	text := m.text
-	return func(yield func(fantasy.StreamPart) bool) {
-		if !yield(fantasy.StreamPart{Type: fantasy.StreamPartTypeTextStart, ID: "1"}) {
+	return func(yield func(llm.StreamPart) bool) {
+		if !yield(llm.StreamPart{Type: llm.StreamPartTypeTextStart, ID: "1"}) {
 			return
 		}
-		if !yield(fantasy.StreamPart{Type: fantasy.StreamPartTypeTextDelta, ID: "1", Delta: text}) {
+		if !yield(llm.StreamPart{Type: llm.StreamPartTypeTextDelta, ID: "1", Delta: text}) {
 			return
 		}
-		if !yield(fantasy.StreamPart{Type: fantasy.StreamPartTypeTextEnd, ID: "1"}) {
+		if !yield(llm.StreamPart{Type: llm.StreamPartTypeTextEnd, ID: "1"}) {
 			return
 		}
-		yield(fantasy.StreamPart{Type: fantasy.StreamPartTypeFinish, FinishReason: fantasy.FinishReasonStop})
+		yield(llm.StreamPart{Type: llm.StreamPartTypeFinish, FinishReason: llm.FinishReasonStop})
 	}, nil
 }
 
-func (m *finishStreamModel) GenerateObject(ctx context.Context, call fantasy.ObjectCall) (*fantasy.ObjectResponse, error) {
+func (m *finishStreamModel) GenerateObject(ctx context.Context, call llm.ObjectCall) (*llm.ObjectResponse, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *finishStreamModel) StreamObject(ctx context.Context, call fantasy.ObjectCall) (fantasy.ObjectStreamResponse, error) {
+func (m *finishStreamModel) StreamObject(ctx context.Context, call llm.ObjectCall) (llm.ObjectStreamResponse, error) {
 	return nil, errors.New("not implemented")
 }
 
@@ -202,7 +202,7 @@ func TestRun_NormalCompletionClearsStalePendingCancel(t *testing.T) {
 
 // newCancelTestAgentWithRunComplete builds a DB-backed sessionAgent wired
 // to a RunComplete broker so tests can observe the terminal event a
-// RunID-bearing caller (e.g. `spectre run`) blocks on.
+// RunID-bearing caller (e.g. `talon run`) blocks on.
 func newCancelTestAgentWithRunComplete(t *testing.T) (*sessionAgent, fakeEnv, *pubsub.Broker[notify.RunComplete]) {
 	t.Helper()
 	env := testEnv(t)
@@ -220,7 +220,7 @@ func newCancelTestAgentWithRunComplete(t *testing.T) (*sessionAgent, fakeEnv, *p
 // finding: the cancel-on-entry path returned before the streaming defer
 // that publishes RunComplete was installed. A caller that dispatches a
 // run with a RunID and blocks on RunComplete (ignoring message events,
-// like `spectre run`) would hang on an immediately-canceled accepted run.
+// like `talon run`) would hang on an immediately-canceled accepted run.
 // The cancel-on-entry path must publish a terminal RunComplete carrying
 // the originating RunID.
 func TestRun_CancelOnEntryPublishesRunComplete(t *testing.T) {

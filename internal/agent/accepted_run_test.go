@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/internal/message"
+	"github.com/ChxisB/talon/internal/message"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

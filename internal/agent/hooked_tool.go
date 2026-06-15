@@ -6,21 +6,21 @@ import (
 	"fmt"
 	"log/slog"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/internal/agent/tools"
-	"github.com/ChxisB/spectre-proxy/internal/hooks"
-	"github.com/ChxisB/spectre-proxy/internal/permission"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/internal/agent/tools"
+	"github.com/ChxisB/talon/internal/hooks"
+	"github.com/ChxisB/talon/internal/permission"
 	"github.com/tidwall/sjson"
 )
 
-// hookedTool wraps a fantasy.AgentTool to run PreToolUse hooks before
+// hookedTool wraps a llm.AgentTool to run PreToolUse hooks before
 // delegating to the inner tool.
 type hookedTool struct {
-	inner  fantasy.AgentTool
+	inner  llm.AgentTool
 	runner *hooks.Runner
 }
 
-func newHookedTool(inner fantasy.AgentTool, runner *hooks.Runner) *hookedTool {
+func newHookedTool(inner llm.AgentTool, runner *hooks.Runner) *hookedTool {
 	return &hookedTool{inner: inner, runner: runner}
 }
 
@@ -28,30 +28,30 @@ func newHookedTool(inner fantasy.AgentTool, runner *hooks.Runner) *hookedTool {
 // hookedTool. Returns the original slice unchanged when runner is nil or
 // when isSubAgent is true — sub-agents never fire hooks, the top-level
 // invocation of the sub-agent tool itself is wrapped on the caller's side.
-func wrapToolsWithHooks(tools []fantasy.AgentTool, runner *hooks.Runner, isSubAgent bool) []fantasy.AgentTool {
+func wrapToolsWithHooks(tools []llm.AgentTool, runner *hooks.Runner, isSubAgent bool) []llm.AgentTool {
 	if runner == nil || isSubAgent {
 		return tools
 	}
-	out := make([]fantasy.AgentTool, len(tools))
+	out := make([]llm.AgentTool, len(tools))
 	for i, tool := range tools {
 		out[i] = newHookedTool(tool, runner)
 	}
 	return out
 }
 
-func (h *hookedTool) Info() fantasy.ToolInfo {
+func (h *hookedTool) Info() llm.ToolInfo {
 	return h.inner.Info()
 }
 
-func (h *hookedTool) ProviderOptions() fantasy.ProviderOptions {
+func (h *hookedTool) ProviderOptions() llm.ProviderOptions {
 	return h.inner.ProviderOptions()
 }
 
-func (h *hookedTool) SetProviderOptions(opts fantasy.ProviderOptions) {
+func (h *hookedTool) SetProviderOptions(opts llm.ProviderOptions) {
 	h.inner.SetProviderOptions(opts)
 }
 
-func (h *hookedTool) Run(ctx context.Context, call fantasy.ToolCall) (fantasy.ToolResponse, error) {
+func (h *hookedTool) Run(ctx context.Context, call llm.ToolCall) (llm.ToolResponse, error) {
 	sessionID := tools.GetSessionFromContext(ctx)
 	result, err := h.runner.Run(ctx, hooks.EventPreToolUse, sessionID, call.Name, call.Input)
 	if err != nil {
@@ -64,7 +64,7 @@ func (h *hookedTool) Run(ctx context.Context, call fantasy.ToolCall) (fantasy.To
 		if result.Halt {
 			reason = fmt.Sprintf("Turn halted by hook. Reason: %s", result.Reason)
 		}
-		resp := fantasy.NewTextErrorResponse(reason)
+		resp := llm.NewTextErrorResponse(reason)
 		// Halt ends the whole turn; a plain deny only blocks this tool
 		// call so the model can see the error and try something else.
 		resp.StopTurn = result.Halt

@@ -5,25 +5,25 @@ import (
 	"fmt"
 	"strings"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	uv "github.com/ChxisB/spectre-proxy/deps/terminal"
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/help"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/key"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/spinner"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/oauth"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/ui/util"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	term "github.com/ChxisB/talon/deps/terminal"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	"github.com/ChxisB/talon/deps/ui/core/v2/help"
+	"github.com/ChxisB/talon/deps/ui/core/v2/key"
+	"github.com/ChxisB/talon/deps/ui/core/v2/spinner"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/oauth"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/ui/util"
 	"github.com/pkg/browser"
 )
 
 type OAuthProvider interface {
 	name() string
-	initiateAuth() tea.Msg
-	startPolling(deviceCode string, expiresIn int) tea.Cmd
-	stopPolling() tea.Msg
+	initiateAuth() bubble.Msg
+	startPolling(deviceCode string, expiresIn int) bubble.Cmd
+	stopPolling() bubble.Msg
 }
 
 // OAuthState represents the current state of the device flow.
@@ -79,7 +79,7 @@ func newOAuth(
 	model config.SelectedModel,
 	modelType config.SelectedModelType,
 	oAuthProvider OAuthProvider,
-) (*OAuth, tea.Cmd) {
+) (*OAuth, bubble.Cmd) {
 	t := com.Styles
 
 	m := OAuth{}
@@ -110,7 +110,7 @@ func newOAuth(
 	)
 	m.keyMap.Close = CloseKey
 
-	return &m, tea.Batch(m.spinner.Tick, m.oAuthProvider.initiateAuth)
+	return &m, bubble.Batch(m.spinner.Tick, m.oAuthProvider.initiateAuth)
 }
 
 // ID implements Dialog.
@@ -119,19 +119,19 @@ func (m *OAuth) ID() string {
 }
 
 // HandleMsg handles messages and state transitions.
-func (m *OAuth) HandleMsg(msg tea.Msg) Action {
+func (m *OAuth) HandleMsg(msg bubble.Msg) Action {
 	switch msg := msg.(type) {
 	case spinner.TickMsg:
 		switch m.State {
 		case OAuthStateInitializing, OAuthStateDisplay:
-			var cmd tea.Cmd
+			var cmd bubble.Cmd
 			m.spinner, cmd = m.spinner.Update(msg)
 			if cmd != nil {
 				return ActionCmd{cmd}
 			}
 		}
 
-	case tea.KeyPressMsg:
+	case bubble.KeyPressMsg:
 		switch {
 		case key.Matches(msg, m.keyMap.Copy):
 			cmd := m.copyCode()
@@ -173,14 +173,14 @@ func (m *OAuth) HandleMsg(msg tea.Msg) Action {
 
 	case ActionOAuthErrored:
 		m.State = OAuthStateError
-		cmd := tea.Batch(m.oAuthProvider.stopPolling, util.ReportError(msg.Error))
+		cmd := bubble.Batch(m.oAuthProvider.stopPolling, util.ReportError(msg.Error))
 		return ActionCmd{cmd}
 	}
 	return nil
 }
 
 // View renders the device flow dialog.
-func (m *OAuth) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
+func (m *OAuth) Draw(scr term.Screen, area term.Rectangle) *bubble.Cursor {
 	var (
 		t           = m.com.Styles
 		dialogStyle = t.Dialog.View.Width(m.width)
@@ -243,17 +243,17 @@ func (m *OAuth) innerDialogContent() string {
 
 	switch m.State {
 	case OAuthStateInitializing:
-		return lipgloss.NewStyle().
+		return style.NewStyle().
 			Margin(1, 1).
 			Width(m.width - 2).
-			Align(lipgloss.Center).
+			Align(style.Center).
 			Render(
 				successStyle.Render(m.spinner.View()) +
 					statusTextStyle.Render("Initializing..."),
 			)
 
 	case OAuthStateDisplay:
-		instructions := lipgloss.NewStyle().
+		instructions := style.NewStyle().
 			Margin(0, 1).
 			Width(m.width - 2).
 			Render(
@@ -262,10 +262,10 @@ func (m *OAuth) innerDialogContent() string {
 					instructionStyle.Render(" to copy the code below and open the browser."),
 			)
 
-		codeBox := lipgloss.NewStyle().
+		codeBox := style.NewStyle().
 			Width(m.width-2).
 			Height(7).
-			Align(lipgloss.Center, lipgloss.Center).
+			Align(style.Center, style.Center).
 			Background(t.Dialog.OAuth.UserCodeBg).
 			Margin(0, 1).
 			Render(
@@ -278,15 +278,15 @@ func (m *OAuth) innerDialogContent() string {
 			Width(m.width - 2).
 			Render("Browser not opening? Pay a visit to:\n" + link)
 
-		waiting := lipgloss.NewStyle().
+		waiting := style.NewStyle().
 			Margin(0, 1).
 			Width(m.width - 2).
 			Render(
 				successStyle.Render(m.spinner.View()) + statusTextStyle.Render("Verifying..."),
 			)
 
-		return lipgloss.JoinVertical(
-			lipgloss.Left,
+		return style.JoinVertical(
+			style.Left,
 			"",
 			instructions,
 			"",
@@ -305,7 +305,7 @@ func (m *OAuth) innerDialogContent() string {
 			Render("Authentication successful!")
 
 	case OAuthStateError:
-		return lipgloss.NewStyle().
+		return style.NewStyle().
 			Margin(1).
 			Width(m.width - 2).
 			Render(errorStyle.Render("Authentication failed."))
@@ -343,21 +343,21 @@ func (m *OAuth) ShortHelp() []key.Binding {
 	}
 }
 
-func (d *OAuth) copyCode() tea.Cmd {
+func (d *OAuth) copyCode() bubble.Cmd {
 	if d.State != OAuthStateDisplay {
 		return nil
 	}
 	return common.CopyToClipboard(d.userCode, "Code copied to clipboard")
 }
 
-func (d *OAuth) copyCodeAndOpenURL() tea.Cmd {
+func (d *OAuth) copyCodeAndOpenURL() bubble.Cmd {
 	if d.State != OAuthStateDisplay {
 		return nil
 	}
 	return common.CopyToClipboardWithCallback(
 		d.userCode,
 		"Code copied and URL opened",
-		func() tea.Msg {
+		func() bubble.Msg {
 			if err := browser.OpenURL(d.verificationURL); err != nil {
 				return ActionOAuthErrored{fmt.Errorf("failed to open browser: %w", err)}
 			}

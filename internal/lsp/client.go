@@ -12,13 +12,13 @@ import (
 	"sync/atomic"
 	"time"
 
-	powernap "github.com/ChxisB/spectre-proxy/deps/util/powernap/pkg/lsp"
-	"github.com/ChxisB/spectre-proxy/deps/util/powernap/pkg/lsp/protocol"
-	"github.com/ChxisB/spectre-proxy/deps/util/powernap/pkg/transport"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/csync"
-	"github.com/ChxisB/spectre-proxy/internal/fsext"
-	"github.com/ChxisB/spectre-proxy/internal/home"
+	powernap "github.com/ChxisB/talon/deps/util/powernap/pkg/lsp"
+	"github.com/ChxisB/talon/deps/util/powernap/pkg/lsp/protocol"
+	"github.com/ChxisB/talon/deps/util/powernap/pkg/transport"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/csync"
+	"github.com/ChxisB/talon/internal/fsext"
+	"github.com/ChxisB/talon/internal/home"
 )
 
 // DiagnosticCounts holds the count of diagnostics by severity.

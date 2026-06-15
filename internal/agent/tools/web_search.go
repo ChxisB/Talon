@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
+	llm "github.com/ChxisB/talon/deps/llm"
 )
 
 //go:embed web_search.md.tpl
@@ -20,7 +20,7 @@ var webSearchDescriptionTpl = template.Must(
 )
 
 // NewWebSearchTool creates a web search tool for sub-agents (no permissions needed).
-func NewWebSearchTool(client *http.Client) fantasy.AgentTool {
+func NewWebSearchTool(client *http.Client) llm.AgentTool {
 	if client == nil {
 		transport := http.DefaultTransport.(*http.Transport).Clone()
 		transport.MaxIdleConns = 100
@@ -33,12 +33,12 @@ func NewWebSearchTool(client *http.Client) fantasy.AgentTool {
 		}
 	}
 
-	return fantasy.NewParallelAgentTool(
+	return llm.NewParallelAgentTool(
 		WebSearchToolName,
 		renderToolDescription(webSearchDescriptionTpl),
-		func(ctx context.Context, params WebSearchParams, call fantasy.ToolCall) (fantasy.ToolResponse, error) {
+		func(ctx context.Context, params WebSearchParams, call llm.ToolCall) (llm.ToolResponse, error) {
 			if params.Query == "" {
-				return fantasy.NewTextErrorResponse("query is required"), nil
+				return llm.NewTextErrorResponse("query is required"), nil
 			}
 
 			maxResults := params.MaxResults
@@ -53,10 +53,10 @@ func NewWebSearchTool(client *http.Client) fantasy.AgentTool {
 			results, err := searchDuckDuckGo(ctx, client, params.Query, maxResults)
 			slog.Debug("Web search completed", "query", params.Query, "results", len(results), "err", err)
 			if err != nil {
-				return fantasy.NewTextErrorResponse("Failed to search: " + err.Error()), nil
+				return llm.NewTextErrorResponse("Failed to search: " + err.Error()), nil
 			}
 
-			return fantasy.NewTextResponse(formatSearchResults(results)), nil
+			return llm.NewTextResponse(formatSearchResults(results)), nil
 		},
 	)
 }

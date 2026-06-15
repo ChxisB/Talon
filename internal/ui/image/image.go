@@ -11,10 +11,10 @@ import (
 	"strings"
 	"sync"
 
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi/kitty"
-	"github.com/ChxisB/spectre-proxy/internal/ui/util"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/deps/util/ansi"
+	"github.com/ChxisB/talon/deps/util/ansi/kitty"
+	"github.com/ChxisB/talon/internal/ui/util"
 	"github.com/disintegration/imaging"
 	paintbrush "github.com/jordanella/go-ansi-paintbrush"
 )
@@ -124,7 +124,7 @@ func HasTransmitted(id string, cols, rows int) bool {
 
 // Transmit transmits the image data to the terminal if needed. This is used to
 // cache the image on the terminal for later rendering.
-func (e Encoding) Transmit(id string, img image.Image, cs CellSize, cols, rows int, tmux bool) tea.Cmd {
+func (e Encoding) Transmit(id string, img image.Image, cs CellSize, cols, rows int, tmux bool) bubble.Cmd {
 	if img == nil {
 		return nil
 	}
@@ -138,7 +138,7 @@ func (e Encoding) Transmit(id string, img image.Image, cs CellSize, cols, rows i
 		return nil
 	}
 
-	cmd := func() tea.Msg {
+	cmd := func() bubble.Msg {
 		if e != EncodingKitty {
 			cachedMutex.Lock()
 			cachedImages[key] = cachedImage{
@@ -182,7 +182,7 @@ func (e Encoding) Transmit(id string, img image.Image, cs CellSize, cols, rows i
 			}
 		}
 
-		return tea.RawMsg{Msg: buf.String()}
+		return bubble.RawMsg{Msg: buf.String()}
 	}
 
 	return cmd

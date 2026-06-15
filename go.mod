@@ -1,29 +1,29 @@
-module github.com/ChxisB/spectre-proxy
+module github.com/ChxisB/talon
 
 go 1.26.3
 
 require (
-	github.com/ChxisB/spectre-proxy/deps/color v0.4.3
-	github.com/ChxisB/spectre-proxy/deps/config/v2 v2.0.1
-	github.com/ChxisB/spectre-proxy/deps/llm v0.31.0
-	github.com/ChxisB/spectre-proxy/deps/logging/v2 v2.0.0
-	github.com/ChxisB/spectre-proxy/deps/render/v2 v2.0.1
-	github.com/ChxisB/spectre-proxy/deps/style/v2 v2.0.4
-	github.com/ChxisB/spectre-proxy/deps/terminal v0.0.0-20260525132238-948f4557a654
-	github.com/ChxisB/spectre-proxy/deps/testing v0.44.14
-	github.com/ChxisB/spectre-proxy/deps/ui/core/v2 v2.1.0
-	github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2 v2.0.7
-	github.com/ChxisB/spectre-proxy/deps/util/ansi v0.11.7
-	github.com/ChxisB/spectre-proxy/deps/util/editor v0.2.0
-	github.com/ChxisB/spectre-proxy/deps/util/etag v0.2.0
-	github.com/ChxisB/spectre-proxy/deps/util/exp/golden v0.0.0-20250806222409-83e3a29d542f
-	github.com/ChxisB/spectre-proxy/deps/util/exp/ordered v0.1.0
-	github.com/ChxisB/spectre-proxy/deps/util/exp/palette v0.0.0-20260527151214-009e6338d40d
-	github.com/ChxisB/spectre-proxy/deps/util/exp/slice v0.0.0-20260422141420-a6cbdff8a7e2
-	github.com/ChxisB/spectre-proxy/deps/util/exp/strings v0.1.0
-	github.com/ChxisB/spectre-proxy/deps/util/powernap v0.1.6
-	github.com/ChxisB/spectre-proxy/deps/util/term v0.2.2
-	github.com/ChxisB/spectre-proxy/deps/util/vcr v0.1.1
+	github.com/ChxisB/talon/deps/color v0.4.3
+	github.com/ChxisB/talon/deps/config/v2 v2.0.1
+	github.com/ChxisB/talon/deps/llm v0.31.0
+	github.com/ChxisB/talon/deps/logging/v2 v2.0.0
+	github.com/ChxisB/talon/deps/render/v2 v2.0.1
+	github.com/ChxisB/talon/deps/style/v2 v2.0.4
+	github.com/ChxisB/talon/deps/terminal v0.0.0-20260525132238-948f4557a654
+	github.com/ChxisB/talon/deps/testing v0.44.14
+	github.com/ChxisB/talon/deps/ui/core/v2 v2.1.0
+	github.com/ChxisB/talon/deps/ui/terminal/v2 v2.0.7
+	github.com/ChxisB/talon/deps/util/ansi v0.11.7
+	github.com/ChxisB/talon/deps/util/editor v0.2.0
+	github.com/ChxisB/talon/deps/util/etag v0.2.0
+	github.com/ChxisB/talon/deps/util/exp/golden v0.0.0-20250806222409-83e3a29d542f
+	github.com/ChxisB/talon/deps/util/exp/ordered v0.1.0
+	github.com/ChxisB/talon/deps/util/exp/palette v0.0.0-20260527151214-009e6338d40d
+	github.com/ChxisB/talon/deps/util/exp/slice v0.0.0-20260422141420-a6cbdff8a7e2
+	github.com/ChxisB/talon/deps/util/exp/strings v0.1.0
+	github.com/ChxisB/talon/deps/util/powernap v0.1.6
+	github.com/ChxisB/talon/deps/util/term v0.2.2
+	github.com/ChxisB/talon/deps/util/vcr v0.1.1
 	github.com/JohannesKaufmann/html-to-markdown v1.6.0
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/Microsoft/go-winio v0.6.2
@@ -86,9 +86,9 @@ require (
 	git.sr.ht/~jackmordaunt/go-toast v1.1.2 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.17.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.10.0 // indirect
-	github.com/ChxisB/spectre-proxy/deps/util/json v0.2.0 // indirect
-	github.com/ChxisB/spectre-proxy/deps/util/termios v0.1.1 // indirect
-	github.com/ChxisB/spectre-proxy/deps/util/windows v0.2.2 // indirect
+	github.com/ChxisB/talon/deps/util/json v0.2.0 // indirect
+	github.com/ChxisB/talon/deps/util/termios v0.1.1 // indirect
+	github.com/ChxisB/talon/deps/util/windows v0.2.2 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/anthropics/anthropic-sdk-go v1.50.1 // indirect
@@ -221,29 +221,29 @@ require (
 )
 
 replace (
-	github.com/ChxisB/spectre-proxy/deps/color => ./deps/color
-	github.com/ChxisB/spectre-proxy/deps/config/v2 => ./deps/config
-	github.com/ChxisB/spectre-proxy/deps/llm => ./deps/llm
-	github.com/ChxisB/spectre-proxy/deps/logging/v2 => ./deps/logging
-	github.com/ChxisB/spectre-proxy/deps/render/v2 => ./deps/render
-	github.com/ChxisB/spectre-proxy/deps/style/v2 => ./deps/style
-	github.com/ChxisB/spectre-proxy/deps/terminal => ./deps/terminal
-	github.com/ChxisB/spectre-proxy/deps/testing => ./deps/testing
-	github.com/ChxisB/spectre-proxy/deps/ui/core/v2 => ./deps/ui/core
-	github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2 => ./deps/ui/terminal
-	github.com/ChxisB/spectre-proxy/deps/util/ansi => ./deps/util/ansi
-	github.com/ChxisB/spectre-proxy/deps/util/editor => ./deps/util/editor
-	github.com/ChxisB/spectre-proxy/deps/util/etag => ./deps/util/etag
-	github.com/ChxisB/spectre-proxy/deps/util/exp/golden => ./deps/util/exp/golden
-	github.com/ChxisB/spectre-proxy/deps/util/exp/ordered => ./deps/util/exp/ordered
-	github.com/ChxisB/spectre-proxy/deps/util/exp/palette => ./deps/util/exp/palette
-	github.com/ChxisB/spectre-proxy/deps/util/exp/slice => ./deps/util/exp/slice
-	github.com/ChxisB/spectre-proxy/deps/util/exp/strings => ./deps/util/exp/strings
-	github.com/ChxisB/spectre-proxy/deps/util/json => ./deps/util/json
-	github.com/ChxisB/spectre-proxy/deps/util/keygen => ./deps/util/keygen
-	github.com/ChxisB/spectre-proxy/deps/util/powernap => ./deps/util/powernap
-	github.com/ChxisB/spectre-proxy/deps/util/term => ./deps/util/term
-	github.com/ChxisB/spectre-proxy/deps/util/termios => ./deps/util/termios
-	github.com/ChxisB/spectre-proxy/deps/util/vcr => ./deps/util/vcr
-	github.com/ChxisB/spectre-proxy/deps/util/windows => ./deps/util/windows
+	github.com/ChxisB/talon/deps/color => ./deps/color
+	github.com/ChxisB/talon/deps/config/v2 => ./deps/config
+	github.com/ChxisB/talon/deps/llm => ./deps/llm
+	github.com/ChxisB/talon/deps/logging/v2 => ./deps/logging
+	github.com/ChxisB/talon/deps/render/v2 => ./deps/render
+	github.com/ChxisB/talon/deps/style/v2 => ./deps/style
+	github.com/ChxisB/talon/deps/terminal => ./deps/terminal
+	github.com/ChxisB/talon/deps/testing => ./deps/testing
+	github.com/ChxisB/talon/deps/ui/core/v2 => ./deps/ui/core
+	github.com/ChxisB/talon/deps/ui/terminal/v2 => ./deps/ui/terminal
+	github.com/ChxisB/talon/deps/util/ansi => ./deps/util/ansi
+	github.com/ChxisB/talon/deps/util/editor => ./deps/util/editor
+	github.com/ChxisB/talon/deps/util/etag => ./deps/util/etag
+	github.com/ChxisB/talon/deps/util/exp/golden => ./deps/util/exp/golden
+	github.com/ChxisB/talon/deps/util/exp/ordered => ./deps/util/exp/ordered
+	github.com/ChxisB/talon/deps/util/exp/palette => ./deps/util/exp/palette
+	github.com/ChxisB/talon/deps/util/exp/slice => ./deps/util/exp/slice
+	github.com/ChxisB/talon/deps/util/exp/strings => ./deps/util/exp/strings
+	github.com/ChxisB/talon/deps/util/json => ./deps/util/json
+	github.com/ChxisB/talon/deps/util/keygen => ./deps/util/keygen
+	github.com/ChxisB/talon/deps/util/powernap => ./deps/util/powernap
+	github.com/ChxisB/talon/deps/util/term => ./deps/util/term
+	github.com/ChxisB/talon/deps/util/termios => ./deps/util/termios
+	github.com/ChxisB/talon/deps/util/vcr => ./deps/util/vcr
+	github.com/ChxisB/talon/deps/util/windows => ./deps/util/windows
 )

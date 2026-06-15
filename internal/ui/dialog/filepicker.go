@@ -9,15 +9,15 @@ import (
 	"strings"
 	"sync"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	uv "github.com/ChxisB/spectre-proxy/deps/terminal"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/filepicker"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/help"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/key"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/internal/home"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	fimage "github.com/ChxisB/spectre-proxy/internal/ui/image"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	term "github.com/ChxisB/talon/deps/terminal"
+	"github.com/ChxisB/talon/deps/ui/core/v2/filepicker"
+	"github.com/ChxisB/talon/deps/ui/core/v2/help"
+	"github.com/ChxisB/talon/deps/ui/core/v2/key"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/internal/home"
+	"github.com/ChxisB/talon/internal/ui/common"
+	fimage "github.com/ChxisB/talon/internal/ui/image"
 )
 
 // FilePickerID is the identifier for the FilePicker dialog.
@@ -58,7 +58,7 @@ func (f *FilePicker) CellSize() fimage.CellSize {
 var _ Dialog = (*FilePicker)(nil)
 
 // NewFilePicker creates a new [FilePicker] dialog.
-func NewFilePicker(com *common.Common) (*FilePicker, tea.Cmd) {
+func NewFilePicker(com *common.Common) (*FilePicker, bubble.Cmd) {
 	f := new(FilePicker)
 	f.com = com
 
@@ -167,17 +167,17 @@ func (f *FilePicker) ID() string {
 }
 
 // HandleMsg updates the [FilePicker] dialog based on the given message.
-func (f *FilePicker) HandleMsg(msg tea.Msg) Action {
-	var cmds []tea.Cmd
+func (f *FilePicker) HandleMsg(msg bubble.Msg) Action {
+	var cmds []bubble.Cmd
 	switch msg := msg.(type) {
-	case tea.KeyPressMsg:
+	case bubble.KeyPressMsg:
 		switch {
 		case key.Matches(msg, f.km.Close):
 			return ActionClose{}
 		}
 	}
 
-	var cmd tea.Cmd
+	var cmd bubble.Cmd
 	f.fp, cmd = f.fp.Update(msg)
 	if selFile := f.fp.HighlightedPath(); selFile != "" {
 		var allowed bool
@@ -193,9 +193,9 @@ func (f *FilePicker) HandleMsg(msg tea.Msg) Action {
 			f.previewingImage = false
 			img, err := loadImage(selFile)
 			if err == nil {
-				cmds = append(cmds, tea.Sequence(
+				cmds = append(cmds, bubble.Sequence(
 					f.imgEnc.Transmit(selFile, img, f.CellSize(), f.imgPrevWidth, f.imgPrevHeight, f.isTmux),
-					func() tea.Msg {
+					func() bubble.Msg {
 						f.previewingImage = true
 						return nil
 					},
@@ -211,7 +211,7 @@ func (f *FilePicker) HandleMsg(msg tea.Msg) Action {
 		return ActionFilePickerSelected{Path: path}
 	}
 
-	return ActionCmd{tea.Batch(cmds...)}
+	return ActionCmd{bubble.Batch(cmds...)}
 }
 
 const (
@@ -220,7 +220,7 @@ const (
 )
 
 // Draw renders the [FilePicker] dialog as a string.
-func (f *FilePicker) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
+func (f *FilePicker) Draw(scr term.Screen, area term.Rectangle) *bubble.Cursor {
 	width := max(0, min(filePickerMinWidth, area.Dx()))
 	height := max(0, min(10, area.Dy()))
 	innerWidth := width - f.com.Styles.Dialog.View.GetHorizontalFrameSize()
@@ -243,7 +243,7 @@ func (f *FilePicker) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 	rc.Title = "Add Image"
 	rc.Help = f.help.View(f)
 
-	imgPreview := t.Dialog.ImagePreview.Align(lipgloss.Center).Width(innerWidth).Render(f.imagePreview(imgPrevWidth, imgPrevHeight))
+	imgPreview := t.Dialog.ImagePreview.Align(style.Center).Width(innerWidth).Render(f.imagePreview(imgPrevWidth, imgPrevHeight))
 	rc.AddPart(imgPreview)
 
 	files := strings.TrimSpace(f.fp.View())

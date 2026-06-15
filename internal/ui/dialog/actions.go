@@ -6,24 +6,24 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/internal/commands"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/oauth"
-	"github.com/ChxisB/spectre-proxy/internal/permission"
-	"github.com/ChxisB/spectre-proxy/internal/session"
-	"github.com/ChxisB/spectre-proxy/internal/skills"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/ui/util"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/internal/commands"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/oauth"
+	"github.com/ChxisB/talon/internal/permission"
+	"github.com/ChxisB/talon/internal/session"
+	"github.com/ChxisB/talon/internal/skills"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/ui/util"
 )
 
 // ActionClose is a message to close the current dialog.
 type ActionClose struct{}
 
 // ActionQuit is a message to quit the application.
-type ActionQuit = tea.QuitMsg
+type ActionQuit = bubble.QuitMsg
 
 // ActionOpenDialog is a message to open a dialog.
 type ActionOpenDialog struct {
@@ -128,10 +128,10 @@ type (
 	}
 )
 
-// ActionCmd represents an action that carries a [tea.Cmd] to be passed to the
+// ActionCmd represents an action that carries a [bubble.Cmd] to be passed to the
 // Bubble Tea program loop.
 type ActionCmd struct {
-	Cmd tea.Cmd
+	Cmd bubble.Cmd
 }
 
 // ActionFilePickerSelected is a message indicating a file has been selected in
@@ -142,12 +142,12 @@ type ActionFilePickerSelected struct {
 
 // Cmd returns a command that reads the file at path and sends a
 // [message.Attachement] to the program.
-func (a ActionFilePickerSelected) Cmd() tea.Cmd {
+func (a ActionFilePickerSelected) Cmd() bubble.Cmd {
 	path := a.Path
 	if path == "" {
 		return nil
 	}
-	return func() tea.Msg {
+	return func() bubble.Msg {
 		isFileLarge, err := common.IsFileTooBig(path, common.MaxAttachmentSize)
 		if err != nil {
 			return util.InfoMsg{

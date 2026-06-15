@@ -8,8 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/internal/backend"
-	"github.com/ChxisB/spectre-proxy/internal/proto"
+	"github.com/ChxisB/talon/internal/backend"
+	"github.com/ChxisB/talon/internal/proto"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )

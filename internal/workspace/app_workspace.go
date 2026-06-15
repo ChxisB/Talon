@@ -6,19 +6,19 @@ import (
 	"fmt"
 	"time"
 
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/internal/agent"
-	mcptools "github.com/ChxisB/spectre-proxy/internal/agent/tools/mcp"
-	"github.com/ChxisB/spectre-proxy/internal/app"
-	"github.com/ChxisB/spectre-proxy/internal/commands"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/history"
-	"github.com/ChxisB/spectre-proxy/internal/lsp"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/oauth"
-	"github.com/ChxisB/spectre-proxy/internal/permission"
-	"github.com/ChxisB/spectre-proxy/internal/session"
-	"github.com/ChxisB/spectre-proxy/internal/skills"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/internal/agent"
+	mcptools "github.com/ChxisB/talon/internal/agent/tools/mcp"
+	"github.com/ChxisB/talon/internal/app"
+	"github.com/ChxisB/talon/internal/commands"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/history"
+	"github.com/ChxisB/talon/internal/lsp"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/oauth"
+	"github.com/ChxisB/talon/internal/permission"
+	"github.com/ChxisB/talon/internal/session"
+	"github.com/ChxisB/talon/internal/skills"
 )
 
 // AppWorkspace implements the Workspace interface by delegating
@@ -391,7 +391,7 @@ func (w *AppWorkspace) DisableDockerMCP() error {
 
 // -- Lifecycle --
 
-func (w *AppWorkspace) Subscribe(program *tea.Program) {
+func (w *AppWorkspace) Subscribe(program *bubble.Program) {
 	w.app.Subscribe(program)
 }
 

@@ -12,13 +12,13 @@ import (
 	"testing"
 	"time"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/internal/agent"
-	"github.com/ChxisB/spectre-proxy/internal/app"
-	"github.com/ChxisB/spectre-proxy/internal/backend"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/proto"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/internal/agent"
+	"github.com/ChxisB/talon/internal/app"
+	"github.com/ChxisB/talon/internal/backend"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/proto"
+	"github.com/ChxisB/talon/internal/pubsub"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
@@ -109,7 +109,7 @@ func (c *scriptedCoordinator) emitAssistant(sessionID, id string, reason message
 	})
 }
 
-func (c *scriptedCoordinator) Run(ctx context.Context, sessionID, prompt string, attachments ...message.Attachment) (*fantasy.AgentResult, error) {
+func (c *scriptedCoordinator) Run(ctx context.Context, sessionID, prompt string, attachments ...message.Attachment) (*llm.AgentResult, error) {
 	c.runStarts.Add(1)
 	runCtx, cancel := context.WithCancel(ctx)
 
@@ -174,7 +174,7 @@ func (c *scriptedCoordinator) Run(ctx context.Context, sessionID, prompt string,
 	}
 }
 
-func (c *scriptedCoordinator) RunAccepted(ctx context.Context, accept *agent.AcceptedRun, sessionID, prompt string, attachments ...message.Attachment) (*fantasy.AgentResult, error) {
+func (c *scriptedCoordinator) RunAccepted(ctx context.Context, accept *agent.AcceptedRun, sessionID, prompt string, attachments ...message.Attachment) (*llm.AgentResult, error) {
 	return c.Run(ctx, sessionID, prompt, attachments...)
 }
 

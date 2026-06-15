@@ -13,14 +13,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/internal/app"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/csync"
-	"github.com/ChxisB/spectre-proxy/internal/db"
-	"github.com/ChxisB/spectre-proxy/internal/proto"
-	"github.com/ChxisB/spectre-proxy/internal/skills"
-	"github.com/ChxisB/spectre-proxy/internal/ui/util"
-	"github.com/ChxisB/spectre-proxy/internal/version"
+	"github.com/ChxisB/talon/internal/app"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/csync"
+	"github.com/ChxisB/talon/internal/db"
+	"github.com/ChxisB/talon/internal/proto"
+	"github.com/ChxisB/talon/internal/skills"
+	"github.com/ChxisB/talon/internal/ui/util"
+	"github.com/ChxisB/talon/internal/version"
 	"github.com/google/uuid"
 )
 
@@ -46,7 +46,7 @@ var DefaultCreateGrace = 30 * time.Second
 // shutdown (e.g. when the last workspace is removed).
 type ShutdownFunc func()
 
-// Backend provides transport-agnostic business logic for the spectre
+// Backend provides transport-agnostic business logic for the talon
 // server. It manages workspaces and delegates to [app.App] services.
 //
 // Locking order: when both [Backend.mu] and [Workspace.clientsMu] are
@@ -273,7 +273,7 @@ func (b *Backend) CreateWorkspace(args proto.Workspace) (*Workspace, proto.Works
 
 	cfg.Overrides().SkipPermissionRequests = args.YOLO
 
-	if err := createDotSpectreDir(cfg.Config().Options.DataDirectory); err != nil {
+	if err := createDotTalonDir(cfg.Config().Options.DataDirectory); err != nil {
 		return nil, proto.Workspace{}, fmt.Errorf("failed to create data directory: %w", err)
 	}
 

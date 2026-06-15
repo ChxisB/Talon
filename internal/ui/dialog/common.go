@@ -4,15 +4,15 @@ import (
 	"image/color"
 	"strings"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/deps/util/ansi"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/ui/styles"
 )
 
 // InputCursor adjusts the cursor position for an input field within a dialog.
-func InputCursor(t *styles.Styles, cur *tea.Cursor) *tea.Cursor {
+func InputCursor(t *styles.Styles, cur *bubble.Cursor) *bubble.Cursor {
 	if cur != nil {
 		titleStyle := t.Dialog.Title
 		dialogStyle := t.Dialog.View
@@ -41,7 +41,7 @@ func InputCursor(t *styles.Styles, cur *tea.Cursor) *tea.Cursor {
 // adjustOnboardingInputCursor removes the dialog view frame offset from an
 // input cursor. Onboarding dialogs render without Dialog.View frame, while
 // InputCursor includes that frame offset for regular dialogs.
-func adjustOnboardingInputCursor(t *styles.Styles, cur *tea.Cursor) *tea.Cursor {
+func adjustOnboardingInputCursor(t *styles.Styles, cur *bubble.Cursor) *bubble.Cursor {
 	if cur == nil {
 		return nil
 	}
@@ -62,9 +62,9 @@ type RenderContext struct {
 	// Styles is the styles to use for rendering.
 	Styles *styles.Styles
 	// TitleStyle is the style of the dialog title by default it uses Styles.Dialog.Title
-	TitleStyle lipgloss.Style
+	TitleStyle style.Style
 	// ViewStyle is the style of the dialog title by default it uses Styles.Dialog.View
-	ViewStyle lipgloss.Style
+	ViewStyle style.Style
 	// TitleGradientFromColor is the color the title gradient starts by default
 	// its Styles.Dialog.TitleGradFromColor
 	TitleGradientFromColor color.Color
@@ -124,7 +124,7 @@ func (rc *RenderContext) Render() string {
 	if len(rc.Title) > 0 {
 		var titleInfoWidth int
 		if len(rc.TitleInfo) > 0 {
-			titleInfoWidth = lipgloss.Width(rc.TitleInfo)
+			titleInfoWidth = style.Width(rc.TitleInfo)
 		}
 		title := common.DialogTitle(rc.Styles, rc.Title,
 			max(0, rc.Width-dialogStyle.GetHorizontalFrameSize()-

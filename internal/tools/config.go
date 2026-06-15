@@ -1,5 +1,5 @@
-// Package tools manages the configuration and orchestration of Spectre's
-// built-in tools (synth, compress, viz, filter, usage, graph).
+// Package tools manages the configuration and orchestration of Talon.s
+// built-in tools (synth, compress, reducer, viz, filter, usage, graph).
 // Tools can be enabled/disabled via the dashboard and are auto-run
 // when appropriate.
 package tools
@@ -16,17 +16,34 @@ import (
 type ToolID string
 
 const (
-	ToolSynth    ToolID = "synth"    // Karpathy coding principles
-	ToolCompress ToolID = "compress" // Output compression
-	ToolViz      ToolID = "viz"      // Diagram generation
-	ToolFilter   ToolID = "filter"   // Command output filtering
-	ToolUsage    ToolID = "usage"    // Token usage analytics
-	ToolGraph    ToolID = "graph"    // Knowledge graph
+	// ─── Standalone tools (not part of reducer) ─────────────────────
+	ToolViz           ToolID = "viz"           // Diagram generation
+	ToolUsage         ToolID = "usage"         // Token usage analytics
+	ToolGraph         ToolID = "graph"         // Knowledge graph
+	ToolCVE           ToolID = "cve"              // CVE vulnerability checker
+
+	// ─── Token-reduction tools (all controlled by ToolReducer) ────
+	ToolSynth         ToolID = "synth"         // Coding principles injection
+	ToolFilter        ToolID = "filter"        // Command output filtering
+	ToolCompress      ToolID = "compress"      // Output compression
+	ToolCondense      ToolID = "condense"      // Input context compression (tool outputs, JSON)
+	ToolMemoryTree    ToolID = "memory-tree"   // glade: hierarchical memory tree (input savings)
+	ToolTokenOptimizer ToolID = "token-optimizer" // frugal: token/context optimization
+	ToolResponseCache ToolID = "response-cache"   // SQLite response cache
+	ToolPromptCache   ToolID = "promptcache"   // Prompt-response semantic cache
+
+	// ─── Master switch for all token reduction ────────────────────
+	ToolReducer       ToolID = "reducer"
 )
 
 // AllTools returns all available tool IDs.
 func AllTools() []ToolID {
-	return []ToolID{ToolSynth, ToolCompress, ToolViz, ToolFilter, ToolUsage, ToolGraph}
+	return []ToolID{ToolSynth, ToolViz, ToolFilter, ToolUsage, ToolGraph, ToolCVE, ToolCompress, ToolCondense, ToolMemoryTree, ToolTokenOptimizer, ToolResponseCache, ToolPromptCache, ToolReducer}
+}
+
+// ReducerSubTools returns the tool IDs that the reducer controls.
+func ReducerSubTools() []ToolID {
+	return []ToolID{ToolSynth, ToolFilter, ToolCompress, ToolCondense, ToolMemoryTree, ToolTokenOptimizer, ToolResponseCache, ToolPromptCache}
 }
 
 // ToolConfig holds the configuration for a single tool.
@@ -42,6 +59,8 @@ type Config struct {
 }
 
 // DefaultConfig returns a config with all tools enabled at default settings.
+// The reducer is enabled with "recommended" level, which applies sensible
+// defaults to all token-reduction sub-tools.
 func DefaultConfig() *Config {
 	c := &Config{
 		Tools: make(map[ToolID]*ToolConfig),
@@ -51,8 +70,12 @@ func DefaultConfig() *Config {
 			Enabled: true,
 		}
 	}
-	// Compression defaults to "full" mode
+	// Reducer defaults to "recommended" — the one-knob setting
+	c.Tools[ToolReducer].Level = "recommended"
+	// Output compression defaults to "full" mode
 	c.Tools[ToolCompress].Level = "full"
+	// Condense defaults to "moderate"
+	c.Tools[ToolCondense].Level = "moderate"
 	return c
 }
 
@@ -60,9 +83,9 @@ func DefaultConfig() *Config {
 func configPath() string {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return ".spectre/tools.json"
+		return ".talon/tools.json"
 	}
-	return filepath.Join(home, ".spectre", "tools.json")
+	return filepath.Join(home, ".talon", "tools.json")
 }
 
 // Load reads the config from disk, or returns defaults if not found.
@@ -111,12 +134,36 @@ func (c *Config) Save() error {
 }
 
 // IsEnabled returns whether a tool is enabled.
+// For reducer sub-tools, this checks the master reducer toggle only —
+// individual sub-tool settings are overridden by the reducer's level.
 func (c *Config) IsEnabled(id ToolID) bool {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
+	// If the master reducer is disabled, all sub-tools are disabled
+	reducer, hasReducer := c.Tools[ToolReducer]
+	if hasReducer && !reducer.Enabled && id != ToolReducer && c.isSubTool(id) {
+		return false
+	}
+
+	// If the master reducer is enabled, sub-tools are always on
+	// (their behavior is controlled by the level, not individual toggles)
+	if hasReducer && reducer.Enabled && id != ToolReducer && c.isSubTool(id) {
+		return true
+	}
+
 	if tc, ok := c.Tools[id]; ok {
 		return tc.Enabled
+	}
+	return false
+}
+
+// isSubTool checks if a tool ID is controlled by the reducer.
+func (c *Config) isSubTool(id ToolID) bool {
+	for _, sub := range ReducerSubTools() {
+		if id == sub {
+			return true
+		}
 	}
 	return false
 }
@@ -191,17 +238,31 @@ type ToolStatus struct {
 func toolName(id ToolID) string {
 	switch id {
 	case ToolSynth:
-		return "Synth (Karpathy Principles)"
-	case ToolCompress:
-		return "Compress (Output Compression)"
-	case ToolViz:
-		return "Viz (Diagram Generator)"
+		return "Synth (Coding Principles)"
 	case ToolFilter:
 		return "Filter (Command Output)"
+	case ToolCompress:
+		return "Compress (Output)"
+	case ToolCondense:
+		return "Condense (Input)"
+	case ToolMemoryTree:
+		return "Memory Tree"
+	case ToolTokenOptimizer:
+		return "Token Optimizer"
+	case ToolResponseCache:
+		return "Response Cache"
+	case ToolPromptCache:
+		return "Prompt Cache"
+	case ToolViz:
+		return "Viz (Diagram Generator)"
 	case ToolUsage:
 		return "Usage (Token Analytics)"
 	case ToolGraph:
 		return "Graph (Knowledge Graph)"
+	case ToolCVE:
+		return "CVE Vulnerability Checker"
+	case ToolReducer:
+		return "Token Reducer"
 	default:
 		return string(id)
 	}

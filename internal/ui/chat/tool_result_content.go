@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/ChxisB/spectre-proxy/internal/diffdetect"
-	"github.com/ChxisB/spectre-proxy/internal/stringext"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	"github.com/ChxisB/talon/internal/diffdetect"
+	"github.com/ChxisB/talon/internal/stringext"
+	"github.com/ChxisB/talon/internal/ui/styles"
 )
 
 type toolResultContentWidths struct {

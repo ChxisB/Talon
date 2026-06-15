@@ -21,7 +21,7 @@ export default function ActivityPage() {
     let stop = false;
     const fetchIt = async () => {
       try {
-        const r = await fetch("/api/spectre-proxy/activity", { cache: "no-store" });
+        const r = await fetch("/api/talon/activity", { cache: "no-store" });
         const j = await r.json();
         if (!stop) setEntries(j.entries ?? []);
       } catch {}

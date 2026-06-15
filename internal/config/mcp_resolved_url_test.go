@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/internal/env"
+	"github.com/ChxisB/talon/internal/env"
 	"github.com/stretchr/testify/require"
 )
 

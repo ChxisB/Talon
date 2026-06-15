@@ -14,34 +14,34 @@ import (
 	"sync"
 	"time"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
-	"github.com/ChxisB/spectre-proxy/deps/util/exp/palette"
-	"github.com/ChxisB/spectre-proxy/deps/util/term"
-	"github.com/ChxisB/spectre-proxy/internal/agent"
-	"github.com/ChxisB/spectre-proxy/internal/agent/notify"
-	"github.com/ChxisB/spectre-proxy/internal/agent/tools/mcp"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/db"
-	"github.com/ChxisB/spectre-proxy/internal/event"
-	"github.com/ChxisB/spectre-proxy/internal/filetracker"
-	"github.com/ChxisB/spectre-proxy/internal/format"
-	"github.com/ChxisB/spectre-proxy/internal/history"
-	"github.com/ChxisB/spectre-proxy/internal/log"
-	"github.com/ChxisB/spectre-proxy/internal/lsp"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/permission"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
-	"github.com/ChxisB/spectre-proxy/internal/session"
-	"github.com/ChxisB/spectre-proxy/internal/shell"
-	"github.com/ChxisB/spectre-proxy/internal/skills"
-	"github.com/ChxisB/spectre-proxy/internal/ui/anim"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
-	"github.com/ChxisB/spectre-proxy/internal/update"
-	"github.com/ChxisB/spectre-proxy/internal/version"
+	llm "github.com/ChxisB/talon/deps/llm"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/deps/util/ansi"
+	"github.com/ChxisB/talon/deps/util/exp/palette"
+	"github.com/ChxisB/talon/deps/util/term"
+	"github.com/ChxisB/talon/internal/agent"
+	"github.com/ChxisB/talon/internal/agent/notify"
+	"github.com/ChxisB/talon/internal/agent/tools/mcp"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/db"
+	"github.com/ChxisB/talon/internal/event"
+	"github.com/ChxisB/talon/internal/filetracker"
+	"github.com/ChxisB/talon/internal/format"
+	"github.com/ChxisB/talon/internal/history"
+	"github.com/ChxisB/talon/internal/log"
+	"github.com/ChxisB/talon/internal/lsp"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/permission"
+	"github.com/ChxisB/talon/internal/pubsub"
+	"github.com/ChxisB/talon/internal/session"
+	"github.com/ChxisB/talon/internal/shell"
+	"github.com/ChxisB/talon/internal/skills"
+	"github.com/ChxisB/talon/internal/ui/anim"
+	"github.com/ChxisB/talon/internal/ui/styles"
+	"github.com/ChxisB/talon/internal/update"
+	"github.com/ChxisB/talon/internal/version"
 )
 
 // UpdateAvailableMsg is sent when a new version is available.
@@ -52,6 +52,7 @@ type UpdateAvailableMsg struct {
 }
 
 type App struct {
+	DB          *sql.DB
 	Sessions    session.Service
 	Messages    message.Service
 	History     history.Service
@@ -68,7 +69,7 @@ type App struct {
 
 	serviceEventsWG *sync.WaitGroup
 	eventsCtx       context.Context
-	events          *pubsub.Broker[tea.Msg]
+	events          *pubsub.Broker[bubble.Msg]
 	tuiWG           *sync.WaitGroup
 
 	// global context and cleanup functions
@@ -78,7 +79,7 @@ type App struct {
 	// runCompletions is the authoritative per-run completion signal,
 	// emitted once per top-level agent turn after all message
 	// updates have been flushed. Bridged into app.events so SSE
-	// subscribers (notably `spectre run` in client/server mode) can
+	// subscribers (notably `talon run` in client/server mode) can
 	// drive their exit on a deterministic, payload-bearing event
 	// instead of guessing from message finish parts.
 	runCompletions *pubsub.Broker[notify.RunComplete]
@@ -101,6 +102,7 @@ func New(ctx context.Context, conn *sql.DB, store *config.ConfigStore, skillsMgr
 	}
 
 	app := &App{
+		DB:          conn,
 		Sessions:    sessions,
 		Messages:    messages,
 		History:     files,
@@ -113,7 +115,7 @@ func New(ctx context.Context, conn *sql.DB, store *config.ConfigStore, skillsMgr
 
 		config: store,
 
-		events:             pubsub.NewBroker[tea.Msg](),
+		events:             pubsub.NewBroker[bubble.Msg](),
 		serviceEventsWG:    &sync.WaitGroup{},
 		tuiWG:              &sync.WaitGroup{},
 		agentNotifications: pubsub.NewBroker[notify.Notification](),
@@ -179,12 +181,12 @@ func (app *App) Store() *config.ConfigStore {
 
 // Events returns a per-caller subscription channel for application events.
 // Each caller receives its own channel; all callers receive every event.
-func (app *App) Events(ctx context.Context) <-chan pubsub.Event[tea.Msg] {
+func (app *App) Events(ctx context.Context) <-chan pubsub.Event[bubble.Msg] {
 	return app.events.Subscribe(ctx)
 }
 
 // SendEvent publishes a message to all event subscribers.
-func (app *App) SendEvent(msg tea.Msg) {
+func (app *App) SendEvent(msg bubble.Msg) {
 	app.events.Publish(pubsub.UpdatedEvent, msg)
 }
 
@@ -269,9 +271,9 @@ func (app *App) RunNonInteractive(ctx context.Context, output io.Writer, prompt,
 		// unreadable in light terminals.
 		hasDarkBG := true
 		if f, ok := output.(*os.File); ok && stdinTTY && stdoutTTY {
-			hasDarkBG = lipgloss.HasDarkBackground(os.Stdin, f)
+			hasDarkBG = style.HasDarkBackground(os.Stdin, f)
 		}
-		defaultFG := lipgloss.LightDark(hasDarkBG)(palette.Pepper, t.WorkingLabelColor)
+		defaultFG := style.LightDark(hasDarkBG)(palette.Pepper, t.WorkingLabelColor)
 
 		spinner = format.NewSpinner(ctx, cancel, anim.Settings{
 			Size:        10,
@@ -318,7 +320,7 @@ func (app *App) RunNonInteractive(ctx context.Context, output io.Writer, prompt,
 	app.Permissions.AutoApproveSession(sess.ID)
 
 	type response struct {
-		result *fantasy.AgentResult
+		result *llm.AgentResult
 		err    error
 	}
 	done := make(chan response, 1)
@@ -529,7 +531,7 @@ func setupSubscriber[T any](
 	wg *sync.WaitGroup,
 	name string,
 	subscriber func(context.Context) <-chan pubsub.Event[T],
-	broker *pubsub.Broker[tea.Msg],
+	broker *pubsub.Broker[bubble.Msg],
 ) {
 	wg.Go(func() {
 		subCh := subscriber(ctx)
@@ -540,7 +542,7 @@ func setupSubscriber[T any](
 					slog.Debug("Subscription channel closed", "name", name)
 					return
 				}
-				broker.Publish(pubsub.UpdatedEvent, tea.Msg(event))
+				broker.Publish(pubsub.UpdatedEvent, bubble.Msg(event))
 			case <-ctx.Done():
 				slog.Debug("Subscription cancelled", "name", name)
 				return
@@ -554,14 +556,14 @@ func setupSubscriber[T any](
 // app.events broker using PublishMustDeliver instead of Publish. Use
 // this for terminal events that subscribers cannot tolerate losing —
 // notably RunComplete, which is the authoritative end-of-run signal
-// for `spectre run`. A lossy fan-in here can drop the only terminal
+// for `talon run`. A lossy fan-in here can drop the only terminal
 // event and hang non-interactive clients waiting on it.
 func setupSubscriberMustDeliver[T any](
 	ctx context.Context,
 	wg *sync.WaitGroup,
 	name string,
 	subscriber func(context.Context) <-chan pubsub.Event[T],
-	broker *pubsub.Broker[tea.Msg],
+	broker *pubsub.Broker[bubble.Msg],
 ) {
 	wg.Go(func() {
 		subCh := subscriber(ctx)
@@ -572,7 +574,7 @@ func setupSubscriberMustDeliver[T any](
 					slog.Debug("Subscription channel closed", "name", name)
 					return
 				}
-				broker.PublishMustDeliver(ctx, pubsub.UpdatedEvent, tea.Msg(event))
+				broker.PublishMustDeliver(ctx, pubsub.UpdatedEvent, bubble.Msg(event))
 			case <-ctx.Done():
 				slog.Debug("Subscription cancelled", "name", name)
 				return
@@ -607,8 +609,8 @@ func (app *App) InitCoderAgent(ctx context.Context) error {
 	return nil
 }
 
-// Subscribe sends events to the TUI as tea.Msgs.
-func (app *App) Subscribe(program *tea.Program) {
+// Subscribe sends events to the TUI as bubble.Msgs.
+func (app *App) Subscribe(program *bubble.Program) {
 	defer log.RecoverPanic("app.Subscribe", func() {
 		slog.Info("TUI subscription panic: attempting graceful shutdown")
 		program.Quit()

@@ -5,7 +5,7 @@ description: Use when the user needs to query, filter, reshape, extract, create,
 
 # jq — Built-in JSON Processor
 
-Spectre ships a built-in `jq` command (via `github.com/itchyny/gojq`) available
+Talon ships a built-in `jq` command (via `github.com/itchyny/gojq`) available
 in the bash tool. No external binary is required.
 
 ## Supported Flags
@@ -45,7 +45,7 @@ differences:
 
 Extract a field:
 ```sh
-echo '{"name":"spectre"}' | jq '.name'
+echo '{"name":"talon}' | jq '.name'
 ```
 
 Filter an array:

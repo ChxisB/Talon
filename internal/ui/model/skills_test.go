@@ -3,10 +3,10 @@ package model
 import (
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/skills"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	uistyles "github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/skills"
+	"github.com/ChxisB/talon/internal/ui/common"
+	uistyles "github.com/ChxisB/talon/internal/ui/styles"
 	"github.com/stretchr/testify/require"
 )
 
@@ -65,7 +65,7 @@ func TestSkillStatusItemsExcludesDisabledSkills(t *testing.T) {
 	ui := &UI{
 		com: &common.Common{
 			Styles:    &st,
-			Workspace: &testWorkspace{cfg: &config.Config{Options: &config.Options{DisabledSkills: []string{"go-doc", "spectre-config"}}}},
+			Workspace: &testWorkspace{cfg: &config.Config{Options: &config.Options{DisabledSkills: []string{"go-doc", "talon-config"}}}},
 		},
 		skillStates: []*skills.SkillState{
 			{Name: "go-doc", Path: "/tmp/go-doc/SKILL.md", State: skills.StateNormal},
@@ -76,6 +76,6 @@ func TestSkillStatusItemsExcludesDisabledSkills(t *testing.T) {
 
 	for _, item := range items {
 		require.NotEqual(t, "go-doc", item.name)
-		require.NotEqual(t, "spectre-config", item.name)
+		require.NotEqual(t, "talon-config", item.name)
 	}
 }

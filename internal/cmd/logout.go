@@ -7,33 +7,33 @@ import (
 	"os"
 	"os/signal"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
-	"github.com/ChxisB/spectre-proxy/internal/client"
-	"github.com/ChxisB/spectre-proxy/internal/config"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	"github.com/ChxisB/talon/deps/util/ansi"
+	"github.com/ChxisB/talon/internal/client"
+	"github.com/ChxisB/talon/internal/config"
 	"github.com/spf13/cobra"
 )
 
 var (
-	logoutHeaderStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("205"))
-	logoutItemStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("252"))
-	logoutPromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("215"))
+	logoutHeaderStyle = style.NewStyle().Bold(true).Foreground(style.Color("205"))
+	logoutItemStyle   = style.NewStyle().Foreground(style.Color("252"))
+	logoutPromptStyle = style.NewStyle().Foreground(style.Color("215"))
 )
 
 var logoutCmd = &cobra.Command{
 	Aliases: []string{"signout"},
 	Use:     "logout [platform]",
-	Short:   "Logout Spectre from a platform",
-	Long: `Logout Spectre from a specified platform, removing stored credentials.
+	Short:   "Logout Talon from a platform",
+	Long: `Logout Talon from a specified platform, removing stored credentials.
 The platform should be provided as an argument.
 If no argument is given, a list of logged-in platforms will be shown.
 Available platforms are: hyper, copilot.`,
 	Example: `
-# Sign out from Spectre Hyper
-spectre logout hyper
+# Sign out from Talon Hyper
+talon logout hyper
 
 # Sign out from GitHub Copilot
-spectre logout copilot
+talon logout copilot
   `,
 	ValidArgs: []cobra.Completion{
 		"hyper",

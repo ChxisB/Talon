@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
+	llm "github.com/ChxisB/talon/deps/llm"
 	"github.com/stretchr/testify/require"
 )
 
@@ -35,7 +35,7 @@ func TestWriteToolWritesEmptyNewFile(t *testing.T) {
 	input, err := json.Marshal(WriteParams{FilePath: "empty.txt", Content: ""})
 	require.NoError(t, err)
 
-	resp, err := tool.Run(ctx, fantasy.ToolCall{
+	resp, err := tool.Run(ctx, llm.ToolCall{
 		ID:    "test-call",
 		Name:  WriteToolName,
 		Input: string(input),

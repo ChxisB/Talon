@@ -6,7 +6,7 @@ import (
 	"testing/synctest"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/internal/db"
+	"github.com/ChxisB/talon/internal/db"
 	"github.com/stretchr/testify/require"
 )
 

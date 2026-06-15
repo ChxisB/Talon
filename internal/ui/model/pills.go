@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"strings"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/internal/session"
-	"github.com/ChxisB/spectre-proxy/internal/ui/chat"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/internal/session"
+	"github.com/ChxisB/talon/internal/ui/chat"
+	"github.com/ChxisB/talon/internal/ui/styles"
 )
 
 // pillStyle returns the appropriate style for a pill based on focus state.
-func pillStyle(focused, panelFocused bool, t *styles.Styles) lipgloss.Style {
+func pillStyle(focused, panelFocused bool, t *styles.Styles) style.Style {
 	if !panelFocused || focused {
 		return t.Pills.Focused
 	}
@@ -140,15 +140,14 @@ const pillsHeightReasonableTerminalHeight = 40
 
 // autoExpandPillsIfReasonable expands the pills panel if the terminal has
 // enough vertical space to show the expanded list comfortably.
-func (m *UI) autoExpandPillsIfReasonable() tea.Cmd {
+func (m *UI) autoExpandPillsIfReasonable() bubble.Cmd {
 	if !m.hasSession() {
 		return nil
 	}
 	if m.height < pillsHeightReasonableTerminalHeight {
 		return nil
 	}
-	hasPills := hasIncompleteTodos(m.session.Todos) || m.promptQueue > 0
-	if !hasPills {
+	if m.promptQueue <= 0 {
 		return nil
 	}
 	if m.pillsExpanded {
@@ -159,11 +158,7 @@ func (m *UI) autoExpandPillsIfReasonable() tea.Cmd {
 	}
 	m.pillsExpanded = true
 	m.pillsAutoExpanded = true
-	if hasIncompleteTodos(m.session.Todos) {
-		m.focusedPillSection = pillSectionTodos
-	} else {
-		m.focusedPillSection = pillSectionQueue
-	}
+	m.focusedPillSection = pillSectionQueue
 	m.updateLayoutAndSize()
 	if m.chat.Follow() {
 		m.chat.ScrollToBottom()
@@ -172,21 +167,17 @@ func (m *UI) autoExpandPillsIfReasonable() tea.Cmd {
 }
 
 // togglePillsExpanded toggles the pills panel expansion state.
-func (m *UI) togglePillsExpanded() tea.Cmd {
+func (m *UI) togglePillsExpanded() bubble.Cmd {
 	if !m.hasSession() {
 		return nil
 	}
-	hasPills := hasIncompleteTodos(m.session.Todos) || m.promptQueue > 0
-	if !hasPills {
+	hasQueue := m.promptQueue > 0
+	if !hasQueue {
 		return nil
 	}
 	m.pillsExpanded = !m.pillsExpanded
 	if m.pillsExpanded {
-		if hasIncompleteTodos(m.session.Todos) {
-			m.focusedPillSection = pillSectionTodos
-		} else {
-			m.focusedPillSection = pillSectionQueue
-		}
+		m.focusedPillSection = pillSectionQueue
 	}
 	m.updateLayoutAndSize()
 
@@ -198,24 +189,8 @@ func (m *UI) togglePillsExpanded() tea.Cmd {
 	return nil
 }
 
-// switchPillSection changes focus between todo and queue sections.
-func (m *UI) switchPillSection(dir int) tea.Cmd {
-	if !m.pillsExpanded || !m.hasSession() {
-		return nil
-	}
-	hasIncompleteTodos := hasIncompleteTodos(m.session.Todos)
-	hasQueue := m.promptQueue > 0
-
-	if dir < 0 && m.focusedPillSection == pillSectionQueue && hasIncompleteTodos {
-		m.focusedPillSection = pillSectionTodos
-		m.updateLayoutAndSize()
-		return nil
-	}
-	if dir > 0 && m.focusedPillSection == pillSectionTodos && hasQueue {
-		m.focusedPillSection = pillSectionQueue
-		m.updateLayoutAndSize()
-		return nil
-	}
+// switchPillSection changes focus between sections.
+func (m *UI) switchPillSection(int) bubble.Cmd {
 	return nil
 }
 
@@ -232,12 +207,8 @@ func (m *UI) pillsAreaHeight() int {
 	}
 
 	pillsAreaHeight := pillHeightWithBorder
-	if m.pillsExpanded {
-		if m.focusedPillSection == pillSectionTodos && hasIncomplete {
-			pillsAreaHeight += len(m.session.Todos)
-		} else if m.focusedPillSection == pillSectionQueue && hasQueue {
-			pillsAreaHeight += m.promptQueue
-		}
+	if m.pillsExpanded && hasQueue {
+		pillsAreaHeight += m.promptQueue
 	}
 	return pillsAreaHeight
 }
@@ -255,7 +226,6 @@ func (m *UI) renderPills() {
 	}
 
 	paddingLeft := 3
-	contentWidth := max(width-paddingLeft, 0)
 
 	hasIncomplete := hasIncompleteTodos(m.session.Todos)
 	hasQueue := m.promptQueue > 0
@@ -265,7 +235,6 @@ func (m *UI) renderPills() {
 	}
 
 	t := m.com.Styles
-	todosFocused := m.pillsExpanded && m.focusedPillSection == pillSectionTodos
 	queueFocused := m.pillsExpanded && m.focusedPillSection == pillSectionQueue
 
 	inProgressIcon := t.Tool.TodoInProgressIcon.Render(styles.SpinnerIcon)
@@ -275,21 +244,17 @@ func (m *UI) renderPills() {
 
 	var pills []string
 	if hasIncomplete {
-		pills = append(pills, todoPill(m.session.Todos, inProgressIcon, todosFocused, m.pillsExpanded, t))
+		pills = append(pills, todoPill(m.session.Todos, inProgressIcon, false, false, t))
 	}
 	if hasQueue {
 		pills = append(pills, queuePill(m.promptQueue, queueFocused, m.pillsExpanded, t))
 	}
 
 	var expandedList string
-	if m.pillsExpanded {
-		if todosFocused && hasIncomplete {
-			expandedList = todoList(m.session.Todos, inProgressIcon, t, contentWidth)
-		} else if queueFocused && hasQueue {
-			if m.com != nil && m.com.Workspace != nil && m.com.Workspace.AgentIsReady() {
-				queueItems := m.com.Workspace.AgentQueuedPromptsList(m.session.ID)
-				expandedList = queueList(queueItems, t)
-			}
+	if m.pillsExpanded && queueFocused && hasQueue {
+		if m.com != nil && m.com.Workspace != nil && m.com.Workspace.AgentIsReady() {
+			queueItems := m.com.Workspace.AgentQueuedPromptsList(m.session.ID)
+			expandedList = queueList(queueItems, t)
 		}
 	}
 
@@ -297,7 +262,7 @@ func (m *UI) renderPills() {
 		return
 	}
 
-	pillsRow := lipgloss.JoinHorizontal(lipgloss.Top, pills...)
+	pillsRow := style.JoinHorizontal(style.Top, pills...)
 
 	helpDesc := "open"
 	if m.pillsExpanded {
@@ -305,12 +270,12 @@ func (m *UI) renderPills() {
 	}
 	helpKey := t.Pills.HelpKey.Render("ctrl+t")
 	helpText := t.Pills.HelpText.Render(helpDesc)
-	helpHint := lipgloss.JoinHorizontal(lipgloss.Center, helpKey, " ", helpText)
-	pillsRow = lipgloss.JoinHorizontal(lipgloss.Center, pillsRow, " ", helpHint)
+	helpHint := style.JoinHorizontal(style.Center, helpKey, " ", helpText)
+	pillsRow = style.JoinHorizontal(style.Center, pillsRow, " ", helpHint)
 
 	pillsArea := pillsRow
 	if expandedList != "" {
-		pillsArea = lipgloss.JoinVertical(lipgloss.Left, pillsRow, expandedList)
+		pillsArea = style.JoinVertical(style.Left, pillsRow, expandedList)
 	}
 
 	m.pillsView = t.Pills.Area.MaxWidth(width).PaddingLeft(paddingLeft).Render(pillsArea)

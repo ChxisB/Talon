@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
+	llm "github.com/ChxisB/talon/deps/llm"
 )
 
 //go:embed web_fetch.md.tpl
@@ -22,7 +22,7 @@ var webFetchDescriptionTpl = template.Must(
 )
 
 // NewWebFetchTool creates a simple web fetch tool for sub-agents (no permissions needed).
-func NewWebFetchTool(workingDir string, client *http.Client) fantasy.AgentTool {
+func NewWebFetchTool(workingDir string, client *http.Client) llm.AgentTool {
 	if client == nil {
 		transport := http.DefaultTransport.(*http.Transport).Clone()
 		transport.MaxIdleConns = 100
@@ -35,17 +35,17 @@ func NewWebFetchTool(workingDir string, client *http.Client) fantasy.AgentTool {
 		}
 	}
 
-	return fantasy.NewParallelAgentTool(
+	return llm.NewParallelAgentTool(
 		WebFetchToolName,
 		renderToolDescription(webFetchDescriptionTpl),
-		func(ctx context.Context, params WebFetchParams, call fantasy.ToolCall) (fantasy.ToolResponse, error) {
+		func(ctx context.Context, params WebFetchParams, call llm.ToolCall) (llm.ToolResponse, error) {
 			if params.URL == "" {
-				return fantasy.NewTextErrorResponse("url is required"), nil
+				return llm.NewTextErrorResponse("url is required"), nil
 			}
 
 			content, err := FetchURLAndConvert(ctx, client, params.URL)
 			if err != nil {
-				return fantasy.NewTextErrorResponse(fmt.Sprintf("Failed to fetch URL: %s", err)), nil
+				return llm.NewTextErrorResponse(fmt.Sprintf("Failed to fetch URL: %s", err)), nil
 			}
 
 			hasLargeContent := len(content) > LargeContentThreshold
@@ -54,16 +54,16 @@ func NewWebFetchTool(workingDir string, client *http.Client) fantasy.AgentTool {
 			if hasLargeContent {
 				tempFile, err := os.CreateTemp(workingDir, "page-*.md")
 				if err != nil {
-					return fantasy.NewTextErrorResponse(fmt.Sprintf("Failed to create temporary file: %s", err)), nil
+					return llm.NewTextErrorResponse(fmt.Sprintf("Failed to create temporary file: %s", err)), nil
 				}
 				tempFilePath := tempFile.Name()
 
 				if _, err := tempFile.WriteString(content); err != nil {
 					_ = tempFile.Close() // Best effort close
-					return fantasy.NewTextErrorResponse(fmt.Sprintf("Failed to write content to file: %s", err)), nil
+					return llm.NewTextErrorResponse(fmt.Sprintf("Failed to write content to file: %s", err)), nil
 				}
 				if err := tempFile.Close(); err != nil {
-					return fantasy.NewTextErrorResponse(fmt.Sprintf("Failed to close temporary file: %s", err)), nil
+					return llm.NewTextErrorResponse(fmt.Sprintf("Failed to close temporary file: %s", err)), nil
 				}
 
 				fmt.Fprintf(&result, "Fetched content from %s (large page)\n\n", params.URL)
@@ -74,7 +74,7 @@ func NewWebFetchTool(workingDir string, client *http.Client) fantasy.AgentTool {
 				result.WriteString(content)
 			}
 
-			return fantasy.NewTextResponse(result.String()), nil
+			return llm.NewTextResponse(result.String()), nil
 		},
 	)
 }

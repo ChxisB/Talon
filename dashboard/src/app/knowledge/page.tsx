@@ -14,7 +14,7 @@ export default function KnowledgePage() {
 
   // Load graph status on mount
   useEffect(() => {
-    fetch("/api/spectre-proxy/knowledge")
+    fetch("/api/talon/knowledge")
       .then(r => r.json())
       .then(data => {
         if (data.exists) {
@@ -29,7 +29,7 @@ export default function KnowledgePage() {
     setLoading(true);
     setGraphStatus("Building graph...");
     try {
-      const res = await fetch("/api/spectre-proxy/knowledge", {
+      const res = await fetch("/api/talon/knowledge", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "build", path: "." }),
@@ -39,7 +39,7 @@ export default function KnowledgePage() {
       setGraphStatus(data.result || "Graph built");
 
       // Load the visualization
-      const vizRes = await fetch("/api/spectre-proxy/knowledge", {
+      const vizRes = await fetch("/api/talon/knowledge", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "visualize" }),
@@ -57,7 +57,7 @@ export default function KnowledgePage() {
     if (!queryParam1) return;
     setQueryResults("Querying...");
     try {
-      const res = await fetch("/api/spectre-proxy/knowledge", {
+      const res = await fetch("/api/talon/knowledge", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -77,7 +77,7 @@ export default function KnowledgePage() {
   const refreshViz = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/spectre-proxy/knowledge", {
+      const res = await fetch("/api/talon/knowledge", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "visualize" }),

@@ -3,8 +3,8 @@ package agent
 import (
 	"time"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/internal/event"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/internal/event"
 )
 
 func (a *sessionAgent) eventPromptSent(sessionID string) {
@@ -23,7 +23,7 @@ func (a *sessionAgent) eventPromptResponded(sessionID string, duration time.Dura
 	)
 }
 
-func (a *sessionAgent) eventTokensUsed(sessionID string, model Model, usage fantasy.Usage, cost float64) {
+func (a *sessionAgent) eventTokensUsed(sessionID string, model Model, usage llm.Usage, cost float64) {
 	event.TokensUsed(
 		append(
 			a.eventCommon(sessionID, model),

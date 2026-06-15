@@ -5,7 +5,7 @@ import (
 	"image/color"
 	"strings"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
+	lip "github.com/ChxisB/talon/deps/style/v2"
 	"github.com/rivo/uniseg"
 )
 
@@ -13,14 +13,14 @@ import (
 // rendered with a horizontal gradient foreground from color1 to color2. Each
 // string in the returned slice corresponds to a grapheme cluster in the input
 // string. If bold is true, the rendered strings will be bolded.
-func ForegroundGrad(base lipgloss.Style, input string, bold bool, color1, color2 color.Color) []string {
+func ForegroundGrad(base lip.Style, input string, bold bool, color1, color2 color.Color) []string {
 	if input == "" {
 		return []string{""}
 	}
 	if len(input) == 1 {
 		style := base.Foreground(color1)
 		if bold {
-			style.Bold(true)
+			style = style.Bold(true)
 		}
 		return []string{style.Render(input)}
 	}
@@ -30,11 +30,11 @@ func ForegroundGrad(base lipgloss.Style, input string, bold bool, color1, color2
 		clusters = append(clusters, string(gr.Runes()))
 	}
 
-	ramp := lipgloss.Blend1D(len(clusters), color1, color2)
+	ramp := lip.Blend1D(len(clusters), color1, color2)
 	for i, c := range ramp {
 		style := base.Foreground(c)
 		if bold {
-			style.Bold(true)
+			style = style.Bold(true)
 		}
 		clusters[i] = style.Render(clusters[i])
 	}
@@ -43,7 +43,7 @@ func ForegroundGrad(base lipgloss.Style, input string, bold bool, color1, color2
 
 // ApplyForegroundGrad renders a given string with a horizontal gradient
 // foreground.
-func ApplyForegroundGrad(base lipgloss.Style, input string, color1, color2 color.Color) string {
+func ApplyForegroundGrad(base lip.Style, input string, color1, color2 color.Color) string {
 	if input == "" {
 		return ""
 	}
@@ -57,7 +57,7 @@ func ApplyForegroundGrad(base lipgloss.Style, input string, color1, color2 color
 
 // ApplyBoldForegroundGrad renders a given string with a horizontal gradient
 // foreground.
-func ApplyBoldForegroundGrad(base lipgloss.Style, input string, color1, color2 color.Color) string {
+func ApplyBoldForegroundGrad(base lip.Style, input string, color1, color2 color.Color) string {
 	if input == "" {
 		return ""
 	}

@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/internal/db"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
-	"github.com/ChxisB/spectre-proxy/internal/session"
+	"github.com/ChxisB/talon/internal/db"
+	"github.com/ChxisB/talon/internal/pubsub"
+	"github.com/ChxisB/talon/internal/session"
 	"github.com/stretchr/testify/require"
 )
 

@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"strings"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	uv "github.com/ChxisB/spectre-proxy/deps/terminal"
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/fsext"
-	"github.com/ChxisB/spectre-proxy/internal/session"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
-	"github.com/ChxisB/spectre-proxy/internal/version"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	term "github.com/ChxisB/talon/deps/terminal"
+	"github.com/ChxisB/talon/deps/util/ansi"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/fsext"
+	"github.com/ChxisB/talon/internal/session"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/ui/styles"
+	"github.com/ChxisB/talon/internal/version"
 )
 
 const (
@@ -43,7 +43,7 @@ func newHeader(com *common.Common) *header {
 // refresh rebuilds cached logo strings using the current styles. Call
 // after the theme changes.
 func (h *header) refresh() {
-	h.compactLogo = "spectre-proxy (" + version.Version + ") "
+	h.compactLogo = "talon (" + version.Version + ") "
 	// Force drawHeader to re-render the wide logo on the next frame.
 	h.width = 0
 	h.logo = ""
@@ -51,8 +51,8 @@ func (h *header) refresh() {
 
 // drawHeader draws the header for the given session.
 func (h *header) drawHeader(
-	scr uv.Screen,
-	area uv.Rectangle,
+	scr term.Screen,
+	area term.Rectangle,
 	session *session.Session,
 	compact bool,
 	detailsOpen bool,
@@ -68,7 +68,7 @@ func (h *header) drawHeader(
 	h.compact = compact
 
 	if !compact || session == nil {
-		uv.NewStyledString(h.logo).Draw(scr, area)
+		term.NewStyledString(h.logo).Draw(scr, area)
 		return
 	}
 
@@ -83,7 +83,7 @@ func (h *header) drawHeader(
 	for _, info := range h.com.Workspace.LSPGetStates() {
 		lspErrorCount += info.DiagnosticCount
 	}
-	availDetailWidth := width - leftPadding - rightPadding - lipgloss.Width(b.String()) - diagToDetailsSpacing
+	availDetailWidth := width - leftPadding - rightPadding - style.Width(b.String()) - diagToDetailsSpacing
 	details := renderHeaderDetails(
 		h.com,
 		session,
@@ -95,7 +95,7 @@ func (h *header) drawHeader(
 
 	b.WriteString(details)
 
-	view := uv.NewStyledString(
+	view := term.NewStyledString(
 		t.Header.Wrapper.Padding(0, rightPadding, 0, leftPadding).Render(b.String()),
 	)
 	view.Draw(scr, area)

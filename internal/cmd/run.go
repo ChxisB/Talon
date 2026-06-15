@@ -10,21 +10,21 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/ChxisB/spectre-proxy/deps/logging/v2"
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
-	"github.com/ChxisB/spectre-proxy/deps/util/exp/palette"
-	"github.com/ChxisB/spectre-proxy/deps/util/term"
-	"github.com/ChxisB/spectre-proxy/internal/client"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/event"
-	"github.com/ChxisB/spectre-proxy/internal/format"
-	"github.com/ChxisB/spectre-proxy/internal/proto"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
-	"github.com/ChxisB/spectre-proxy/internal/session"
-	"github.com/ChxisB/spectre-proxy/internal/ui/anim"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
-	"github.com/ChxisB/spectre-proxy/internal/workspace"
+	log "github.com/ChxisB/talon/deps/logging/v2"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	"github.com/ChxisB/talon/deps/util/ansi"
+	"github.com/ChxisB/talon/deps/util/exp/palette"
+	"github.com/ChxisB/talon/deps/util/term"
+	"github.com/ChxisB/talon/internal/client"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/event"
+	"github.com/ChxisB/talon/internal/format"
+	"github.com/ChxisB/talon/internal/proto"
+	"github.com/ChxisB/talon/internal/pubsub"
+	"github.com/ChxisB/talon/internal/session"
+	"github.com/ChxisB/talon/internal/ui/anim"
+	"github.com/ChxisB/talon/internal/ui/styles"
+	"github.com/ChxisB/talon/internal/workspace"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )
@@ -37,28 +37,28 @@ var runCmd = &cobra.Command{
 The prompt can be provided as arguments or piped from stdin.`,
 	Example: `
 # Run a simple prompt
-spectre run "Guess my 5 favorite Pokémon"
+talon run "Guess my 5 favorite Pokémon"
 
 # Pipe input from stdin
-curl https://github.com/ChxisB/spectre-proxy | spectre run "Summarize this website"
+curl https://github.com/ChxisB/talon | talon run "Summarize this website"
 
 # Read from a file
-spectre run "What is this code doing?" <<< prrr.go
+talon run "What is this code doing?" <<< prrr.go
 
 # Redirect output to a file
-spectre run "Generate a hot README for this project" > MY_HOT_README.md
+talon run "Generate a hot README for this project" > MY_HOT_README.md
 
 # Run in quiet mode (hide the spinner)
-spectre run --quiet "Generate a README for this project"
+talon run --quiet "Generate a README for this project"
 
 # Run in verbose mode (show logs)
-spectre run --verbose "Generate a README for this project"
+talon run --verbose "Generate a README for this project"
 
 # Continue a previous session
-spectre run --session {session-id} "Follow up on your last response"
+talon run --session {session-id} "Follow up on your last response"
 
 # Continue the most recent session
-spectre run --continue "Follow up on your last response"
+talon run --continue "Follow up on your last response"
 
   `,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -114,7 +114,7 @@ spectre run --continue "Follow up on your last response"
 			}
 
 			if !ws.Config.IsConfigured() {
-				return fmt.Errorf("no providers configured - please run 'spectre' to set up a provider interactively")
+				return fmt.Errorf("no providers configured - please run .talon. to set up a provider interactively")
 			}
 
 			if verbose {
@@ -133,7 +133,7 @@ spectre run --continue "Follow up on your last response"
 		event.AppInitialized()
 
 		if !ws.Config().IsConfigured() {
-			return fmt.Errorf("no providers configured - please run 'spectre' to set up a provider interactively")
+			return fmt.Errorf("no providers configured - please run .talon. to set up a provider interactively")
 		}
 
 		if verbose {
@@ -195,9 +195,9 @@ func runNonInteractive(
 
 		hasDarkBG := true
 		if stdinTTY && stdoutTTY {
-			hasDarkBG = lipgloss.HasDarkBackground(os.Stdin, os.Stdout)
+			hasDarkBG = style.HasDarkBackground(os.Stdin, os.Stdout)
 		}
-		defaultFG := lipgloss.LightDark(hasDarkBG)(palette.Pepper, t.WorkingLabelColor)
+		defaultFG := style.LightDark(hasDarkBG)(palette.Pepper, t.WorkingLabelColor)
 
 		spinner = format.NewSpinner(ctx, cancel, anim.Settings{
 			Size:        10,
@@ -298,7 +298,7 @@ func runNonInteractive(
 
 // runStream tracks the per-message stdout cursor and the
 // reconciliation state used by [runNonInteractive] to translate
-// streaming SSE events into a final, complete stdout for `spectre run`.
+// streaming SSE events into a final, complete stdout for `talon run`.
 // It is split out so the state machine can be exercised in unit tests
 // without spinning up the full server/client harness.
 //
@@ -365,7 +365,7 @@ func (s *runStream) handle(ev any, stopSpinner func()) (done bool, err error) {
 		// RunComplete is the authoritative end-of-run signal. We
 		// exit on it instead of guessing from message finish parts,
 		// which fire on every tool-call step too and were the
-		// source of the regression where `spectre run` exited
+		// source of the regression where `talon run` exited
 		// mid-turn on finish.reason == tool_use.
 		//
 		// Correlation:
@@ -623,7 +623,7 @@ func resolveSession(ctx context.Context, c *client.Client, wsID, continueSession
 }
 
 // resolveSessionByID resolves a session ID that may be a full UUID or a hash
-// prefix returned by spectre session list.
+// prefix returned by talon session list.
 func resolveSessionByID(ctx context.Context, c *client.Client, wsID, id string) (*proto.Session, error) {
 	if sess, err := c.GetSession(ctx, wsID, id); err == nil {
 		return sess, nil

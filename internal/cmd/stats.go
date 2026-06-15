@@ -14,9 +14,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/db"
-	"github.com/ChxisB/spectre-proxy/internal/event"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/db"
+	"github.com/ChxisB/talon/internal/event"
 	"github.com/pkg/browser"
 	"github.com/spf13/cobra"
 )

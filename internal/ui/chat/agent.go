@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"strings"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	styletree "github.com/ChxisB/spectre-proxy/deps/style/v2/tree"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/internal/agent"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/ui/anim"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	styletree "github.com/ChxisB/talon/deps/style/v2/tree"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/internal/agent"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/ui/anim"
+	"github.com/ChxisB/talon/internal/ui/styles"
 )
 
 // -----------------------------------------------------------------------------
@@ -62,7 +62,7 @@ func NewAgentToolMessageItem(
 // parent's version. Without the bump, the list cache would serve the
 // previously rendered frame indefinitely and the spinner would appear
 // frozen.
-func (a *AgentToolMessageItem) Animate(msg anim.StepMsg) tea.Cmd {
+func (a *AgentToolMessageItem) Animate(msg anim.StepMsg) bubble.Cmd {
 	if a.result != nil || a.Status() == ToolStatusCanceled {
 		return nil
 	}
@@ -143,19 +143,19 @@ func (r *AgentToolRenderContext) RenderTool(sty *styles.Styles, width int, opts 
 
 	// Build the task tag and prompt.
 	taskTag := sty.Tool.AgentTaskTag.Render("Task")
-	taskTagWidth := lipgloss.Width(taskTag)
+	taskTagWidth := style.Width(taskTag)
 
 	// Calculate remaining width for prompt.
 	remainingWidth := min(cappedWidth-taskTagWidth-3, maxTextWidth-taskTagWidth-3) // -3 for spacing
 
 	promptText := sty.Tool.AgentPrompt.Width(remainingWidth).Render(prompt)
 
-	header = lipgloss.JoinVertical(
-		lipgloss.Left,
+	header = style.JoinVertical(
+		style.Left,
 		header,
 		"",
-		lipgloss.JoinHorizontal(
-			lipgloss.Left,
+		style.JoinHorizontal(
+			style.Left,
 			taskTag,
 			" ",
 			promptText,
@@ -179,7 +179,7 @@ func (r *AgentToolRenderContext) RenderTool(sty *styles.Styles, width int, opts 
 		parts = append(parts, "", opts.Anim.Render())
 	}
 
-	result := lipgloss.JoinVertical(lipgloss.Left, parts...)
+	result := style.JoinVertical(style.Left, parts...)
 
 	// Add body content when completed.
 	if opts.HasResult() && opts.Result.Content != "" {
@@ -229,7 +229,7 @@ func NewAgenticFetchToolMessageItem(
 // (anim.Animate's ID check at internal/ui/anim/anim.go:326-329
 // silently returns nil), and (b) never invalidate the parent's
 // list-cache entry on a parent tick.
-func (a *AgenticFetchToolMessageItem) Animate(msg anim.StepMsg) tea.Cmd {
+func (a *AgenticFetchToolMessageItem) Animate(msg anim.StepMsg) bubble.Cmd {
 	if a.result != nil || a.Status() == ToolStatusCanceled {
 		return nil
 	}
@@ -310,19 +310,19 @@ func (r *AgenticFetchToolRenderContext) RenderTool(sty *styles.Styles, width int
 
 	// Build the prompt tag.
 	promptTag := sty.Tool.AgenticFetchPromptTag.Render("Prompt")
-	promptTagWidth := lipgloss.Width(promptTag)
+	promptTagWidth := style.Width(promptTag)
 
 	// Calculate remaining width for prompt text.
 	remainingWidth := min(cappedWidth-promptTagWidth-3, maxTextWidth-promptTagWidth-3) // -3 for spacing
 
 	promptText := sty.Tool.AgentPrompt.Width(remainingWidth).Render(prompt)
 
-	header = lipgloss.JoinVertical(
-		lipgloss.Left,
+	header = style.JoinVertical(
+		style.Left,
 		header,
 		"",
-		lipgloss.JoinHorizontal(
-			lipgloss.Left,
+		style.JoinHorizontal(
+			style.Left,
 			promptTag,
 			" ",
 			promptText,
@@ -346,7 +346,7 @@ func (r *AgenticFetchToolRenderContext) RenderTool(sty *styles.Styles, width int
 		parts = append(parts, "", opts.Anim.Render())
 	}
 
-	result := lipgloss.JoinVertical(lipgloss.Left, parts...)
+	result := style.JoinVertical(style.Left, parts...)
 
 	// Add body content when completed.
 	if opts.HasResult() && opts.Result.Content != "" {

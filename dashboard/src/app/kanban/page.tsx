@@ -7,7 +7,7 @@ interface BackendTask { id: string; description: string; status: string; progres
 interface TaskStats { total: number; pending: number; running: number; completed: number; failed: number; }
 interface LocalTask { id: string; text: string; column: "todo" | "progress" | "done"; }
 
-const STORAGE_KEY = "spectre-kanban";
+const STORAGE_KEY = "talon-kanban";
 const COLUMNS = [
   { id: "todo" as const,     label: "To Do",         icon: "radio_button_unchecked", color: "text-base-content/70" },
   { id: "progress" as const, label: "In Progress",    icon: "pending",               color: "text-info" },
@@ -46,7 +46,7 @@ export default function KanbanPage() {
 
   useEffect(() => {
     const fetchTasks = () => {
-      fetch("/api/spectre-proxy/tasks").then(r => r.json()).then(d => { if (d.tasks) { setBackends(d.tasks); setStats(d.stats); } }).catch(() => {});
+      fetch("/api/talon/tasks").then(r => r.json()).then(d => { if (d.tasks) { setBackends(d.tasks); setStats(d.stats); } }).catch(() => {});
     };
     fetchTasks();
     const interval = setInterval(fetchTasks, 5000);

@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/shell"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/shell"
 	"github.com/stretchr/testify/require"
 )
 
@@ -188,20 +188,20 @@ func TestBuildEnv(t *testing.T) {
 		}
 	}
 
-	require.Equal(t, EventPreToolUse, envMap["SPECTRE_EVENT"])
-	require.Equal(t, "bash", envMap["SPECTRE_TOOL_NAME"])
-	require.Equal(t, "sess-1", envMap["SPECTRE_SESSION_ID"])
-	require.Equal(t, "/work", envMap["SPECTRE_CWD"])
-	require.Equal(t, "/project", envMap["SPECTRE_PROJECT_DIR"])
-	require.Equal(t, "ls", envMap["SPECTRE_TOOL_INPUT_COMMAND"])
-	require.Equal(t, "/tmp/f.txt", envMap["SPECTRE_TOOL_INPUT_FILE_PATH"])
+	require.Equal(t, EventPreToolUse, envMap["TALON_EVENT"])
+	require.Equal(t, "bash", envMap["TALON_TOOL_NAME"])
+	require.Equal(t, "sess-1", envMap["TALON_SESSION_ID"])
+	require.Equal(t, "/work", envMap["TALON_CWD"])
+	require.Equal(t, "/project", envMap["TALON_PROJECT_DIR"])
+	require.Equal(t, "ls", envMap["TALON_TOOL_INPUT_COMMAND"])
+	require.Equal(t, "/tmp/f.txt", envMap["TALON_TOOL_INPUT_FILE_PATH"])
 
-	// Shared Spectre markers must be present so hook-authored scripts can
-	// detect they're running under Spectre the same way bash-tool-invoked
+	// Shared Talon markers must be present so hook-authored scripts can
+	// detect they're running under Talon the same way bash-tool-invoked
 	// scripts can.
-	require.Equal(t, "1", envMap["SPECTRE"])
-	require.Equal(t, "spectre", envMap["AGENT"])
-	require.Equal(t, "spectre", envMap["AI_AGENT"])
+	require.Equal(t, "1", envMap["TALON"])
+	require.Equal(t, "talon", envMap["AGENT"])
+	require.Equal(t, "talon", envMap["AI_AGENT"])
 }
 
 func splitFirst(s, sep string) []string {
@@ -524,7 +524,7 @@ func TestRunnerParallelExecution(t *testing.T) {
 func TestRunnerEnvVarsPropagated(t *testing.T) {
 	t.Parallel()
 	hookCfg := config.HookConfig{
-		Command: `printf '{"decision":"allow","context":"%s"}' "$SPECTRE_TOOL_NAME"`,
+		Command: `printf '{"decision":"allow","context":"%s"}' "$TALON_TOOL_NAME"`,
 	}
 	r := NewRunner([]config.HookConfig{hookCfg}, t.TempDir(), t.TempDir())
 	result, err := r.Run(context.Background(), EventPreToolUse, "sess", "bash", `{}`)
@@ -748,7 +748,7 @@ func TestParseStdoutClaudeCodeFormat(t *testing.T) {
 		require.Equal(t, DecisionNone, r.Decision)
 	})
 
-	t.Run("spectre format still works", func(t *testing.T) {
+	t.Run("talon format still works", func(t *testing.T) {
 		t.Parallel()
 		r := parseStdout(`{"decision":"allow","context":"hello"}`)
 		require.Equal(t, DecisionAllow, r.Decision)

@@ -60,20 +60,20 @@ func TestTracker_NilSafety(t *testing.T) {
 func TestTracker_BuiltinSkillTracking(t *testing.T) {
 	t.Parallel()
 
-	// Simulate active skills including a builtin skill (spectre-config).
+	// Simulate active skills including a builtin skill (talon-config).
 	activeSkills := []*Skill{
-		{Name: "spectre-config", Description: "spectre config", Builtin: true},
+		{Name: "talon-config", Description: "talon config", Builtin: true},
 		{Name: "go-doc", Description: "Go docs", Builtin: false},
 	}
 	tracker := NewTracker(activeSkills)
 
 	// Initially not loaded.
-	require.False(t, tracker.IsLoaded("spectre-config"))
+	require.False(t, tracker.IsLoaded("talon-config"))
 	require.False(t, tracker.IsLoaded("go-doc"))
 
-	// Mark builtin skill as loaded (simulating read via spectre://...).
-	tracker.MarkLoaded("spectre-config")
-	require.True(t, tracker.IsLoaded("spectre-config"))
+	// Mark builtin skill as loaded (simulating read via talon://...).
+	tracker.MarkLoaded("talon-config")
+	require.True(t, tracker.IsLoaded("talon-config"))
 
 	// Mark user skill as loaded.
 	tracker.MarkLoaded("go-doc")

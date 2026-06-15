@@ -32,38 +32,38 @@ type Meta struct {
 
 // Component represents a diagram node (architecture type).
 type Component struct {
-	ID       string  `json:"id"`
-	Type     string  `json:"type"`
-	Label    string  `json:"label"`
-	Sublabel string  `json:"sublabel,omitempty"`
-	Tag      string  `json:"tag,omitempty"`
-	Pos      [2]float64 `json:"pos"`
+	ID       string      `json:"id"`
+	Type     string      `json:"type"`
+	Label    string      `json:"label"`
+	Sublabel string      `json:"sublabel,omitempty"`
+	Tag      string      `json:"tag,omitempty"`
+	Pos      [2]float64  `json:"pos"`
 	Size     *[2]float64 `json:"size,omitempty"`
 }
 
 // Boundary wraps a group of components.
 type Boundary struct {
-	Kind   string   `json:"kind"`
-	Label  string   `json:"label"`
-	Wraps  []string `json:"wraps"`
-	Pad    *float64 `json:"pad,omitempty"`
+	Kind  string   `json:"kind"`
+	Label string   `json:"label"`
+	Wraps []string `json:"wraps"`
+	Pad   *float64 `json:"pad,omitempty"`
 }
 
 // Connection links two components.
 type Connection struct {
-	From          string    `json:"from"`
-	To            string    `json:"to"`
-	Label         string    `json:"label,omitempty"`
-	Variant       string    `json:"variant,omitempty"`
-	FromSide      string    `json:"fromSide,omitempty"`
-	ToSide        string    `json:"toSide,omitempty"`
-	Route         string    `json:"route,omitempty"`
-	Via           *[][2]float64 `json:"via,omitempty"`
-	LabelAt       *Point    `json:"labelAt,omitempty"`
-	LabelDx       float64   `json:"labelDx,omitempty"`
-	LabelDy       float64   `json:"labelDy,omitempty"`
-	LabelSegment  *int      `json:"labelSegment,omitempty"`
-	Width         float64   `json:"width,omitempty"`
+	From         string        `json:"from"`
+	To           string        `json:"to"`
+	Label        string        `json:"label,omitempty"`
+	Variant      string        `json:"variant,omitempty"`
+	FromSide     string        `json:"fromSide,omitempty"`
+	ToSide       string        `json:"toSide,omitempty"`
+	Route        string        `json:"route,omitempty"`
+	Via          *[][2]float64 `json:"via,omitempty"`
+	LabelAt      *Point        `json:"labelAt,omitempty"`
+	LabelDx      float64       `json:"labelDx,omitempty"`
+	LabelDy      float64       `json:"labelDy,omitempty"`
+	LabelSegment *int          `json:"labelSegment,omitempty"`
+	Width        float64       `json:"width,omitempty"`
 }
 
 // Point is a 2D coordinate.
@@ -78,12 +78,12 @@ type Card struct {
 
 // Step is a node in workflow/sequence/lifecycle diagrams.
 type Step struct {
-	ID      string  `json:"id"`
-	Label   string  `json:"label"`
-	Type    string  `json:"type,omitempty"`
-	Shape   string  `json:"shape,omitempty"`
-	Subtext string  `json:"subtext,omitempty"`
-	Pos     Point   `json:"pos"`
+	ID      string `json:"id"`
+	Label   string `json:"label"`
+	Type    string `json:"type,omitempty"`
+	Shape   string `json:"shape,omitempty"`
+	Subtext string `json:"subtext,omitempty"`
+	Pos     Point  `json:"pos"`
 }
 
 // Transition is an edge in workflow/lifecycle diagrams.
@@ -103,18 +103,18 @@ type SequenceMessage struct {
 
 // SequenceParticipant is a participant in a sequence diagram.
 type SequenceParticipant struct {
-	ID    string  `json:"id"`
-	Label string  `json:"label"`
-	Pos   Point   `json:"pos"`
-	Type  string  `json:"type,omitempty"` // "actor", "system", "database"
+	ID    string `json:"id"`
+	Label string `json:"label"`
+	Pos   Point  `json:"pos"`
+	Type  string `json:"type,omitempty"` // "actor", "system", "database"
 }
 
 // FlowNode is a node in a dataflow diagram.
 type FlowNode struct {
-	ID    string  `json:"id"`
-	Label string  `json:"label"`
-	Type  string  `json:"type,omitempty"` // "source", "process", "store", "sink"
-	Pos   Point   `json:"pos"`
+	ID    string `json:"id"`
+	Label string `json:"label"`
+	Type  string `json:"type,omitempty"` // "source", "process", "store", "sink"
+	Pos   Point  `json:"pos"`
 }
 
 // FlowEdge is an edge in a dataflow diagram.
@@ -126,19 +126,19 @@ type FlowEdge struct {
 
 // Diagram is the top-level IR for all diagram types.
 type Diagram struct {
-	SchemaVersion int            `json:"schema_version"`
-	DiagramType   DiagramType    `json:"diagram_type"`
-	Meta          Meta           `json:"meta"`
-	Components    []Component    `json:"components,omitempty"`
-	Boundaries    []Boundary     `json:"boundaries,omitempty"`
-	Connections   []Connection   `json:"connections,omitempty"`
-	Steps         []Step         `json:"steps,omitempty"`
-	Transitions   []Transition   `json:"transitions,omitempty"`
-	Messages      []SequenceMessage `json:"messages,omitempty"`
+	SchemaVersion int                   `json:"schema_version"`
+	DiagramType   DiagramType           `json:"diagram_type"`
+	Meta          Meta                  `json:"meta"`
+	Components    []Component           `json:"components,omitempty"`
+	Boundaries    []Boundary            `json:"boundaries,omitempty"`
+	Connections   []Connection          `json:"connections,omitempty"`
+	Steps         []Step                `json:"steps,omitempty"`
+	Transitions   []Transition          `json:"transitions,omitempty"`
+	Messages      []SequenceMessage     `json:"messages,omitempty"`
 	Participants  []SequenceParticipant `json:"participants,omitempty"`
-	Nodes         []FlowNode     `json:"nodes,omitempty"`
-	Edges         []FlowEdge     `json:"edges,omitempty"`
-	Cards         []Card         `json:"cards,omitempty"`
+	Nodes         []FlowNode            `json:"nodes,omitempty"`
+	Edges         []FlowEdge            `json:"edges,omitempty"`
+	Cards         []Card                `json:"cards,omitempty"`
 }
 
 // Generate creates a self-contained HTML file from a Diagram IR.
@@ -305,7 +305,7 @@ func labelPoint(conn *Connection, points []Point) Point {
 	}
 	if len(points) == 2 {
 		return Point{
-			(points[0][0] + points[1][0]) / 2 + conn.LabelDx,
+			(points[0][0]+points[1][0])/2 + conn.LabelDx,
 			points[0][1] - 10 + conn.LabelDy,
 		}
 	}
@@ -321,8 +321,8 @@ func labelPoint(conn *Connection, points []Point) Point {
 	}
 	a, b := points[seg], points[seg+1]
 	return Point{
-		(a[0] + b[0]) / 2 + conn.LabelDx,
-		(a[1] + b[1]) / 2 - 10 + conn.LabelDy,
+		(a[0]+b[0])/2 + conn.LabelDx,
+		(a[1]+b[1])/2 - 10 + conn.LabelDy,
 	}
 }
 
@@ -330,12 +330,12 @@ func labelPoint(conn *Connection, points []Point) Point {
 
 func renderArchitecture(d *Diagram) string {
 	const (
-		defaultW     = 120
-		defaultH     = 60
-		margin       = 40
-		boundaryPad  = 30
-		extraBottom  = 20
-		legendH      = 28
+		defaultW    = 120
+		defaultH    = 60
+		margin      = 40
+		boundaryPad = 30
+		extraBottom = 20
+		legendH     = 28
 	)
 
 	type measuredComponent struct {
@@ -351,7 +351,7 @@ func renderArchitecture(d *Diagram) string {
 		}
 		mc := &measuredComponent{
 			Component: c,
-			x: c.Pos[0], y: c.Pos[1], width: w, height: h,
+			x:         c.Pos[0], y: c.Pos[1], width: w, height: h,
 			cx: c.Pos[0] + w/2, cy: c.Pos[1] + h/2,
 		}
 		compMap[c.ID] = mc
@@ -392,7 +392,7 @@ func renderArchitecture(d *Diagram) string {
 		pad := 30.0
 		bounds = append(bounds, boundaryRect{
 			Boundary: b,
-			x: minX - pad, y: minY - pad,
+			x:        minX - pad, y: minY - pad,
 			width: maxX - minX + pad*2, height: maxY - minY + pad + 20,
 		})
 	}
@@ -416,6 +416,30 @@ func renderArchitecture(d *Diagram) string {
 		}
 	}
 	vbW, vbH := maxX+margin, maxY+margin+legendH
+
+	// Compute legend width before rendering so viewBox can accommodate it
+	legendLabel := func(t string) string {
+		m := map[string]string{
+			"frontend": "Frontend", "backend": "Backend", "database": "Database",
+			"cloud": "Cloud", "security": "Security", "messagebus": "Message Bus", "external": "External",
+		}
+		if l, ok := m[t]; ok {
+			return l
+		}
+		return t
+	}
+	legendWidth := margin + 30.0 // "Legend" label + first gap
+	used := make(map[string]bool)
+	for _, mc := range compMap {
+		if used[mc.Type] {
+			continue
+		}
+		used[mc.Type] = true
+		legendWidth += 30 + float64(len(legendLabel(mc.Type)))*5 + 28
+	}
+	if legendWidth > vbW {
+		vbW = legendWidth
+	}
 
 	// Render SVG
 	var svg strings.Builder
@@ -516,13 +540,13 @@ func renderArchitecture(d *Diagram) string {
 	// Components
 	typeLabels := map[string]string{
 		"frontend": "Frontend", "backend": "Backend", "database": "Database",
-		"cloud": "Cloud", "security": "Security", "messagebus": "Message bus", "external": "External",
+		"cloud": "Cloud", "security": "Security", "messagebus": "Message Bus", "external": "External",
 	}
 	for _, mc := range compMap {
 		fill := "c-external"
 		if f, ok := map[string]string{
 			"frontend": "c-frontend", "backend": "c-backend", "database": "c-database",
-			"cloud": "c-cloud", "security": "c-security", "messagebus": "c-messagebus",
+			"cloud": "c-cloud", "security": "c-security", "messagebus": "c-messagebus", "external": "c-external",
 		}[mc.Type]; ok {
 			fill = f
 		}
@@ -551,8 +575,8 @@ func renderArchitecture(d *Diagram) string {
 
 	// Legend
 	legendY := vbH - 16
-	used := make(map[string]bool)
-	legX := margin
+	clear(used)
+	legX := float64(margin)
 	svg.WriteString(fmt.Sprintf(`<text x="%g" y="%g" class="t-primary" font-size="9" font-weight="600">Legend</text>`,
 		legX, legendY-13))
 	for _, mc := range compMap {
@@ -563,7 +587,7 @@ func renderArchitecture(d *Diagram) string {
 		fill := "c-external"
 		if f, ok := map[string]string{
 			"frontend": "c-frontend", "backend": "c-backend", "database": "c-database",
-			"cloud": "c-cloud", "security": "c-security", "messagebus": "c-messagebus",
+			"cloud": "c-cloud", "security": "c-security", "messagebus": "c-messagebus", "external": "c-external",
 		}[mc.Type]; ok {
 			fill = f
 		}
@@ -575,7 +599,7 @@ func renderArchitecture(d *Diagram) string {
 			legX, legendY-8, fill))
 		svg.WriteString(fmt.Sprintf(`<text x="%g" y="%g" class="t-muted" font-size="8">%s</text>`,
 			legX+20, legendY, esc(label)))
-		legX += 30 + len(label)*5 + 28
+		legX += 30.0 + float64(len(label)*5) + 28.0
 	}
 
 	svg.WriteString(`</svg>`)
@@ -829,78 +853,117 @@ func renderCards(cards []Card) string {
 func applyTemplate(meta Meta, svg, cards, diagType string) string {
 	title := esc(meta.Title)
 	subtitle := esc(meta.Subtitle)
-	footer := fmt.Sprintf("%s diagram &bull; Built with Spectre", strings.Title(string(diagType)))
+	footer := fmt.Sprintf("%s diagram &bull; Built with Talon <span class=\"no-print\">&bull; Press <kbd>T</kbd> for theme and <kbd>E</kbd> for export</span>", strings.Title(string(diagType)))
 
 	return `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="generator" content="talon 1.0"/>
 <title>` + title + ` Diagram</title>
+<script>
+(function(){try{var t=null;try{var p=new URLSearchParams(window.location.search).get('theme');if(p==='light'||p==='dark')t=p}catch(_){}if(!t){try{t=localStorage.getItem('archify-theme')}catch(_){}}if(t!=='light'&&t!=='dark'){t=window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'}document.documentElement.setAttribute('data-theme',t)}catch(_){}})()
+</script>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
 <style>
-:root{--bg:#0f1117;--fg:#e5e5e5;--card:#1a1d27;--border:#2a2d3a;--grid:#1a1d27;--c-frontend:#22c55e22;--c-backend:#3b82f622;--c-database:#eab30822;--c-cloud:#a855f722;--c-security:#ef444422;--c-messagebus:#f9731622;--c-external:#6b728022;--t-primary:#e5e5e5;--t-muted:#9ca3af;--t-frontend:#22c55e;--t-backend:#3b82f6;--t-database:#eab308;--t-cloud:#a855f7;--t-security:#ef4444;--t-messagebus:#f97316;--t-external:#6b7280;--a-default:#9ca3af;--a-emphasis:#3b82f6;--a-security:#ef4444;--a-dashed:#f97316;--m-default:#9ca3af;--m-emphasis:#3b82f6;--m-security:#ef4444;--m-dashed:#f97316;--mask:#0f1117cc}
-[data-theme=light]{--bg:#ffffff;--fg:#1f2937;--card:#f3f4f6;--border:#e5e7eb;--grid:#f3f4f6;--c-frontend:#22c55e18;--c-backend:#3b82f618;--c-database:#eab30818;--c-cloud:#a855f718;--c-security:#ef444418;--c-messagebus:#f9731618;--c-external:#6b728018;--t-primary:#1f2937;--t-muted:#6b7280;--mask:#ffffffcc}
+:root,[data-theme="dark"]{--bg:#020617;--grid:#1e293b;--text:#fff;--text-muted:#94a3b8;--text-dim:#475569;--text-faint:#7d8da1;--panel:rgba(15,23,42,.5);--panel-border:#1e293b;--lane-fill:rgba(15,23,42,.22);--lane-stroke:#334155;--arrow:#64748b;--arrow-emphasis:#34d399;--mask:#0f172a;--frontend-fill:rgba(8,51,68,.4);--frontend-stroke:#22d3ee;--backend-fill:rgba(6,78,59,.4);--backend-stroke:#34d399;--database-fill:rgba(76,29,149,.4);--database-stroke:#a78bfa;--cloud-fill:rgba(120,53,15,.3);--cloud-stroke:#fbbf24;--security-fill:rgba(136,19,55,.4);--security-stroke:#fb7185;--messagebus-fill:rgba(251,146,60,.3);--messagebus-stroke:#fb923c;--external-fill:rgba(30,41,59,.5);--external-stroke:#94a3b8;--toolbar-bg:rgba(15,23,42,.8);--toolbar-border:#334155;--toolbar-text:#e2e8f0;--toolbar-hover:rgba(15,23,42,.95);--toolbar-menu-bg:#0f172a}
+[data-theme="light"]{--bg:#f8fafc;--grid:#e2e8f0;--text:#0f172a;--text-muted:#64748b;--text-dim:#94a3b8;--text-faint:#64748b;--panel:#fff;--panel-border:#e2e8f0;--lane-fill:rgba(248,250,252,.65);--lane-stroke:#cbd5e1;--arrow:#94a3b8;--arrow-emphasis:#059669;--mask:#fff;--frontend-fill:rgba(34,211,238,.15);--frontend-stroke:#0891b2;--backend-fill:rgba(52,211,153,.18);--backend-stroke:#059669;--database-fill:rgba(167,139,250,.2);--database-stroke:#7c3aed;--cloud-fill:rgba(251,191,36,.18);--cloud-stroke:#d97706;--security-fill:rgba(251,113,133,.15);--security-stroke:#e11d48;--messagebus-fill:rgba(251,146,60,.15);--messagebus-stroke:#ea580c;--external-fill:rgba(148,163,184,.18);--external-stroke:#64748b;--toolbar-bg:rgba(255,255,255,.92);--toolbar-border:#cbd5e1;--toolbar-text:#334155;--toolbar-hover:#fff;--toolbar-menu-bg:#fff}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column;align-items:center;padding:2rem;min-height:100vh}
-h1{font-size:1.8rem;font-weight:700;margin-bottom:.25rem}
-.subtitle{color:var(--t-muted);font-size:.9rem;margin-bottom:1.5rem}
-svg{max-width:100%;height:auto;background:transparent}
-.c-mask{fill:var(--mask)}
+body{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,'DejaVu Sans Mono','Liberation Mono','Noto Sans Mono CJK SC','PingFang SC','Hiragino Sans GB','Microsoft YaHei',monospace;background:var(--bg);min-height:100vh;padding:2rem;color:var(--text);transition:background .2s ease,color .2s ease}
+.container{max-width:1200px;margin:0 auto}
+.header{margin-bottom:2rem}
+.header-row{display:flex;align-items:center;gap:1rem;margin-bottom:.5rem}
+.pulse-dot{width:12px;height:12px;background:var(--frontend-stroke);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+h1{font-size:1.5rem;font-weight:700;letter-spacing:-.025em}
+.subtitle{color:var(--text-muted);font-size:.875rem;margin-left:1.75rem}
+.diagram-container{background:var(--panel);border-radius:1rem;border:1px solid var(--panel-border);padding:1.5rem;overflow-x:auto}
+svg{width:100%;min-width:min(900px,100%);display:block}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;margin-top:2rem}
+.card{background:var(--panel);border-radius:.75rem;border:1px solid var(--panel-border);padding:1.25rem}
+.card-header{display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem}
+.card-dot{width:8px;height:8px;border-radius:50%}
+.card-dot.cyan{background:var(--frontend-stroke)}.card-dot.emerald{background:var(--backend-stroke)}.card-dot.violet{background:var(--database-stroke)}.card-dot.amber{background:var(--cloud-stroke)}.card-dot.rose{background:var(--security-stroke)}.card-dot.orange{background:var(--messagebus-stroke)}.card-dot.slate{background:var(--external-stroke)}
+.card h3{font-size:.875rem;font-weight:600;color:var(--text)}
+.card ul{list-style:none;color:var(--text-muted);font-size:.75rem}
+.card li{margin-bottom:.375rem}
+.footer{text-align:center;margin-top:1.5rem;color:var(--text-faint);font-size:.75rem}
+@page{size:landscape;margin:1.5cm}
+@media print{:root,[data-theme="dark"],[data-theme="light"]{--bg:#fff;--grid:transparent;--panel:#fff;--panel-border:#e2e8f0;--text:#0f172a;--text-muted:#475569;--text-dim:#94a3b8;--text-faint:#64748b;--mask:#fff;--lane-fill:rgba(248,250,252,.65);--lane-stroke:#cbd5e1;--arrow:#94a3b8;--arrow-emphasis:#059669;--frontend-fill:rgba(34,211,238,.15);--frontend-stroke:#0891b2;--backend-fill:rgba(52,211,153,.18);--backend-stroke:#059669;--database-fill:rgba(167,139,250,.2);--database-stroke:#7c3aed;--cloud-fill:rgba(251,191,36,.18);--cloud-stroke:#d97706;--security-fill:rgba(251,113,133,.15);--security-stroke:#e11d48;--messagebus-fill:rgba(251,146,60,.15);--messagebus-stroke:#ea580c;--external-fill:rgba(148,163,184,.18);--external-stroke:#64748b}body{background:#fff!important;padding:0}.container{max-width:none}.toolbar,.archify-toast,.no-print{display:none!important}.diagram-container,.card{box-shadow:none;border-color:#e2e8f0}.cards{grid-template-columns:1fr 1fr}.card{break-inside:avoid;page-break-inside:avoid}.diagram-container{break-inside:avoid;page-break-inside:avoid}h1,.subtitle{color:#0f172a}}
+.toolbar{position:fixed;top:1rem;right:1rem;display:flex;gap:.5rem;z-index:100}
+.toolbar button{background:var(--toolbar-bg);color:var(--toolbar-text);border:1px solid var(--toolbar-border);padding:.5rem .875rem;border-radius:.5rem;font-family:inherit;font-size:.75rem;font-weight:500;cursor:pointer;backdrop-filter:blur(8px);transition:background .15s,border-color .15s;display:inline-flex;align-items:center;gap:.375rem}
+.toolbar button:hover{background:var(--toolbar-hover);border-color:var(--arrow)}
+.toolbar button:focus-visible{outline:2px solid var(--frontend-stroke);outline-offset:2px}
+.toolbar .export-wrap{position:relative}
+.toolbar .export-menu{position:absolute;top:calc(100% + .375rem);right:0;background:var(--toolbar-menu-bg);border:1px solid var(--toolbar-border);border-radius:.5rem;padding:.375rem;min-width:160px;display:none;flex-direction:column;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+.toolbar .export-menu.open{display:flex}
+.toolbar .export-menu button{background:transparent;border:0;justify-content:space-between;width:100%;text-align:left;padding:.5rem .75rem}
+.toolbar .export-menu button:hover{background:var(--toolbar-hover)}
+.toolbar .export-menu .hint{color:var(--text-faint);font-size:.625rem}
+.toolbar .export-menu hr{border:0;border-top:1px solid var(--toolbar-border);margin:.25rem .375rem;opacity:.5}
+.archify-toast{position:fixed;top:1rem;left:50%;transform:translateX(-50%) translateY(-8px);background:var(--toolbar-menu-bg);color:var(--text);border:1px solid var(--toolbar-border);padding:.5rem 1rem;border-radius:.5rem;font-family:inherit;font-size:.75rem;opacity:0;transition:opacity .2s,transform .2s;z-index:200;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.25)}
+.archify-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* SVG classes */
 .c-grid{stroke:var(--grid);fill:none}
-.c-region{fill:var(--bg);stroke:var(--border)}
-.c-security-group{fill:none;stroke:var(--t-security);stroke-dasharray:6 3}
-.c-frontend{fill:var(--c-frontend);stroke:var(--t-frontend)}
-.c-backend{fill:var(--c-backend);stroke:var(--t-backend)}
-.c-database{fill:var(--c-database);stroke:var(--t-database)}
-.c-cloud{fill:var(--c-cloud);stroke:var(--t-cloud)}
-.c-security{fill:var(--c-security);stroke:var(--t-security)}
-.c-messagebus{fill:var(--c-messagebus);stroke:var(--t-messagebus)}
-.c-external{fill:var(--c-external);stroke:var(--t-external)}
-.t-primary{fill:var(--t-primary)}
-.t-muted{fill:var(--t-muted)}
-.t-frontend{fill:var(--t-frontend)}
-.t-backend{fill:var(--t-backend)}
-.t-database{fill:var(--t-database)}
-.t-cloud{fill:var(--t-cloud)}
-.t-security{fill:var(--t-security)}
-.t-messagebus{fill:var(--t-messagebus)}
-.t-external{fill:var(--t-external)}
-.a-default{fill:none;stroke:var(--a-default)}
-.a-emphasis{fill:none;stroke:var(--a-emphasis)}
-.a-security{fill:none;stroke:var(--a-security)}
-.a-dashed{fill:none;stroke:var(--a-dashed);stroke-dasharray:6 3}
-.m-default{fill:var(--m-default)}
-.m-emphasis{fill:var(--m-emphasis)}
-.m-security{fill:var(--m-security)}
-.m-dashed{fill:var(--m-dashed)}
-.cards{display:flex;gap:1rem;flex-wrap:wrap;margin-top:1.5rem;max-width:800px;width:100%}
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;flex:1;min-width:200px}
-.card-header{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem}
-.card-dot{width:10px;height:10px;border-radius:50%}
-.card-dot.cyan{background:#06b6d4}.card-dot.emerald{background:#10b981}.card-dot.violet{background:#8b5cf6}.card-dot.amber{background:#f59e0b}.card-dot.rose{background:#f43f5e}.card-dot.orange{background:#f97316}.card-dot.slate{background:#64748b}
-.card h3{font-size:.85rem;font-weight:600}
-.card ul{list-style:none;font-size:.75rem;color:var(--t-muted)}
-.card li{margin:.15rem 0}
-.footer{margin-top:1.5rem;font-size:.75rem;color:var(--t-muted)}
-.toolbar{position:fixed;top:1rem;right:1rem;display:flex;gap:.5rem;z-index:10}
-.toolbar button{background:var(--card);border:1px solid var(--border);color:var(--fg);padding:.4rem .8rem;border-radius:8px;cursor:pointer;font-size:.75rem}
-.toolbar button:hover{border-color:var(--t-backend)}
-@media print{.toolbar{display:none}body{padding:0}}
+.c-mask{fill:var(--mask);stroke:none}
+.c-frontend{fill:var(--frontend-fill);stroke:var(--frontend-stroke)}
+.c-backend{fill:var(--backend-fill);stroke:var(--backend-stroke)}
+.c-database{fill:var(--database-fill);stroke:var(--database-stroke)}
+.c-cloud{fill:var(--cloud-fill);stroke:var(--cloud-stroke)}
+.c-security{fill:var(--security-fill);stroke:var(--security-stroke)}
+.c-messagebus{fill:var(--messagebus-fill);stroke:var(--messagebus-stroke)}
+.c-external{fill:var(--external-fill);stroke:var(--external-stroke)}
+.t-primary{fill:var(--text)}
+.t-muted{fill:var(--text-muted)}
+.t-dim{fill:var(--text-dim)}
+.t-frontend{fill:var(--frontend-stroke)}
+.t-backend{fill:var(--backend-stroke)}
+.t-database{fill:var(--database-stroke)}
+.t-cloud{fill:var(--cloud-stroke)}
+.t-security{fill:var(--security-stroke)}
+.t-messagebus{fill:var(--messagebus-stroke)}
+.t-external{fill:var(--external-stroke)}
+.a-default{stroke:var(--arrow);fill:none}
+.a-emphasis{stroke:var(--arrow-emphasis);fill:none}
+.a-security{stroke:var(--security-stroke);fill:none;stroke-dasharray:5,5}
+.a-dashed{stroke:var(--database-stroke);fill:none;stroke-dasharray:4,4}
+.m-default{fill:var(--arrow)}
+.m-emphasis{fill:var(--arrow-emphasis)}
+.m-security{fill:var(--security-stroke)}
+.m-dashed{fill:var(--database-stroke)}
+.c-security-group{fill:transparent;stroke:var(--security-stroke);stroke-dasharray:4,4}
+.c-region{fill:rgba(251,191,36,.05);stroke:var(--cloud-stroke);stroke-dasharray:8,4}
+@media(max-width:720px){body{padding:1rem}.toolbar{position:static;justify-content:flex-end;margin-bottom:1rem}.header{margin-bottom:1.25rem}.header-row{gap:.75rem;align-items:flex-start}h1{font-size:1.25rem;line-height:1.25}.subtitle{margin-left:0;font-size:.8125rem;line-height:1.55}.diagram-container{padding:.75rem;border-radius:.75rem}.cards{grid-template-columns:1fr;margin-top:1rem}}
 </style>
 </head>
 <body>
-<h1>` + title + `</h1>
-<p class="subtitle">` + subtitle + `</p>
-<div class="toolbar">
-<button onclick="toggleTheme()" title="Toggle theme (T)">T</button>
-<button onclick="exportMenu()" title="Export (E)">E</button>
+<div class="toolbar" role="toolbar" aria-label="Diagram actions">
+<button id="btn-theme" type="button" title="Toggle theme (T)" aria-label="Toggle color theme" aria-pressed="false"><span id="theme-icon" aria-hidden="true">&#9790;</span><span id="theme-label">Dark</span></button>
+<div class="export-wrap"><button id="btn-export" type="button" title="Export diagram (E)" aria-label="Export diagram" aria-haspopup="menu" aria-expanded="false" aria-controls="export-menu">Export <span aria-hidden="true">&#9662;</span></button>
+<div class="export-menu" id="export-menu" role="menu" aria-label="Export">
+<button data-action="copy" type="button" role="menuitem" tabindex="-1">Copy to clipboard <span class="hint">PNG</span></button>
+<hr role="separator">
+<button data-format="png" type="button" role="menuitem" tabindex="-1">Download PNG</button>
+<button data-format="jpeg" type="button" role="menuitem" tabindex="-1">Download JPEG</button>
+<button data-format="webp" type="button" role="menuitem" tabindex="-1">Download WebP</button>
+<hr role="separator">
+<button data-format="svg" type="button" role="menuitem" tabindex="-1">Download SVG <span class="hint">vector</span></button>
+</div></div></div>
+<div class="container">
+<div class="header"><div class="header-row"><div class="pulse-dot"></div><h1>` + title + `</h1></div><p class="subtitle">` + subtitle + `</p></div>
+<div class="diagram-container">
+` + svg + `
 </div>
-` + svg + cards + `
+` + cards + `
 <p class="footer">` + footer + `</p>
+</div>
+<div id="archify-toast" class="archify-toast" role="status" aria-live="polite"></div>
 <script>
-function toggleTheme(){const t=document.documentElement.getAttribute("data-theme");document.documentElement.setAttribute("data-theme",t==="light"?"dark":"light")}
-document.addEventListener("keydown",e=>{if(e.key==="t"||e.key==="T")toggleTheme();if(e.key==="e"||e.key==="E")exportMenu()});
-function exportMenu(){const svg=document.querySelector("svg");if(!svg)return;const s=new XMLSerializer().serializeToString(svg);const blob=new Blob([s],{type:"image/svg+xml"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="diagram.svg";a.click();URL.revokeObjectURL(url)}
+(function(){var e=document.getElementById('btn-theme'),m=document.getElementById('btn-export'),c=document.getElementById('export-menu'),t=document.getElementById('archify-toast'),r=function(u){t.textContent=u;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2000)};function l(){var n=document.documentElement.getAttribute('data-theme');n=n==='light'?'dark':'light';document.documentElement.setAttribute('data-theme',n);try{localStorage.setItem('archify-theme',n)}catch(_){}e.querySelector('#theme-label').textContent=n==='dark'?'Dark':'Light';e.setAttribute('aria-pressed',n==='light'?'true':'false')}function v(){c.classList.toggle('open');m.setAttribute('aria-expanded',c.classList.contains('open')?'true':'false')}function x(f){var s=document.querySelector('svg');if(!s)return;if(f==='svg'){var a=document.createElement('a');a.href='data:image/svg+xml,'+encodeURIComponent(new XMLSerializer().serializeToString(s));a.download='diagram.svg';a.click();r('SVG downloaded')}else{var b=new XMLSerializer().serializeToString(s),d=new Blob([b],{type:'image/svg+xml;charset=utf-8'}),u=URL.createObjectURL(d),i=new Image;i.onload=function(){var g=document.createElement('canvas');g.width=i.naturalWidth*2;g.height=i.naturalHeight*2;var k=g.getContext('2d');k.scale(2,2);k.drawImage(i,0,0);g.toBlob(function(blob){if(f==='copy'){navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(function(){r('Copied to clipboard')}).catch(function(){r('Copy failed')})}else{var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='diagram.'+f;a.click();r(f.toUpperCase()+' downloaded')}},'image/'+f,1)};i.src=u}}e.addEventListener('click',l);m.addEventListener('click',v);document.addEventListener('keydown',function(n){if(n.key==='t'||n.key==='T'){l();n.preventDefault()}if(n.key==='e'||n.key==='E'){v();n.preventDefault()}if(n.key==='Escape')c.classList.remove('open')});c.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){var f=b.getAttribute('data-format')||b.getAttribute('data-action');if(f==='copy')x('copy');else if(f)x(f);c.classList.remove('open');m.setAttribute('aria-expanded','false')})});document.addEventListener('click',function(n){if(!n.target.closest('.export-wrap')){c.classList.remove('open');m.setAttribute('aria-expanded','false')}})
+})();
 </script>
 </body>
 </html>`

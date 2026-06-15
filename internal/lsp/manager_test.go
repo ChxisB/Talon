@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/internal/csync"
+	"github.com/ChxisB/talon/internal/csync"
 	"github.com/stretchr/testify/require"
 )
 

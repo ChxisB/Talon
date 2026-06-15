@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"testing"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/permission"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
-	"github.com/ChxisB/spectre-proxy/internal/shell"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/permission"
+	"github.com/ChxisB/talon/internal/pubsub"
+	"github.com/ChxisB/talon/internal/shell"
 	"github.com/stretchr/testify/require"
 )
 
@@ -112,13 +112,13 @@ func (m *recordingPermissionService) SubscribeNotifications(ctx context.Context)
 	return make(<-chan pubsub.Event[permission.PermissionNotification])
 }
 
-func newBashToolForTest(workingDir string) fantasy.AgentTool {
+func newBashToolForTest(workingDir string) llm.AgentTool {
 	permissions := &mockBashPermissionService{Broker: pubsub.NewBroker[permission.PermissionRequest]()}
 	attribution := &config.Attribution{TrailerStyle: config.TrailerStyleNone}
 	return NewBashTool(permissions, workingDir, attribution, "test-model")
 }
 
-func newBashToolWithRecordingPerms(workingDir string, allow bool) (fantasy.AgentTool, *recordingPermissionService) {
+func newBashToolWithRecordingPerms(workingDir string, allow bool) (llm.AgentTool, *recordingPermissionService) {
 	perms := &recordingPermissionService{
 		Broker: pubsub.NewBroker[permission.PermissionRequest](),
 		allow:  allow,
@@ -166,13 +166,13 @@ func TestBashTool_ChainedCommandsDenied(t *testing.T) {
 	require.Contains(t, resp.Content, "User denied permission")
 }
 
-func runBashTool(t *testing.T, tool fantasy.AgentTool, ctx context.Context, params BashParams) fantasy.ToolResponse {
+func runBashTool(t *testing.T, tool llm.AgentTool, ctx context.Context, params BashParams) llm.ToolResponse {
 	t.Helper()
 
 	input, err := json.Marshal(params)
 	require.NoError(t, err)
 
-	call := fantasy.ToolCall{
+	call := llm.ToolCall{
 		ID:    "test-call",
 		Name:  BashToolName,
 		Input: string(input),

@@ -8,11 +8,11 @@ import (
 	"sort"
 	"strings"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/internal/agent/tools/mcp"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/filepathext"
-	"github.com/ChxisB/spectre-proxy/internal/permission"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/internal/agent/tools/mcp"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/filepathext"
+	"github.com/ChxisB/talon/internal/permission"
 )
 
 type ListMCPResourcesParams struct {
@@ -28,19 +28,19 @@ const ListMCPResourcesToolName = "list_mcp_resources"
 //go:embed list_mcp_resources.md
 var listMCPResourcesDescription string
 
-func NewListMCPResourcesTool(cfg *config.ConfigStore, permissions permission.Service) fantasy.AgentTool {
-	return fantasy.NewParallelAgentTool(
+func NewListMCPResourcesTool(cfg *config.ConfigStore, permissions permission.Service) llm.AgentTool {
+	return llm.NewParallelAgentTool(
 		ListMCPResourcesToolName,
 		listMCPResourcesDescription,
-		func(ctx context.Context, params ListMCPResourcesParams, call fantasy.ToolCall) (fantasy.ToolResponse, error) {
+		func(ctx context.Context, params ListMCPResourcesParams, call llm.ToolCall) (llm.ToolResponse, error) {
 			params.MCPName = strings.TrimSpace(params.MCPName)
 			if params.MCPName == "" {
-				return fantasy.NewTextErrorResponse("mcp_name parameter is required"), nil
+				return llm.NewTextErrorResponse("mcp_name parameter is required"), nil
 			}
 
 			sessionID := GetSessionFromContext(ctx)
 			if sessionID == "" {
-				return fantasy.ToolResponse{}, fmt.Errorf("session ID is required for listing MCP resources")
+				return llm.ToolResponse{}, fmt.Errorf("session ID is required for listing MCP resources")
 			}
 
 			relPath := filepathext.SmartJoin(cfg.WorkingDir(), params.MCPName)
@@ -57,7 +57,7 @@ func NewListMCPResourcesTool(cfg *config.ConfigStore, permissions permission.Ser
 				},
 			)
 			if err != nil {
-				return fantasy.ToolResponse{}, err
+				return llm.ToolResponse{}, err
 			}
 			if !p {
 				return NewPermissionDeniedResponse(), nil
@@ -65,10 +65,10 @@ func NewListMCPResourcesTool(cfg *config.ConfigStore, permissions permission.Ser
 
 			resources, err := mcp.ListResources(ctx, cfg, params.MCPName)
 			if err != nil {
-				return fantasy.NewTextErrorResponse(err.Error()), nil
+				return llm.NewTextErrorResponse(err.Error()), nil
 			}
 			if len(resources) == 0 {
-				return fantasy.NewTextResponse("No resources found"), nil
+				return llm.NewTextResponse("No resources found"), nil
 			}
 
 			lines := make([]string, 0, len(resources))
@@ -94,7 +94,7 @@ func NewListMCPResourcesTool(cfg *config.ConfigStore, permissions permission.Ser
 			}
 
 			sort.Strings(lines)
-			return fantasy.NewTextResponse(strings.Join(lines, "\n")), nil
+			return llm.NewTextResponse(strings.Join(lines, "\n")), nil
 		},
 	)
 }

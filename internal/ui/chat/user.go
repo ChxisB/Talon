@@ -4,13 +4,13 @@ import (
 	"encoding/xml"
 	"strings"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/ui/attachments"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/ui/list"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/ui/attachments"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/ui/list"
+	"github.com/ChxisB/talon/internal/ui/styles"
 )
 
 // skillInvocation represents the XML structure for a loaded skill.
@@ -68,7 +68,7 @@ func (m *UserMessageItem) RawRender(width int) string {
 	// Check if this is a skill invocation (loaded_skill XML)
 	if strings.HasPrefix(msgContent, "<loaded_skill>") {
 		content = m.renderSkillInvocation(msgContent, cappedWidth)
-		height = lipgloss.Height(content)
+		height = style.Height(content)
 		m.setCachedRender(content, cappedWidth, height)
 		return m.renderHighlighted(content, cappedWidth, height)
 	}
@@ -95,7 +95,7 @@ func (m *UserMessageItem) RawRender(width int) string {
 		}
 	}
 
-	height = lipgloss.Height(content)
+	height = style.Height(content)
 	m.setCachedRender(content, cappedWidth, height)
 	return m.renderHighlighted(content, cappedWidth, height)
 }
@@ -172,7 +172,7 @@ func (m *UserMessageItem) renderAttachments(width int) string {
 }
 
 // HandleKeyEvent implements KeyEventHandler.
-func (m *UserMessageItem) HandleKeyEvent(key tea.KeyMsg) (bool, tea.Cmd) {
+func (m *UserMessageItem) HandleKeyEvent(key bubble.KeyMsg) (bool, bubble.Cmd) {
 	if k := key.String(); k == "c" || k == "y" {
 		text := m.message.Content().Text
 		return true, common.CopyToClipboard(text, "Message copied to clipboard")

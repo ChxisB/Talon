@@ -8,12 +8,12 @@ import (
 	"testing"
 	"time"
 
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/internal/backend"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/proto"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
-	"github.com/ChxisB/spectre-proxy/internal/skills"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/internal/backend"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/proto"
+	"github.com/ChxisB/talon/internal/pubsub"
+	"github.com/ChxisB/talon/internal/skills"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
@@ -33,7 +33,7 @@ func TestBackend_WorkspaceSkillsIsolation(t *testing.T) {
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(hostHome, ".config"))
 	t.Setenv("XDG_DATA_HOME", filepath.Join(hostHome, ".local", "share"))
 	t.Setenv("XDG_CACHE_HOME", filepath.Join(hostHome, ".cache"))
-	t.Setenv("SPECTRE_SKILLS_DIR", t.TempDir())
+	t.Setenv("TALON_SKILLS_DIR", t.TempDir())
 
 	// Each workspace gets its own working directory containing a
 	// distinct project-local skill so the discovery output differs.
@@ -52,7 +52,7 @@ func TestBackend_WorkspaceSkillsIsolation(t *testing.T) {
 	wsA, _, err := b.CreateWorkspace(proto.Workspace{
 		ClientID: cidA,
 		Path:     wdA,
-		DataDir:  filepath.Join(wdA, ".spectre"),
+		DataDir:  filepath.Join(wdA, ".talon"),
 	})
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = b.DeleteWorkspace(wsA.ID, cidA) })
@@ -60,7 +60,7 @@ func TestBackend_WorkspaceSkillsIsolation(t *testing.T) {
 	wsB, _, err := b.CreateWorkspace(proto.Workspace{
 		ClientID: cidB,
 		Path:     wdB,
-		DataDir:  filepath.Join(wdB, ".spectre"),
+		DataDir:  filepath.Join(wdB, ".talon"),
 	})
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = b.DeleteWorkspace(wsB.ID, cidB) })
@@ -144,7 +144,7 @@ func containsSkillName(states []*skills.SkillState, name string) bool {
 // the timeout elapses. Non-skills events on the channel are silently
 // skipped — the backend fans in many event types and we only care
 // about skills here.
-func waitForSkillsEvent(t *testing.T, ch <-chan pubsub.Event[tea.Msg], marker string, timeout time.Duration) bool {
+func waitForSkillsEvent(t *testing.T, ch <-chan pubsub.Event[bubble.Msg], marker string, timeout time.Duration) bool {
 	t.Helper()
 	deadline := time.After(timeout)
 	for {

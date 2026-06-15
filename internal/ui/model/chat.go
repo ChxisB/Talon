@@ -1,17 +1,18 @@
 package model
 
 import (
+	"image"
 	"strings"
 	"time"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	uv "github.com/ChxisB/spectre-proxy/deps/terminal"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
-	"github.com/ChxisB/spectre-proxy/internal/ui/anim"
-	"github.com/ChxisB/spectre-proxy/internal/ui/chat"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/ui/list"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	term "github.com/ChxisB/talon/deps/terminal"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/deps/util/ansi"
+	"github.com/ChxisB/talon/internal/ui/anim"
+	"github.com/ChxisB/talon/internal/ui/chat"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/ui/list"
 	"github.com/clipperhouse/displaywidth"
 	"github.com/clipperhouse/uax29/v2/words"
 )
@@ -66,7 +67,7 @@ type Chat struct {
 
 	// drawCache memoizes the decoded form of the last list.Render output so
 	// repeat frames with byte-identical content skip the per-cell ANSI
-	// reparse that uv.StyledString.Draw performs every call. See F9
+	// reparse that term.StyledString.Draw performs every call. See F9
 	// (docs/notes/2026-05-12-chat-rendering-perf.md §4.8). Bounded to one
 	// entry; invalidated implicitly by string inequality on the next Draw.
 	drawCache *chatDrawCache
@@ -78,7 +79,7 @@ type Chat struct {
 // printString, so a cached buffer is only valid for the method it was
 // decoded with). The cached buffer is independent of the draw area, so
 // resize / scroll changes that produce the same string still hit. We cannot
-// use uv.StyledString.Lines because it bottoms out at the first iteration
+// use term.StyledString.Lines because it bottoms out at the first iteration
 // against a zero-bounds rectangle (see ultraviolet styled.go line 45 — the
 // shared printString loop's `y >= bounds.Max.Y` exit applies to the
 // line-building branch too). A Buffer of the rendered text's natural
@@ -88,7 +89,7 @@ type Chat struct {
 type chatDrawCache struct {
 	rendered string
 	method   ansi.Method
-	buf      uv.ScreenBuffer
+	buf      term.ScreenBuffer
 }
 
 // NewChat creates a new instance of [Chat] that handles chat interactions and
@@ -118,17 +119,17 @@ func (m *Chat) Height() int {
 //
 // The list's rendered output is cached in decoded form (see chatDrawCache) so
 // that frames with byte-identical content skip the ANSI reparse that
-// uv.StyledString.Draw performs on every call. The cache is keyed by the
+// term.StyledString.Draw performs on every call. The cache is keyed by the
 // rendered string and the screen's width method; area / scroll changes do not
 // invalidate it.
-func (m *Chat) Draw(scr uv.Screen, area uv.Rectangle) {
+func (m *Chat) Draw(scr term.Screen, area term.Rectangle) {
 	rendered := m.list.Render()
 	method, ok := scr.WidthMethod().(ansi.Method)
 	if !ok {
 		// Width method isn't an ansi.Method (unlikely in practice — both
 		// TerminalScreen and ScreenBuffer store ansi.Method). Fall back
 		// to the uncached path so behavior matches upstream exactly.
-		uv.NewStyledString(rendered).Draw(scr, area)
+		term.NewStyledString(rendered).Draw(scr, area)
 		return
 	}
 	if m.drawCache == nil ||
@@ -137,15 +138,37 @@ func (m *Chat) Draw(scr uv.Screen, area uv.Rectangle) {
 		m.drawCache = newChatDrawCache(rendered, method)
 	}
 	drawCachedBuffer(scr, area, m.drawCache.buf)
+
+	// Draw scrollbar on the right edge when content overflows.
+	listHeight := m.list.Height()
+	totalHeight := m.list.TotalHeight()
+	if totalHeight > listHeight {
+		scrollbar := common.Scrollbar(
+			m.com.Styles,
+			listHeight,
+			totalHeight,
+			listHeight,
+			m.list.Offset(),
+		)
+		if scrollbar != "" {
+			sbArea := image.Rect(
+				area.Max.X-1,
+				area.Min.Y,
+				area.Max.X,
+				area.Max.Y,
+			)
+			term.NewStyledString(scrollbar).Draw(scr, sbArea)
+		}
+	}
 }
 
 // newChatDrawCache builds a chatDrawCache for the given rendered string by
-// running uv.StyledString.Draw into a fresh buffer sized to the text's
+// running term.StyledString.Draw into a fresh buffer sized to the text's
 // natural bounds under the active width method. This is the only place
 // ANSI decoding happens for cached frames — subsequent draws reuse buf
 // via drawCachedBuffer.
 //
-// We can't use uv.StyledString.Bounds() here: it is hard-coded to
+// We can't use term.StyledString.Bounds() here: it is hard-coded to
 // ansi.GraphemeWidth, while StyledString.Draw lays cells using the
 // destination buffer's WidthMethod (which we capture in `method`). For
 // strings where graphemes and wcwidth disagree (emoji ZWJ sequences,
@@ -163,9 +186,9 @@ func newChatDrawCache(rendered string, method ansi.Method) *chatDrawCache {
 	if h <= 0 {
 		h = 1
 	}
-	buf := uv.NewScreenBuffer(w, h)
+	buf := term.NewScreenBuffer(w, h)
 	buf.Method = method
-	uv.NewStyledString(rendered).Draw(buf, buf.Bounds())
+	term.NewStyledString(rendered).Draw(buf, buf.Bounds())
 	return &chatDrawCache{
 		rendered: rendered,
 		method:   method,
@@ -177,7 +200,7 @@ func newChatDrawCache(rendered string, method ansi.Method) *chatDrawCache {
 // when laid out by method. Width is the widest line's StringWidth (which
 // strips ANSI sequences and tallies cells via method, exactly like
 // printString); height is the line count. Both match what
-// uv.StyledString.Draw will write into a buffer whose WidthMethod is
+// term.StyledString.Draw will write into a buffer whose WidthMethod is
 // method, so the cache buffer is always sized to fit the live content.
 func renderedBounds(rendered string, method ansi.Method) (w, h int) {
 	for line := range strings.SplitSeq(rendered, "\n") {
@@ -188,11 +211,11 @@ func renderedBounds(rendered string, method ansi.Method) (w, h int) {
 }
 
 // drawCachedBuffer blits a previously-decoded buffer into scr at area,
-// mirroring uv.StyledString.Draw's screen-mode behavior for the default
+// mirroring term.StyledString.Draw's screen-mode behavior for the default
 // Wrap=false, Tail="" case. The clear loop matches StyledString.Draw line
 // 51-56; the buf.Draw call replaces the per-cell ANSI decode that
 // printString does on every uncached frame with a pure cell copy.
-func drawCachedBuffer(scr uv.Screen, area uv.Rectangle, buf uv.ScreenBuffer) {
+func drawCachedBuffer(scr term.Screen, area term.Rectangle, buf term.ScreenBuffer) {
 	// Clear the area first to match StyledString.Draw — leftover cells
 	// from a previous frame outside the new content must be zeroed,
 	// because Buffer.Draw skips empty cells (it doesn't clear).
@@ -294,7 +317,7 @@ func (m *Chat) UpdateNestedToolIDs(containerID string) {
 // Animate animates items in the chat list. Only propagates animation messages
 // to visible items to save CPU. When items are not visible, their animation ID
 // is tracked so it can be restarted when they become visible again.
-func (m *Chat) Animate(msg anim.StepMsg) tea.Cmd {
+func (m *Chat) Animate(msg anim.StepMsg) bubble.Cmd {
 	idx, ok := m.idInxMap[msg.ID]
 	if !ok {
 		return nil
@@ -323,13 +346,13 @@ func (m *Chat) Animate(msg anim.StepMsg) tea.Cmd {
 
 // RestartPausedVisibleAnimations restarts animations for items that were paused
 // due to being scrolled out of view but are now visible again.
-func (m *Chat) RestartPausedVisibleAnimations() tea.Cmd {
+func (m *Chat) RestartPausedVisibleAnimations() bubble.Cmd {
 	if len(m.pausedAnimations) == 0 {
 		return nil
 	}
 
 	startIdx, endIdx := m.list.VisibleItemIndices()
-	var cmds []tea.Cmd
+	var cmds []bubble.Cmd
 
 	for id := range m.pausedAnimations {
 		idx, ok := m.idInxMap[id]
@@ -353,7 +376,7 @@ func (m *Chat) RestartPausedVisibleAnimations() tea.Cmd {
 	if len(cmds) == 0 {
 		return nil
 	}
-	return tea.Batch(cmds...)
+	return bubble.Batch(cmds...)
 }
 
 // Focus sets the focus state of the chat component.
@@ -409,28 +432,28 @@ func (m *Chat) ScrollToIndex(index int) {
 
 // ScrollToTopAndAnimate scrolls the chat view to the top and returns a command to restart
 // any paused animations that are now visible.
-func (m *Chat) ScrollToTopAndAnimate() tea.Cmd {
+func (m *Chat) ScrollToTopAndAnimate() bubble.Cmd {
 	m.ScrollToTop()
 	return m.RestartPausedVisibleAnimations()
 }
 
 // ScrollToBottomAndAnimate scrolls the chat view to the bottom and returns a command to
 // restart any paused animations that are now visible.
-func (m *Chat) ScrollToBottomAndAnimate() tea.Cmd {
+func (m *Chat) ScrollToBottomAndAnimate() bubble.Cmd {
 	m.ScrollToBottom()
 	return m.RestartPausedVisibleAnimations()
 }
 
 // ScrollByAndAnimate scrolls the chat view by the given number of line deltas and returns
 // a command to restart any paused animations that are now visible.
-func (m *Chat) ScrollByAndAnimate(lines int) tea.Cmd {
+func (m *Chat) ScrollByAndAnimate(lines int) bubble.Cmd {
 	m.ScrollBy(lines)
 	return m.RestartPausedVisibleAnimations()
 }
 
 // ScrollToSelectedAndAnimate scrolls the chat view to the selected item and returns a
 // command to restart any paused animations that are now visible.
-func (m *Chat) ScrollToSelectedAndAnimate() tea.Cmd {
+func (m *Chat) ScrollToSelectedAndAnimate() bubble.Cmd {
 	m.ScrollToSelected()
 	return m.RestartPausedVisibleAnimations()
 }
@@ -615,7 +638,7 @@ func (m *Chat) ToggleExpandedSelectedItem() {
 }
 
 // HandleKeyMsg handles key events for the chat component.
-func (m *Chat) HandleKeyMsg(key tea.KeyMsg) (bool, tea.Cmd) {
+func (m *Chat) HandleKeyMsg(key bubble.KeyMsg) (bool, bubble.Cmd) {
 	if m.list.Focused() {
 		if handler, ok := m.list.SelectedItem().(chat.KeyEventHandler); ok {
 			return handler.HandleKeyEvent(key)
@@ -628,7 +651,7 @@ func (m *Chat) HandleKeyMsg(key tea.KeyMsg) (bool, tea.Cmd) {
 // It detects single, double, and triple clicks for text selection.
 // Returns whether the click was handled and an optional command for delayed
 // single-click actions.
-func (m *Chat) HandleMouseDown(x, y int) (bool, tea.Cmd) {
+func (m *Chat) HandleMouseDown(x, y int) (bool, bubble.Cmd) {
 	if m.list.Len() == 0 {
 		return false, nil
 	}
@@ -661,7 +684,7 @@ func (m *Chat) HandleMouseDown(x, y int) (bool, tea.Cmd) {
 	// Select the item that was clicked
 	m.list.SetSelected(itemIdx)
 
-	var cmd tea.Cmd
+	var cmd bubble.Cmd
 
 	switch m.clickCount {
 	case 1:
@@ -676,7 +699,7 @@ func (m *Chat) HandleMouseDown(x, y int) (bool, tea.Cmd) {
 
 		// Schedule delayed click action (e.g., expansion) after a short delay.
 		// If a double-click occurs, the clickID will be invalidated.
-		cmd = tea.Tick(doubleClickThreshold, func(t time.Time) tea.Msg {
+		cmd = bubble.Tick(doubleClickThreshold, func(t time.Time) bubble.Msg {
 			return DelayedClickMsg{
 				ClickID: clickID,
 				ItemIdx: itemIdx,
@@ -794,7 +817,7 @@ func (m *Chat) HighlightContent() string {
 			}
 			sb.WriteString(list.HighlightContent(
 				rendered,
-				uv.Rect(0, 0, listWidth, lipgloss.Height(rendered)),
+				term.Rect(0, 0, listWidth, style.Height(rendered)),
 				startLine,
 				startCol,
 				endLine,

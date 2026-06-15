@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/ChxisB/spectre-proxy/internal/config/config",
+  "$id": "https://github.com/ChxisB/talon-proxy/internal/config/config",
   "$ref": "#/$defs/Config",
   "$defs": {
     "Attribution": {
@@ -22,7 +22,7 @@
         },
         "generated_with": {
           "type": "boolean",
-          "description": "Add Generated with Spectre line to commit messages and issues and PRs",
+          "description": "Add Generated with Talon line to commit messages and issues and PRs",
           "default": true
         }
       },
@@ -399,7 +399,7 @@
             "type": "string",
             "examples": [
               ".cursorrules",
-              "SPECTRE.md"
+              "TALON.md"
             ]
           },
           "type": "array",
@@ -412,7 +412,7 @@
           "type": "array",
           "description": "Paths to files containing global context information for the AI",
           "default": [
-            "~/.config/spectre/SPECTRE.md",
+            "~/.config/talon/TALON.md",
             "~/.config/AGENTS.md"
           ]
         },
@@ -420,7 +420,7 @@
           "items": {
             "type": "string",
             "examples": [
-              "~/.config/spectre/skills",
+              "~/.config/talon/skills",
               "./skills"
             ]
           },
@@ -449,9 +449,9 @@
         "data_directory": {
           "type": "string",
           "description": "Directory for storing application data. Relative paths are resolved against the working directory; absolute paths are used as-is.",
-          "default": ".spectre",
+          "default": ".talon",
           "examples": [
-            ".spectre"
+            ".talon"
           ]
         },
         "disabled_tools": {
@@ -490,7 +490,7 @@
           "default": "AGENTS.md",
           "examples": [
             "AGENTS.md",
-            "SPECTRE.md",
+            "TALON.md",
             "CLAUDE.md",
             "docs/LLMs.md"
           ]
@@ -526,7 +526,7 @@
           "items": {
             "type": "string",
             "examples": [
-              "spectre-config"
+              "talon-config"
             ]
           },
           "type": "array",

@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"os"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/term"
-	"github.com/ChxisB/spectre-proxy/internal/ui/logo"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	"github.com/ChxisB/talon/deps/util/term"
+	"github.com/ChxisB/talon/internal/ui/logo"
+	"github.com/ChxisB/talon/internal/ui/styles"
 )
 
 func main() {
@@ -39,11 +39,11 @@ func main() {
 		return logo.Render(s.Logo.GradCanvas, "v1.0.0", false, opts)
 	}
 
-	lipgloss.Println(
-		lipgloss.JoinHorizontal(lipgloss.Top, renderCompact(false), "  ", renderCompact(true)),
+	style.Println(
+		style.JoinHorizontal(style.Top, renderCompact(false), "  ", renderCompact(true)),
 	)
 
 	for i := range 6 {
-		lipgloss.Println(renderWide(i > 0))
+		style.Println(renderWide(i > 0))
 	}
 }

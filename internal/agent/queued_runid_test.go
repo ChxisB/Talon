@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	"github.com/ChxisB/spectre-proxy/internal/agent/notify"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	"github.com/ChxisB/talon/internal/agent/notify"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/pubsub"
 	"github.com/stretchr/testify/require"
 )
 
@@ -31,14 +31,14 @@ type gatedStreamModel struct {
 func (m *gatedStreamModel) Provider() string { return "fake" }
 func (m *gatedStreamModel) Model() string    { return "fake-model" }
 
-func (m *gatedStreamModel) Generate(ctx context.Context, call fantasy.Call) (*fantasy.Response, error) {
-	return &fantasy.Response{
-		Content:      fantasy.ResponseContent{fantasy.TextContent{Text: m.text}},
-		FinishReason: fantasy.FinishReasonStop,
+func (m *gatedStreamModel) Generate(ctx context.Context, call llm.Call) (*llm.Response, error) {
+	return &llm.Response{
+		Content:      llm.ResponseContent{llm.TextContent{Text: m.text}},
+		FinishReason: llm.FinishReasonStop,
 	}, nil
 }
 
-func (m *gatedStreamModel) Stream(ctx context.Context, call fantasy.Call) (fantasy.StreamResponse, error) {
+func (m *gatedStreamModel) Stream(ctx context.Context, call llm.Call) (llm.StreamResponse, error) {
 	if m.calls.Add(1) == 1 {
 		close(m.entered)
 		select {
@@ -47,25 +47,25 @@ func (m *gatedStreamModel) Stream(ctx context.Context, call fantasy.Call) (fanta
 		}
 	}
 	text := m.text
-	return func(yield func(fantasy.StreamPart) bool) {
-		if !yield(fantasy.StreamPart{Type: fantasy.StreamPartTypeTextStart, ID: "1"}) {
+	return func(yield func(llm.StreamPart) bool) {
+		if !yield(llm.StreamPart{Type: llm.StreamPartTypeTextStart, ID: "1"}) {
 			return
 		}
-		if !yield(fantasy.StreamPart{Type: fantasy.StreamPartTypeTextDelta, ID: "1", Delta: text}) {
+		if !yield(llm.StreamPart{Type: llm.StreamPartTypeTextDelta, ID: "1", Delta: text}) {
 			return
 		}
-		if !yield(fantasy.StreamPart{Type: fantasy.StreamPartTypeTextEnd, ID: "1"}) {
+		if !yield(llm.StreamPart{Type: llm.StreamPartTypeTextEnd, ID: "1"}) {
 			return
 		}
-		yield(fantasy.StreamPart{Type: fantasy.StreamPartTypeFinish, FinishReason: fantasy.FinishReasonStop})
+		yield(llm.StreamPart{Type: llm.StreamPartTypeFinish, FinishReason: llm.FinishReasonStop})
 	}, nil
 }
 
-func (m *gatedStreamModel) GenerateObject(ctx context.Context, call fantasy.ObjectCall) (*fantasy.ObjectResponse, error) {
+func (m *gatedStreamModel) GenerateObject(ctx context.Context, call llm.ObjectCall) (*llm.ObjectResponse, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (m *gatedStreamModel) StreamObject(ctx context.Context, call fantasy.ObjectCall) (fantasy.ObjectStreamResponse, error) {
+func (m *gatedStreamModel) StreamObject(ctx context.Context, call llm.ObjectCall) (llm.ObjectStreamResponse, error) {
 	return nil, errors.New("not implemented")
 }
 
@@ -73,7 +73,7 @@ func (m *gatedStreamModel) StreamObject(ctx context.Context, call fantasy.Object
 // end-to-end proof of fix 2: a prompt carrying a RunID that is queued
 // behind a busy session must NOT be silently folded into the active turn.
 // It runs as its own turn via the recursive run path and publishes its
-// own terminal RunComplete, so a `spectre run` caller blocking on that
+// own terminal RunComplete, so a `talon run` caller blocking on that
 // RunID does not hang. The active turn keeps its own RunComplete too.
 func TestRun_QueuedRunIDPromptRunsRecursivelyAndPublishesRunComplete(t *testing.T) {
 	t.Parallel()

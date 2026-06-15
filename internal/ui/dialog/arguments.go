@@ -4,20 +4,20 @@ import (
 	"cmp"
 	"strings"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/help"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/key"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/spinner"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/textinput"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/viewport"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	"github.com/ChxisB/talon/deps/ui/core/v2/help"
+	"github.com/ChxisB/talon/deps/ui/core/v2/key"
+	"github.com/ChxisB/talon/deps/ui/core/v2/spinner"
+	"github.com/ChxisB/talon/deps/ui/core/v2/textinput"
+	"github.com/ChxisB/talon/deps/ui/core/v2/viewport"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
-	uv "github.com/ChxisB/spectre-proxy/deps/terminal"
-	"github.com/ChxisB/spectre-proxy/internal/commands"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/ui/util"
+	term "github.com/ChxisB/talon/deps/terminal"
+	"github.com/ChxisB/talon/internal/commands"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/ui/util"
 )
 
 // ArgumentsID is the identifier for the arguments dialog.
@@ -183,15 +183,15 @@ func (a *Arguments) findVisibleFieldByOffset(fromTop bool) int {
 }
 
 // HandleMsg implements Dialog.
-func (a *Arguments) HandleMsg(msg tea.Msg) Action {
+func (a *Arguments) HandleMsg(msg bubble.Msg) Action {
 	switch msg := msg.(type) {
 	case spinner.TickMsg:
 		if a.loading {
-			var cmd tea.Cmd
+			var cmd bubble.Cmd
 			a.spinner, cmd = a.spinner.Update(msg)
 			return ActionCmd{Cmd: cmd}
 		}
-	case tea.KeyPressMsg:
+	case bubble.KeyPressMsg:
 		switch {
 		case key.Matches(msg, a.keyMap.Close):
 			return ActionClose{}
@@ -199,7 +199,7 @@ func (a *Arguments) HandleMsg(msg tea.Msg) Action {
 			// If we're on the last input or there's only one input, submit.
 			if a.focused == len(a.inputs)-1 || len(a.inputs) == 1 {
 				args := make(map[string]string)
-				var warning tea.Cmd
+				var warning bubble.Cmd
 				for i, arg := range a.arguments {
 					args[arg.ID] = a.inputs[i].Value()
 					if arg.Required && strings.TrimSpace(a.inputs[i].Value()) == "" {
@@ -226,18 +226,18 @@ func (a *Arguments) HandleMsg(msg tea.Msg) Action {
 		case key.Matches(msg, a.keyMap.Previous):
 			a.focusInput(a.focused - 1)
 		default:
-			var cmd tea.Cmd
+			var cmd bubble.Cmd
 			a.inputs[a.focused], cmd = a.inputs[a.focused].Update(msg)
 			return ActionCmd{Cmd: cmd}
 		}
-	case tea.MouseWheelMsg:
+	case bubble.MouseWheelMsg:
 		a.viewport, _ = a.viewport.Update(msg)
 		// If focused field scrolled out of view, focus the visible field
 		if !a.isFieldVisible(a.focused) {
-			a.focusInput(a.findVisibleFieldByOffset(msg.Button == tea.MouseWheelDown))
+			a.focusInput(a.findVisibleFieldByOffset(msg.Button == bubble.MouseWheelDown))
 		}
-	case tea.PasteMsg:
-		var cmd tea.Cmd
+	case bubble.PasteMsg:
+		var cmd bubble.Cmd
 		a.inputs[a.focused], cmd = a.inputs[a.focused].Update(msg)
 		return ActionCmd{Cmd: cmd}
 	}
@@ -246,7 +246,7 @@ func (a *Arguments) HandleMsg(msg tea.Msg) Action {
 
 // Cursor returns the cursor position relative to the dialog.
 // we pass the description height to offset the cursor correctly.
-func (a *Arguments) Cursor(descriptionHeight int) *tea.Cursor {
+func (a *Arguments) Cursor(descriptionHeight int) *bubble.Cursor {
 	cursor := InputCursor(a.com.Styles, a.inputs[a.focused].Cursor())
 	if cursor == nil {
 		return nil
@@ -256,7 +256,7 @@ func (a *Arguments) Cursor(descriptionHeight int) *tea.Cursor {
 }
 
 // Draw implements Dialog.
-func (a *Arguments) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
+func (a *Arguments) Draw(scr term.Screen, area term.Rectangle) *bubble.Cursor {
 	s := a.com.Styles
 
 	dialogContentStyle := s.Dialog.Arguments.Content
@@ -289,8 +289,8 @@ func (a *Arguments) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 		}
 		label := labelStyle.Render(labelText)
 
-		labelWidth := lipgloss.Width(labelText)
-		placeholderWidth := lipgloss.Width(a.inputs[i].Placeholder)
+		labelWidth := style.Width(labelText)
+		placeholderWidth := style.Width(a.inputs[i].Placeholder)
 
 		inputWidth := max(placeholderWidth, labelWidth, minInputWidth)
 		inputWidth = min(inputWidth, min(possibleWidth, maxInputWidth))
@@ -298,16 +298,16 @@ func (a *Arguments) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 
 		inputLine := a.inputs[i].View()
 
-		field := lipgloss.JoinVertical(lipgloss.Left, label, inputLine, "")
+		field := style.JoinVertical(style.Left, label, inputLine, "")
 		fields = append(fields, field)
 	}
 
-	renderedFields := lipgloss.JoinVertical(lipgloss.Left, fields...)
+	renderedFields := style.JoinVertical(style.Left, fields...)
 
 	// Anchor width to the longest field, capped at maxInputWidth.
 	const scrollbarWidth = 1
-	width := lipgloss.Width(renderedFields)
-	height := lipgloss.Height(renderedFields)
+	width := style.Width(renderedFields)
+	height := style.Height(renderedFields)
 
 	// Use standard header
 	titleStyle := s.Dialog.Title
@@ -328,7 +328,7 @@ func (a *Arguments) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 		helpView = s.Dialog.HelpView.Width(width).Render(a.spinner.View() + " Generating Prompt...")
 	}
 
-	availableHeight := area.Dy() - s.Dialog.View.GetVerticalFrameSize() - dialogContentStyle.GetVerticalFrameSize() - lipgloss.Height(header) - lipgloss.Height(description) - lipgloss.Height(helpView) - 2 // extra spacing
+	availableHeight := area.Dy() - s.Dialog.View.GetVerticalFrameSize() - dialogContentStyle.GetVerticalFrameSize() - style.Height(header) - style.Height(description) - style.Height(helpView) - 2 // extra spacing
 	viewportHeight := min(height, maxViewportHeight, availableHeight)
 
 	a.viewport.SetWidth(width) // -1 for scrollbar
@@ -338,7 +338,7 @@ func (a *Arguments) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 	scrollbar := common.Scrollbar(s, viewportHeight, a.viewport.TotalLineCount(), viewportHeight, a.viewport.YOffset())
 	content := a.viewport.View()
 	if scrollbar != "" {
-		content = lipgloss.JoinHorizontal(lipgloss.Top, content, scrollbar)
+		content = style.JoinHorizontal(style.Top, content, scrollbar)
 	}
 	var contentParts []string
 	if description != "" {
@@ -346,10 +346,10 @@ func (a *Arguments) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 	}
 	contentParts = append(contentParts, content)
 
-	view := lipgloss.JoinVertical(
-		lipgloss.Left,
+	view := style.JoinVertical(
+		style.Left,
 		titleStyle.Render(header),
-		dialogContentStyle.Render(lipgloss.JoinVertical(lipgloss.Left, contentParts...)),
+		dialogContentStyle.Render(style.JoinVertical(style.Left, contentParts...)),
 		helpView,
 	)
 
@@ -357,7 +357,7 @@ func (a *Arguments) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 
 	descriptionHeight := 0
 	if a.description != "" {
-		descriptionHeight = lipgloss.Height(description)
+		descriptionHeight = style.Height(description)
 	}
 	cur := a.Cursor(descriptionHeight)
 
@@ -366,7 +366,7 @@ func (a *Arguments) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 }
 
 // StartLoading implements [LoadingDialog].
-func (a *Arguments) StartLoading() tea.Cmd {
+func (a *Arguments) StartLoading() bubble.Cmd {
 	if a.loading {
 		return nil
 	}

@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/hooks"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/hooks"
 	"github.com/stretchr/testify/require"
 )
 
@@ -29,7 +29,7 @@ func TestReloadFromDisk_CompilesHookMatchers(t *testing.T) {
 
 	workDir := t.TempDir()
 	dataDir := t.TempDir()
-	configPath := filepath.Join(workDir, "spectre.json")
+	configPath := filepath.Join(workDir, "talon.json")
 	cfgJSON := `{
         "hooks": {
             "PreToolUse": [
@@ -82,7 +82,7 @@ func TestSetConfigField_AutoReload_PreservesHookMatcherFiltering(t *testing.T) {
 
 	workDir := t.TempDir()
 	dataDir := t.TempDir()
-	configPath := filepath.Join(workDir, "spectre.json")
+	configPath := filepath.Join(workDir, "talon.json")
 	cfgJSON := `{
         "hooks": {
             "PreToolUse": [

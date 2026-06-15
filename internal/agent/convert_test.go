@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"testing"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
+	llm "github.com/ChxisB/talon/deps/llm"
 	"github.com/stretchr/testify/require"
 )
 
@@ -12,10 +12,10 @@ func TestConvertToToolResult_InvalidBase64(t *testing.T) {
 	t.Parallel()
 
 	a := &sessionAgent{}
-	result := fantasy.ToolResultContent{
+	result := llm.ToolResultContent{
 		ToolCallID: "call_123",
 		ToolName:   "test_tool",
-		Result: fantasy.ToolResultOutputContentMedia{
+		Result: llm.ToolResultOutputContentMedia{
 			Data:      "abc\x80def",
 			MediaType: "image/png",
 		},
@@ -35,10 +35,10 @@ func TestConvertToToolResult_ValidMedia(t *testing.T) {
 	a := &sessionAgent{}
 	validData := base64.StdEncoding.EncodeToString([]byte("test image data"))
 
-	result := fantasy.ToolResultContent{
+	result := llm.ToolResultContent{
 		ToolCallID: "call_456",
 		ToolName:   "screenshot",
-		Result: fantasy.ToolResultOutputContentMedia{
+		Result: llm.ToolResultOutputContentMedia{
 			Data:      validData,
 			MediaType: "image/png",
 			Text:      "Screenshot captured",
@@ -58,10 +58,10 @@ func TestConvertToToolResult_ValidMediaNoText(t *testing.T) {
 	a := &sessionAgent{}
 	validData := base64.StdEncoding.EncodeToString([]byte("test image data"))
 
-	result := fantasy.ToolResultContent{
+	result := llm.ToolResultContent{
 		ToolCallID: "call_789",
 		ToolName:   "view",
-		Result: fantasy.ToolResultOutputContentMedia{
+		Result: llm.ToolResultOutputContentMedia{
 			Data:      validData,
 			MediaType: "image/jpeg",
 		},
@@ -78,10 +78,10 @@ func TestConvertToToolResult_ASCIIButInvalidBase64(t *testing.T) {
 	t.Parallel()
 
 	a := &sessionAgent{}
-	result := fantasy.ToolResultContent{
+	result := llm.ToolResultContent{
 		ToolCallID: "call_abc",
 		ToolName:   "mcp_tool",
-		Result: fantasy.ToolResultOutputContentMedia{
+		Result: llm.ToolResultOutputContentMedia{
 			Data:      "not-valid-base64!!!",
 			MediaType: "image/png",
 		},

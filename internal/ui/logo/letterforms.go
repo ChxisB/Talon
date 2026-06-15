@@ -3,8 +3,8 @@ package logo
 import (
 	"strings"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/exp/slice"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	"github.com/ChxisB/talon/deps/util/exp/slice"
 	"github.com/MakeNowJust/heredoc"
 )
 
@@ -27,7 +27,7 @@ func renderWord(spacing int, stretchIndex int, letterforms ...letterform) string
 		renderedLetterforms = slice.Intersperse(renderedLetterforms, strings.Repeat(" ", spacing))
 	}
 	return strings.TrimSpace(
-		lipgloss.JoinHorizontal(lipgloss.Top, renderedLetterforms...),
+		style.JoinHorizontal(style.Top, renderedLetterforms...),
 	)
 }
 
@@ -389,7 +389,7 @@ func LetterYAlt(stretch bool) string {
 }
 
 func joinLetterform(letters ...string) string {
-	return lipgloss.JoinHorizontal(lipgloss.Top, letters...)
+	return style.JoinHorizontal(style.Top, letters...)
 }
 
 // letterformProps defines letterform stretching properties.
@@ -415,5 +415,5 @@ func stretchLetterformPart(s string, p letterformProps) string {
 	for i := range parts {
 		parts[i] = s
 	}
-	return lipgloss.JoinHorizontal(lipgloss.Top, parts...)
+	return style.JoinHorizontal(style.Top, parts...)
 }

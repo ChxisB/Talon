@@ -7,21 +7,21 @@ import (
 	"strings"
 	"time"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	styletree "github.com/ChxisB/spectre-proxy/deps/style/v2/tree"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
-	"github.com/ChxisB/spectre-proxy/internal/agent"
-	"github.com/ChxisB/spectre-proxy/internal/agent/tools"
-	"github.com/ChxisB/spectre-proxy/internal/diff"
-	"github.com/ChxisB/spectre-proxy/internal/fsext"
-	"github.com/ChxisB/spectre-proxy/internal/hooks"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/stringext"
-	"github.com/ChxisB/spectre-proxy/internal/ui/anim"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/ui/list"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	styletree "github.com/ChxisB/talon/deps/style/v2/tree"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/deps/util/ansi"
+	"github.com/ChxisB/talon/internal/agent"
+	"github.com/ChxisB/talon/internal/agent/tools"
+	"github.com/ChxisB/talon/internal/diff"
+	"github.com/ChxisB/talon/internal/fsext"
+	"github.com/ChxisB/talon/internal/hooks"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/stringext"
+	"github.com/ChxisB/talon/internal/ui/anim"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/ui/list"
+	"github.com/ChxisB/talon/internal/ui/styles"
 )
 
 // responseContextHeight limits the number of lines displayed in tool output.
@@ -288,7 +288,7 @@ func (t *baseToolMessageItem) ID() string {
 }
 
 // StartAnimation starts the assistant message animation if it should be spinning.
-func (t *baseToolMessageItem) StartAnimation() tea.Cmd {
+func (t *baseToolMessageItem) StartAnimation() bubble.Cmd {
 	if !t.isSpinning() {
 		return nil
 	}
@@ -304,7 +304,7 @@ func (t *baseToolMessageItem) StartAnimation() tea.Cmd {
 // rendered frame indefinitely and the spinner would appear frozen.
 // The ID gate keeps unrelated ticks (routed here by a future change
 // to chat.Animate's dispatch) from churning the cache.
-func (t *baseToolMessageItem) Animate(msg anim.StepMsg) tea.Cmd {
+func (t *baseToolMessageItem) Animate(msg anim.StepMsg) bubble.Cmd {
 	if !t.isSpinning() {
 		return nil
 	}
@@ -342,7 +342,7 @@ func (t *baseToolMessageItem) RawRender(width int) string {
 			}
 		}
 
-		height = lipgloss.Height(content)
+		height = style.Height(content)
 		// cache the rendered content
 		t.setCachedRender(content, toolItemWidth, height)
 	}
@@ -492,7 +492,7 @@ func (t *baseToolMessageItem) HandleMouseClick(btn ansi.MouseButton, x, y int) b
 }
 
 // HandleKeyEvent implements KeyEventHandler.
-func (t *baseToolMessageItem) HandleKeyEvent(key tea.KeyMsg) (bool, tea.Cmd) {
+func (t *baseToolMessageItem) HandleKeyEvent(key bubble.KeyMsg) (bool, bubble.Cmd) {
 	if k := key.String(); k == "c" || k == "y" {
 		text := t.formatToolForCopy()
 		return true, common.CopyToClipboard(text, "Tool content copied to clipboard")
@@ -544,12 +544,12 @@ func toolErrorContent(sty *styles.Styles, result *message.ToolResult, width int)
 	errContent := strings.ReplaceAll(result.Content, "\n", " ")
 	if strings.Contains(errContent, "User denied permission") {
 		deniedTag := sty.Tool.WarnTag.Render("WARN")
-		deniedTagWidth := lipgloss.Width(deniedTag)
+		deniedTagWidth := style.Width(deniedTag)
 		errContent = ansi.Truncate(errContent, width-deniedTagWidth-3, "…")
 		return fmt.Sprintf("%s %s", deniedTag, sty.Tool.WarnMessage.Render(errContent))
 	}
 	errTag := sty.Tool.ErrorTag.Render("ERROR")
-	tagWidth := lipgloss.Width(errTag)
+	tagWidth := style.Width(errTag)
 	errContent = ansi.Truncate(errContent, width-tagWidth-3, "…")
 	return fmt.Sprintf("%s %s", errTag, sty.Tool.ErrorMessage.Render(errContent))
 }
@@ -593,7 +593,7 @@ func toolParamList(sty *styles.Styles, params []string, width int) string {
 	output := mainParam
 	if len(kvPairs) > 0 {
 		partsStr := strings.Join(kvPairs, ", ")
-		if remaining := width - lipgloss.Width(partsStr) - 3; remaining >= minSpaceForMainParam {
+		if remaining := width - style.Width(partsStr) - 3; remaining >= minSpaceForMainParam {
 			output = fmt.Sprintf("%s (%s)", mainParam, partsStr)
 		}
 	}
@@ -613,7 +613,7 @@ func toolHeader(sty *styles.Styles, status ToolStatus, name string, width int, n
 	}
 	toolName := nameStyle.Render(name)
 	prefix := fmt.Sprintf("%s %s ", icon, toolName)
-	prefixWidth := lipgloss.Width(prefix)
+	prefixWidth := style.Width(prefix)
 	remainingWidth := width - prefixWidth
 	paramsStr := toolParamList(sty, params, remainingWidth)
 	return prefix + paramsStr
@@ -635,7 +635,7 @@ func toolOutputPlainContent(sty *styles.Styles, content string, width int, expan
 			break
 		}
 		ln = " " + ln
-		if lipgloss.Width(ln) > width {
+		if style.Width(ln) > width {
 			ln = ansi.Truncate(ln, width, "…")
 		}
 		out = append(out, sty.Tool.ContentLine.Width(width).Render(ln))
@@ -691,7 +691,7 @@ func toolOutputCodeContent(sty *styles.Styles, path, content string, offset, wid
 			Width(codeWidth).
 			Render(ln)
 
-		out = append(out, lipgloss.JoinHorizontal(lipgloss.Left, lineNum, codeLine))
+		out = append(out, style.JoinHorizontal(style.Left, lineNum, codeLine))
 	}
 
 	// Add truncation message if needed.
@@ -780,18 +780,18 @@ func toolOutputHookIndicator(sty *styles.Styles, metadata string, width int) str
 	maxDetailWidth := 0
 	for i, hi := range h.Hooks {
 		sanitizedNames[i] = strings.ReplaceAll(hi.Name, "\n", "¶")
-		w := lipgloss.Width(sty.Tool.HookName.Render(sanitizedNames[i]))
+		w := style.Width(sty.Tool.HookName.Render(sanitizedNames[i]))
 		if w > maxNameWidth {
 			maxNameWidth = w
 		}
 		if hi.Matcher != "" {
-			mw := lipgloss.Width(sty.Tool.HookMatcher.Render(hi.Matcher))
+			mw := style.Width(sty.Tool.HookMatcher.Render(hi.Matcher))
 			if mw > maxMatcherWidth {
 				maxMatcherWidth = mw
 			}
 		}
 		details[i] = hookDetail(sty, hi)
-		if dw := lipgloss.Width(details[i]); dw > maxDetailWidth {
+		if dw := style.Width(details[i]); dw > maxDetailWidth {
 			maxDetailWidth = dw
 		}
 	}
@@ -804,11 +804,11 @@ func toolOutputHookIndicator(sty *styles.Styles, metadata string, width int) str
 	// per-line layout is:
 	//   "Hook " + name(padded) + [" " + matcher(padded)] + " → " + detail
 	if width > 0 {
-		fixed := lipgloss.Width(sty.Tool.HookLabel.Render("Hook")) + 1
+		fixed := style.Width(sty.Tool.HookLabel.Render("Hook")) + 1
 		if maxMatcherWidth > 0 {
 			fixed += 1 + maxMatcherWidth
 		}
-		fixed += 1 + lipgloss.Width(sty.Tool.HookArrow.Render(styles.ArrowRightIcon)) + 1
+		fixed += 1 + style.Width(sty.Tool.HookArrow.Render(styles.ArrowRightIcon)) + 1
 		fixed += maxDetailWidth
 		if budget := width - fixed; budget < maxNameWidth {
 			maxNameWidth = max(1, budget)
@@ -857,13 +857,13 @@ func isLikelyPath(s string) bool {
 // renderHookLine renders a single hook indicator line with aligned columns.
 func renderHookLine(sty *styles.Styles, hi hooks.HookInfo, rawName, detail string, maxNameWidth, maxMatcherWidth int) string {
 	name := sty.Tool.HookName.Render(rawName)
-	namePad := strings.Repeat(" ", max(0, maxNameWidth-lipgloss.Width(name)))
+	namePad := strings.Repeat(" ", max(0, maxNameWidth-style.Width(name)))
 
 	var matcherPart string
 	if maxMatcherWidth > 0 {
 		if hi.Matcher != "" {
 			matcher := sty.Tool.HookMatcher.Render(hi.Matcher)
-			matcherPad := strings.Repeat(" ", maxMatcherWidth-lipgloss.Width(matcher))
+			matcherPad := strings.Repeat(" ", maxMatcherWidth-style.Width(matcher))
 			matcherPart = " " + matcher + matcherPad
 		} else {
 			matcherPart = " " + strings.Repeat(" ", maxMatcherWidth)

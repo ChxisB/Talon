@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/proto"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/proto"
+	"github.com/ChxisB/talon/internal/pubsub"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
@@ -16,7 +16,7 @@ import (
 // awaitConfigChanged drains events until a ConfigChanged is received
 // for the given workspace ID, or fails the test on timeout. Other
 // event types are ignored.
-func awaitConfigChanged(t *testing.T, evc <-chan pubsub.Event[tea.Msg], workspaceID string) {
+func awaitConfigChanged(t *testing.T, evc <-chan pubsub.Event[bubble.Msg], workspaceID string) {
 	t.Helper()
 	deadline := time.After(2 * time.Second)
 	for {
@@ -40,7 +40,7 @@ func awaitConfigChanged(t *testing.T, evc <-chan pubsub.Event[tea.Msg], workspac
 // newPublishingWorkspace creates a real workspace through the backend
 // so its embedded *app.App is wired up and SendEvent works. It returns
 // the backend, the workspace, and a fresh event subscription.
-func newPublishingWorkspace(t *testing.T) (*Backend, *Workspace, <-chan pubsub.Event[tea.Msg]) {
+func newPublishingWorkspace(t *testing.T) (*Backend, *Workspace, <-chan pubsub.Event[bubble.Msg]) {
 	t.Helper()
 	xdgIsolated(t)
 
@@ -187,7 +187,7 @@ func TestDisableDockerMCP_PublishesConfigChanged(t *testing.T) {
 // drainEvents reads from evc until quiet for the given window. Used
 // to flush events emitted by setup steps so the assertion can target
 // the event from the action under test.
-func drainEvents(evc <-chan pubsub.Event[tea.Msg], quiet time.Duration) {
+func drainEvents(evc <-chan pubsub.Event[bubble.Msg], quiet time.Duration) {
 	for {
 		select {
 		case <-evc:

@@ -9,9 +9,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ChxisB/spectre-proxy/internal/db"
-	"github.com/ChxisB/spectre-proxy/internal/event"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
+	"github.com/ChxisB/talon/internal/db"
+	"github.com/ChxisB/talon/internal/event"
+	"github.com/ChxisB/talon/internal/pubsub"
 	"github.com/google/uuid"
 	"github.com/zeebo/xxh3"
 )

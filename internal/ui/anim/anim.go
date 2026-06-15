@@ -11,11 +11,11 @@ import (
 
 	"github.com/zeebo/xxh3"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
 	"github.com/lucasb-eyer/go-colorful"
 
-	"github.com/ChxisB/spectre-proxy/internal/csync"
+	"github.com/ChxisB/talon/internal/csync"
 )
 
 const (
@@ -162,12 +162,12 @@ func New(opts Settings) *Anim {
 		a.cyclingFrames = cached.cyclingFrames
 	} else {
 		// Generate new values and cache them
-		a.labelWidth = lipgloss.Width(opts.Label)
+		a.labelWidth = style.Width(opts.Label)
 
 		// Total width of anim, in cells.
 		a.width = opts.Size
 		if opts.Label != "" {
-			a.width += labelGapWidth + lipgloss.Width(opts.Label)
+			a.width += labelGapWidth + style.Width(opts.Label)
 		}
 
 		// Render the label
@@ -202,7 +202,7 @@ func New(opts Settings) *Anim {
 
 				// Also prerender the initial character with Lip Gloss to avoid
 				// processing in the render loop.
-				a.initialFrames[i][j] = lipgloss.NewStyle().
+				a.initialFrames[i][j] = style.NewStyle().
 					Foreground(c).
 					Render(string(initialChar))
 			}
@@ -230,7 +230,7 @@ func New(opts Settings) *Anim {
 				// Also prerender the color with Lip Gloss here to avoid processing
 				// in the render loop.
 				r := availableRunes[rng.IntN(len(availableRunes))]
-				a.cyclingFrames[i][j] = lipgloss.NewStyle().
+				a.cyclingFrames[i][j] = style.NewStyle().
 					Foreground(ramp[j+offset]).
 					Render(string(r))
 			}
@@ -280,7 +280,7 @@ func New(opts Settings) *Anim {
 
 // SetLabel updates the label text and re-renders it.
 func (a *Anim) SetLabel(newLabel string) {
-	a.labelWidth = lipgloss.Width(newLabel)
+	a.labelWidth = style.Width(newLabel)
 
 	// Update total width
 	a.width = a.cyclingCharWidth
@@ -299,7 +299,7 @@ func (a *Anim) renderLabel(label string) {
 		labelRunes := []rune(label)
 		a.label = csync.NewSlice[string]()
 		for i := range labelRunes {
-			rendered := lipgloss.NewStyle().
+			rendered := style.NewStyle().
 				Foreground(a.labelColor).
 				Render(string(labelRunes[i]))
 			a.label.Append(rendered)
@@ -308,7 +308,7 @@ func (a *Anim) renderLabel(label string) {
 		// Pre-render the ellipsis frames which come after the label.
 		a.ellipsisFrames = csync.NewSlice[string]()
 		for _, frame := range ellipsisFrames {
-			rendered := lipgloss.NewStyle().
+			rendered := style.NewStyle().
 				Foreground(a.labelColor).
 				Render(frame)
 			a.ellipsisFrames.Append(rendered)
@@ -327,7 +327,7 @@ func (a *Anim) Width() (w int) {
 
 		var widestEllipsisFrame int
 		for _, f := range ellipsisFrames {
-			fw := lipgloss.Width(f)
+			fw := style.Width(f)
 			if fw > widestEllipsisFrame {
 				widestEllipsisFrame = fw
 			}
@@ -338,12 +338,12 @@ func (a *Anim) Width() (w int) {
 }
 
 // Start starts the animation.
-func (a *Anim) Start() tea.Cmd {
+func (a *Anim) Start() bubble.Cmd {
 	return a.Step()
 }
 
 // Animate advances the animation to the next step.
-func (a *Anim) Animate(msg StepMsg) tea.Cmd {
+func (a *Anim) Animate(msg StepMsg) bubble.Cmd {
 	if msg.ID != a.id {
 		return nil
 	}
@@ -402,8 +402,8 @@ func (a *Anim) Render() string {
 }
 
 // Step is a command that triggers the next step in the animation.
-func (a *Anim) Step() tea.Cmd {
-	return tea.Tick(time.Second/time.Duration(fps), func(t time.Time) tea.Msg {
+func (a *Anim) Step() bubble.Cmd {
+	return bubble.Tick(time.Second/time.Duration(fps), func(t time.Time) bubble.Msg {
 		return StepMsg{ID: a.id}
 	})
 }

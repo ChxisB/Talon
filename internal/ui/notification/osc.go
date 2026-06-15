@@ -6,12 +6,12 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
+	"github.com/ChxisB/talon/deps/util/ansi"
 
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
 )
 
-const osc99QueryID = "spectre-osc99-query"
+const osc99QueryID = "talon-osc99-query"
 
 // DetectOSC99Support parses an OSC response sequence and returns true if it
 // indicates OSC 99 notification support. This function should be called from
@@ -94,24 +94,24 @@ func NewOSCBackend(icon []byte, supports99 bool) *OSCBackend {
 	}
 }
 
-// Send returns a [tea.Cmd] that writes OSC escape sequences to the terminal.
+// Send returns a [bubble.Cmd] that writes OSC escape sequences to the terminal.
 // Uses OSC 99 if supported, otherwise OSC 777.
-func (b *OSCBackend) Send(n Notification) tea.Cmd {
+func (b *OSCBackend) Send(n Notification) bubble.Cmd {
 	if b.supports99 {
 		return b.sendOSC99(n)
 	}
 	return b.sendOSC777(n)
 }
 
-func (b *OSCBackend) sendOSC99(n Notification) tea.Cmd {
+func (b *OSCBackend) sendOSC99(n Notification) bubble.Cmd {
 	slog.Debug("Sending OSC 99 notification", "title", n.Title, "message", n.Message)
 
 	var sb strings.Builder
 	b.notifySeq++
-	id := fmt.Sprintf("spectre-%d", b.notifySeq)
+	id := fmt.Sprintf("talon-%d", b.notifySeq)
 
-	appName := "Spectre"
-	notificationType := "spectre-notification"
+	appName := "Talon"
+	notificationType := "talon-notification"
 
 	sb.WriteString(ansi.DesktopNotification(n.Title, "i="+id, "d=0", "p=title", "a="+appName, "t="+notificationType))
 	if n.Message != "" {
@@ -125,11 +125,11 @@ func (b *OSCBackend) sendOSC99(n Notification) tea.Cmd {
 
 	sb.WriteString(ansi.DesktopNotification("", "i="+id, "d=1", "a="+appName, "t="+notificationType))
 
-	return tea.Raw(sb.String())
+	return bubble.Raw(sb.String())
 }
 
-func (b *OSCBackend) sendOSC777(n Notification) tea.Cmd {
+func (b *OSCBackend) sendOSC777(n Notification) bubble.Cmd {
 	slog.Debug("Sending OSC 777 notification", "title", n.Title, "message", n.Message)
 
-	return tea.Raw(ansi.URxvtExt("notify", n.Title, n.Message))
+	return bubble.Raw(ansi.URxvtExt("notify", n.Title, n.Message))
 }

@@ -9,8 +9,8 @@ import (
 	"strings"
 	"sync"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/internal/lsp"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/internal/lsp"
 )
 
 const LSPRestartToolName = "lsp_restart"
@@ -24,13 +24,13 @@ type LSPRestartParams struct {
 	Name string `json:"name,omitempty"`
 }
 
-func NewLSPRestartTool(lspManager *lsp.Manager) fantasy.AgentTool {
-	return fantasy.NewAgentTool(
+func NewLSPRestartTool(lspManager *lsp.Manager) llm.AgentTool {
+	return llm.NewAgentTool(
 		LSPRestartToolName,
 		lspRestartDescription,
-		func(ctx context.Context, params LSPRestartParams, call fantasy.ToolCall) (fantasy.ToolResponse, error) {
+		func(ctx context.Context, params LSPRestartParams, call llm.ToolCall) (llm.ToolResponse, error) {
 			if lspManager.Clients().Len() == 0 {
-				return fantasy.NewTextErrorResponse("no LSP clients available to restart"), nil
+				return llm.NewTextErrorResponse("no LSP clients available to restart"), nil
 			}
 
 			clientsToRestart := make(map[string]*lsp.Client)
@@ -39,7 +39,7 @@ func NewLSPRestartTool(lspManager *lsp.Manager) fantasy.AgentTool {
 			} else {
 				client, exists := lspManager.Clients().Get(params.Name)
 				if !exists {
-					return fantasy.NewTextErrorResponse(fmt.Sprintf("LSP client '%s' not found", params.Name)), nil
+					return llm.NewTextErrorResponse(fmt.Sprintf("LSP client '%s' not found", params.Name)), nil
 				}
 				clientsToRestart[params.Name] = client
 			}
@@ -71,10 +71,10 @@ func NewLSPRestartTool(lspManager *lsp.Manager) fantasy.AgentTool {
 			}
 			if len(failed) > 0 {
 				output += fmt.Sprintf("Failed to restart %d LSP client(s): %s\n", len(failed), strings.Join(failed, ", "))
-				return fantasy.NewTextErrorResponse(output), nil
+				return llm.NewTextErrorResponse(output), nil
 			}
 
-			return fantasy.NewTextResponse(output), nil
+			return llm.NewTextResponse(output), nil
 		},
 	)
 }

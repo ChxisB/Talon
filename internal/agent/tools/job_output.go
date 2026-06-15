@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/internal/shell"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/internal/shell"
 )
 
 const (
@@ -30,19 +30,19 @@ type JobOutputResponseMetadata struct {
 	WorkingDirectory string `json:"working_directory"`
 }
 
-func NewJobOutputTool() fantasy.AgentTool {
-	return fantasy.NewAgentTool(
+func NewJobOutputTool() llm.AgentTool {
+	return llm.NewAgentTool(
 		JobOutputToolName,
 		jobOutputDescription,
-		func(ctx context.Context, params JobOutputParams, call fantasy.ToolCall) (fantasy.ToolResponse, error) {
+		func(ctx context.Context, params JobOutputParams, call llm.ToolCall) (llm.ToolResponse, error) {
 			if params.ShellID == "" {
-				return fantasy.NewTextErrorResponse("missing shell_id"), nil
+				return llm.NewTextErrorResponse("missing shell_id"), nil
 			}
 
 			bgManager := shell.GetBackgroundShellManager()
 			bgShell, ok := bgManager.Get(params.ShellID)
 			if !ok {
-				return fantasy.NewTextErrorResponse(fmt.Sprintf("background shell not found: %s", params.ShellID)), nil
+				return llm.NewTextErrorResponse(fmt.Sprintf("background shell not found: %s", params.ShellID)), nil
 			}
 
 			if params.Wait {
@@ -86,7 +86,7 @@ func NewJobOutputTool() fantasy.AgentTool {
 			}
 
 			result := fmt.Sprintf("Status: %s\n\n%s", status, output)
-			return fantasy.WithResponseMetadata(fantasy.NewTextResponse(result), metadata), nil
+			return llm.WithResponseMetadata(llm.NewTextResponse(result), metadata), nil
 		},
 	)
 }

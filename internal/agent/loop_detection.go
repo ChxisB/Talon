@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"io"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
+	llm "github.com/ChxisB/talon/deps/llm"
 )
 
 const (
@@ -16,7 +16,7 @@ const (
 // hasRepeatedToolCalls checks whether the agent is stuck in a loop by looking
 // at recent steps. It examines the last windowSize steps and returns true if
 // any tool-call signature appears more than maxRepeats times.
-func hasRepeatedToolCalls(steps []fantasy.StepResult, windowSize, maxRepeats int) bool {
+func hasRepeatedToolCalls(steps []llm.StepResult, windowSize, maxRepeats int) bool {
 	if len(steps) < windowSize {
 		return false
 	}
@@ -42,14 +42,14 @@ func hasRepeatedToolCalls(steps []fantasy.StepResult, windowSize, maxRepeats int
 // interactions in a single step's content. It pairs tool calls with their
 // results (matched by ToolCallID) and returns a hex-encoded SHA-256 hash.
 // If the step contains no tool calls, it returns "".
-func getToolInteractionSignature(content fantasy.ResponseContent) string {
+func getToolInteractionSignature(content llm.ResponseContent) string {
 	toolCalls := content.ToolCalls()
 	if len(toolCalls) == 0 {
 		return ""
 	}
 
 	// Index tool results by their ToolCallID for fast lookup.
-	resultsByID := make(map[string]fantasy.ToolResultContent)
+	resultsByID := make(map[string]llm.ToolResultContent)
 	for _, tr := range content.ToolResults() {
 		resultsByID[tr.ToolCallID] = tr
 	}
@@ -72,20 +72,20 @@ func getToolInteractionSignature(content fantasy.ResponseContent) string {
 
 // toolResultOutputString converts a ToolResultOutputContent to a stable string
 // representation for signature comparison.
-func toolResultOutputString(result fantasy.ToolResultOutputContent) string {
+func toolResultOutputString(result llm.ToolResultOutputContent) string {
 	if result == nil {
 		return ""
 	}
-	if text, ok := fantasy.AsToolResultOutputType[fantasy.ToolResultOutputContentText](result); ok {
+	if text, ok := llm.AsToolResultOutputType[llm.ToolResultOutputContentText](result); ok {
 		return text.Text
 	}
-	if errResult, ok := fantasy.AsToolResultOutputType[fantasy.ToolResultOutputContentError](result); ok {
+	if errResult, ok := llm.AsToolResultOutputType[llm.ToolResultOutputContentError](result); ok {
 		if errResult.Error != nil {
 			return errResult.Error.Error()
 		}
 		return ""
 	}
-	if media, ok := fantasy.AsToolResultOutputType[fantasy.ToolResultOutputContentMedia](result); ok {
+	if media, ok := llm.AsToolResultOutputType[llm.ToolResultOutputContentMedia](result); ok {
 		return media.Data
 	}
 	return ""

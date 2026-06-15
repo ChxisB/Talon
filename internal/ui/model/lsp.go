@@ -6,12 +6,12 @@ import (
 	"slices"
 	"strings"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/powernap/pkg/lsp/protocol"
-	"github.com/ChxisB/spectre-proxy/internal/app"
-	"github.com/ChxisB/spectre-proxy/internal/lsp"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	"github.com/ChxisB/talon/deps/util/powernap/pkg/lsp/protocol"
+	"github.com/ChxisB/talon/internal/app"
+	"github.com/ChxisB/talon/internal/lsp"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/ui/styles"
 )
 
 // LSPInfo wraps LSP client information with diagnostic counts by severity.
@@ -45,12 +45,13 @@ func (m *UI) lspInfo(width, maxItems int, isSection bool) string {
 	if isSection {
 		title = common.Section(t, title, width)
 	}
-	list := t.Resource.AdditionalText.Render("None")
-	if len(lsps) > 0 {
-		list = lspList(t, lsps, width, maxItems)
+	if len(lsps) == 0 {
+		return ""
 	}
 
-	return lipgloss.NewStyle().Width(width).Render(fmt.Sprintf("%s\n\n%s", title, list))
+	list := lspList(t, lsps, width, maxItems)
+
+	return style.NewStyle().Width(width).Render(fmt.Sprintf("%s\n\n%s", title, list))
 }
 
 // lspDiagnostics formats diagnostic counts with appropriate icons and colors.
@@ -120,7 +121,7 @@ func lspList(t *styles.Styles, lsps []LSPInfo, width, maxItems int) string {
 		visibleItems := renderedLsps[:maxItems-1]
 		remaining := len(renderedLsps) - maxItems
 		visibleItems = append(visibleItems, t.Resource.AdditionalText.Render(fmt.Sprintf("…and %d more", remaining)))
-		return lipgloss.JoinVertical(lipgloss.Left, visibleItems...)
+		return style.JoinVertical(style.Left, visibleItems...)
 	}
-	return lipgloss.JoinVertical(lipgloss.Left, renderedLsps...)
+	return style.JoinVertical(style.Left, renderedLsps...)
 }

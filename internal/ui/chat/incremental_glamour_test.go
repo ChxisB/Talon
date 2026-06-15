@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	glamour "github.com/ChxisB/spectre-proxy/deps/render/v2"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	glamour "github.com/ChxisB/talon/deps/render/v2"
+	"github.com/ChxisB/talon/internal/ui/styles"
 	"github.com/stretchr/testify/require"
 )
 

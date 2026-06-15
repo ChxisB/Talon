@@ -6,12 +6,12 @@ import (
 	"sort"
 	"strings"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	styletable "github.com/ChxisB/spectre-proxy/deps/style/v2/table"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/stringext"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	styletable "github.com/ChxisB/talon/deps/style/v2/table"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/stringext"
+	"github.com/ChxisB/talon/internal/ui/styles"
 )
 
 // DockerMCPToolMessageItem is a message item that represents a Docker MCP tool call.
@@ -194,15 +194,15 @@ func (d *DockerMCPToolRenderContext) renderMCPServers(sty *styles.Styles, opts *
 		BorderLeft(false).
 		BorderColumn(false).
 		BorderRow(false).
-		StyleFunc(func(row, col int) lipgloss.Style {
+		StyleFunc(func(row, col int) style.Style {
 			if row == styletable.HeaderRow {
-				return lipgloss.NewStyle()
+				return style.NewStyle()
 			}
 			switch col {
 			case 0:
-				return lipgloss.NewStyle().PaddingRight(1)
+				return style.NewStyle().PaddingRight(1)
 			}
-			return lipgloss.NewStyle()
+			return style.NewStyle()
 		}).Rows(rows...).Width(bodyWidth)
 	if moreServers != "" {
 		return sty.Tool.Body.Render(serverTable.Render() + "\n" + moreServers)
@@ -220,7 +220,7 @@ func (d *DockerMCPToolRenderContext) makeHeader(sty *styles.Styles, tool string,
 		icon = sty.Tool.IconPending.Render()
 	}
 	prefix := fmt.Sprintf("%s %s ", icon, d.formatToolName(sty, tool))
-	return prefix + toolParamList(sty, params, width-lipgloss.Width(prefix))
+	return prefix + toolParamList(sty, params, width-style.Width(prefix))
 }
 
 func (d *DockerMCPToolRenderContext) formatToolName(sty *styles.Styles, tool string) string {

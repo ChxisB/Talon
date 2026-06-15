@@ -7,37 +7,37 @@ import (
 	"slices"
 	"strings"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/internal/agent/tools/mcp"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/lsp"
-	"github.com/ChxisB/spectre-proxy/internal/skills"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/internal/agent/tools/mcp"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/lsp"
+	"github.com/ChxisB/talon/internal/skills"
 )
 
-const SpectreInfoToolName = "spectre_info"
+const TalonInfoToolName = "talon_info"
 
-//go:embed spectre_info.md
-var spectreInfoDescription string
+//go:embed talon_info.md
+var talonInfoDescription string
 
-type SpectreInfoParams struct{}
+type TalonInfoParams struct{}
 
-func NewSpectreInfoTool(
+func NewTalonInfoTool(
 	cfg *config.ConfigStore,
 	lspManager *lsp.Manager,
 	allSkills []*skills.Skill,
 	activeSkills []*skills.Skill,
 	skillTracker *skills.Tracker,
-) fantasy.AgentTool {
-	return fantasy.NewAgentTool(
-		SpectreInfoToolName,
-		spectreInfoDescription,
-		func(ctx context.Context, _ SpectreInfoParams, _ fantasy.ToolCall) (fantasy.ToolResponse, error) {
-			return fantasy.NewTextResponse(buildSpectreInfo(cfg, lspManager, allSkills, activeSkills, skillTracker)), nil
+) llm.AgentTool {
+	return llm.NewAgentTool(
+		TalonInfoToolName,
+		talonInfoDescription,
+		func(ctx context.Context, _ TalonInfoParams, _ llm.ToolCall) (llm.ToolResponse, error) {
+			return llm.NewTextResponse(buildTalonInfo(cfg, lspManager, allSkills, activeSkills, skillTracker)), nil
 		},
 	)
 }
 
-func buildSpectreInfo(cfg *config.ConfigStore, lspManager *lsp.Manager, allSkills []*skills.Skill, activeSkills []*skills.Skill, skillTracker *skills.Tracker) string {
+func buildTalonInfo(cfg *config.ConfigStore, lspManager *lsp.Manager, allSkills []*skills.Skill, activeSkills []*skills.Skill, skillTracker *skills.Tracker) string {
 	var b strings.Builder
 
 	writeConfigFiles(&b, cfg)
