@@ -3,7 +3,7 @@ package list
 import (
 	"strings"
 
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
+	"github.com/ChxisB/talon/deps/util/ansi"
 )
 
 // Item represents a single item in the lazy-loaded list.

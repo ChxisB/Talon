@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"slices"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	uv "github.com/ChxisB/spectre-proxy/deps/terminal"
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/help"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/key"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/textinput"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/ui/util"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	term "github.com/ChxisB/talon/deps/terminal"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	"github.com/ChxisB/talon/deps/ui/core/v2/help"
+	"github.com/ChxisB/talon/deps/ui/core/v2/key"
+	"github.com/ChxisB/talon/deps/ui/core/v2/textinput"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/ui/util"
 )
 
 // ModelType represents the type of model to select.
@@ -162,9 +162,9 @@ func (m *Models) ID() string {
 }
 
 // HandleMsg implements Dialog.
-func (m *Models) HandleMsg(msg tea.Msg) Action {
+func (m *Models) HandleMsg(msg bubble.Msg) Action {
 	switch msg := msg.(type) {
-	case tea.KeyPressMsg:
+	case bubble.KeyPressMsg:
 		switch {
 		case key.Matches(msg, m.keyMap.Close):
 			return ActionClose{}
@@ -216,7 +216,7 @@ func (m *Models) HandleMsg(msg tea.Msg) Action {
 				return util.ReportError(err)
 			}
 		default:
-			var cmd tea.Cmd
+			var cmd bubble.Cmd
 			m.input, cmd = m.input.Update(msg)
 			value := m.input.Value()
 			m.list.Focus()
@@ -230,7 +230,7 @@ func (m *Models) HandleMsg(msg tea.Msg) Action {
 }
 
 // Cursor returns the cursor for the dialog.
-func (m *Models) Cursor() *tea.Cursor {
+func (m *Models) Cursor() *bubble.Cursor {
 	return InputCursor(m.com.Styles, m.input.Cursor())
 }
 
@@ -255,7 +255,7 @@ func (m *Models) modelTypeRadioView() string {
 }
 
 // Draw implements [Dialog].
-func (m *Models) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
+func (m *Models) Draw(scr term.Screen, area term.Rectangle) *bubble.Cursor {
 	t := m.com.Styles
 	width := max(0, min(defaultModelsDialogMaxWidth, area.Dx()-t.Dialog.View.GetHorizontalBorderSize()))
 	height := max(0, min(defaultDialogHeight, area.Dy()-t.Dialog.View.GetVerticalBorderSize()))
@@ -289,7 +289,7 @@ func (m *Models) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 	listView := t.Dialog.List.Height(m.list.Height()).Render(m.list.Render())
 	scrollbar := common.Scrollbar(t, listHeight, listTotalHeight, listHeight+1, m.list.Offset())
 	if scrollbar != "" {
-		listView = lipgloss.JoinHorizontal(lipgloss.Top, listView, scrollbar)
+		listView = style.JoinHorizontal(style.Top, listView, scrollbar)
 	}
 	rc.AddPart(listView)
 

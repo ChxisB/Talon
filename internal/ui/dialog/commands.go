@@ -4,17 +4,17 @@ import (
 	"os"
 	"strings"
 
-	uv "github.com/ChxisB/spectre-proxy/deps/terminal"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/help"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/key"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/spinner"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/textinput"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/internal/commands"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/ui/list"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	term "github.com/ChxisB/talon/deps/terminal"
+	"github.com/ChxisB/talon/deps/ui/core/v2/help"
+	"github.com/ChxisB/talon/deps/ui/core/v2/key"
+	"github.com/ChxisB/talon/deps/ui/core/v2/spinner"
+	"github.com/ChxisB/talon/deps/ui/core/v2/textinput"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/internal/commands"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/ui/list"
+	"github.com/ChxisB/talon/internal/ui/styles"
 )
 
 // CommandsID is the identifier for the commands dialog.
@@ -154,7 +154,7 @@ func (c *Commands) ID() string {
 }
 
 // HandleMsg implements [Dialog].
-func (c *Commands) HandleMsg(msg tea.Msg) Action {
+func (c *Commands) HandleMsg(msg bubble.Msg) Action {
 	switch msg := msg.(type) {
 	case dockerMCPAvailabilityCheckedMsg:
 		c.dockerMCPAvailable = &msg.available
@@ -165,11 +165,11 @@ func (c *Commands) HandleMsg(msg tea.Msg) Action {
 		return nil
 	case spinner.TickMsg:
 		if c.loading {
-			var cmd tea.Cmd
+			var cmd bubble.Cmd
 			c.spinner, cmd = c.spinner.Update(msg)
 			return ActionCmd{Cmd: cmd}
 		}
-	case tea.KeyPressMsg:
+	case bubble.KeyPressMsg:
 		switch {
 		case key.Matches(msg, c.keyMap.Close):
 			return ActionClose{}
@@ -206,7 +206,7 @@ func (c *Commands) HandleMsg(msg tea.Msg) Action {
 				c.setCommandItems(c.selected)
 			}
 		default:
-			var cmd tea.Cmd
+			var cmd bubble.Cmd
 			for _, item := range c.list.FilteredItems() {
 				if item, ok := item.(*CommandItem); ok && item != nil {
 					if msg.String() == item.Shortcut() {
@@ -225,13 +225,13 @@ func (c *Commands) HandleMsg(msg tea.Msg) Action {
 	return nil
 }
 
-func checkDockerMCPAvailabilityCmd() tea.Cmd {
-	return func() tea.Msg {
+func checkDockerMCPAvailabilityCmd() bubble.Cmd {
+	return func() bubble.Msg {
 		return dockerMCPAvailabilityCheckedMsg{available: config.RefreshDockerMCPAvailability()}
 	}
 }
 
-func (c *Commands) InitialCmd() tea.Cmd {
+func (c *Commands) InitialCmd() bubble.Cmd {
 	if c.dockerMCPAvailable != nil || c.dockerMCPCheckInFlight {
 		return nil
 	}
@@ -240,7 +240,7 @@ func (c *Commands) InitialCmd() tea.Cmd {
 }
 
 // Cursor returns the cursor position relative to the dialog.
-func (c *Commands) Cursor() *tea.Cursor {
+func (c *Commands) Cursor() *bubble.Cursor {
 	return InputCursor(c.com.Styles, c.input.Cursor())
 }
 
@@ -272,7 +272,7 @@ func commandsRadioView(sty *styles.Styles, selected CommandType, hasUserCmds boo
 }
 
 // Draw implements [Dialog].
-func (c *Commands) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
+func (c *Commands) Draw(scr term.Screen, area term.Rectangle) *bubble.Cursor {
 	t := c.com.Styles
 	width := max(0, min(defaultDialogMaxWidth, area.Dx()-t.Dialog.View.GetHorizontalBorderSize()))
 	height := max(0, min(defaultDialogHeight, area.Dy()-t.Dialog.View.GetVerticalBorderSize()))
@@ -481,7 +481,7 @@ func (c *Commands) defaultCommands() []*CommandItem {
 
 	// Add external editor command if $EDITOR is available.
 	//
-	// TODO: Use [tea.EnvMsg] to get environment variable instead of os.Getenv;
+	// TODO: Use [bubble.EnvMsg] to get environment variable instead of os.Getenv;
 	// because os.Getenv does IO is breaks the TEA paradigm and is generally an
 	// antipattern.
 	if os.Getenv("EDITOR") != "" {
@@ -531,7 +531,7 @@ func (c *Commands) defaultCommands() []*CommandItem {
 
 	commands = append(
 		commands,
-		NewCommandItem(c.com.Styles, "quit", "Quit", "ctrl+c", tea.QuitMsg{}).WithAliases("exit"),
+		NewCommandItem(c.com.Styles, "quit", "Quit", "ctrl+c", bubble.QuitMsg{}).WithAliases("exit"),
 	)
 
 	return commands
@@ -554,7 +554,7 @@ func (c *Commands) SetMCPPrompts(mcpPrompts []commands.MCPPrompt) {
 }
 
 // StartLoading implements [LoadingDialog].
-func (a *Commands) StartLoading() tea.Cmd {
+func (a *Commands) StartLoading() bubble.Cmd {
 	if a.loading {
 		return nil
 	}

@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/deps/util/powernap/pkg/lsp/protocol"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/csync"
-	"github.com/ChxisB/spectre-proxy/internal/env"
+	"github.com/ChxisB/talon/deps/util/powernap/pkg/lsp/protocol"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/csync"
+	"github.com/ChxisB/talon/internal/env"
 	"github.com/stretchr/testify/require"
 )
 

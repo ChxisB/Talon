@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	"github.com/ChxisB/spectre-proxy/internal/csync"
-	"github.com/ChxisB/spectre-proxy/internal/env"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	"github.com/ChxisB/talon/internal/csync"
+	"github.com/ChxisB/talon/internal/env"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -42,15 +42,15 @@ func TestLookupConfigs_BoundedByProject(t *testing.T) {
 	// control so they can be present in the result without polluting
 	// the developer's real config.
 	globalDir := t.TempDir()
-	t.Setenv("SPECTRE_GLOBAL_CONFIG", globalDir)
-	t.Setenv("SPECTRE_GLOBAL_DATA", globalDir)
+	t.Setenv("TALON_GLOBAL_CONFIG", globalDir)
+	t.Setenv("TALON_GLOBAL_DATA", globalDir)
 
-	t.Run("does not pick up spectre.json above non-git project", func(t *testing.T) {
+	t.Run("does not pick up talon.json above non-git project", func(t *testing.T) {
 		parent := t.TempDir()
 
-		// spectre.json above the project must not be adopted.
+		// talon.json above the project must not be adopted.
 		require.NoError(t, os.WriteFile(
-			filepath.Join(parent, "spectre.json"),
+			filepath.Join(parent, "talon.json"),
 			[]byte(`{}`),
 			0o644,
 		))
@@ -60,11 +60,11 @@ func TestLookupConfigs_BoundedByProject(t *testing.T) {
 
 		got := lookupConfigs(project)
 		for _, p := range got {
-			require.NotEqual(t, filepath.Join(parent, "spectre.json"), p)
+			require.NotEqual(t, filepath.Join(parent, "talon.json"), p)
 		}
 	})
 
-	t.Run("does not climb out of git worktree to find spectre.json", func(t *testing.T) {
+	t.Run("does not climb out of git worktree to find talon.json", func(t *testing.T) {
 		if _, err := exec.LookPath("git"); err != nil {
 			t.Skip("git not available")
 		}
@@ -72,7 +72,7 @@ func TestLookupConfigs_BoundedByProject(t *testing.T) {
 		parent := t.TempDir()
 
 		require.NoError(t, os.WriteFile(
-			filepath.Join(parent, "spectre.json"),
+			filepath.Join(parent, "talon.json"),
 			[]byte(`{}`),
 			0o644,
 		))
@@ -84,20 +84,20 @@ func TestLookupConfigs_BoundedByProject(t *testing.T) {
 		require.NoError(t, gitInit.Run())
 
 		got := lookupConfigs(worktree)
-		strayEval, err := filepath.EvalSymlinks(filepath.Join(parent, "spectre.json"))
+		strayEval, err := filepath.EvalSymlinks(filepath.Join(parent, "talon.json"))
 		require.NoError(t, err)
 		for _, p := range got {
 			pEval, err := filepath.EvalSymlinks(p)
 			if err != nil {
 				continue
 			}
-			require.NotEqual(t, strayEval, pEval, "must not adopt parent spectre.json")
+			require.NotEqual(t, strayEval, pEval, "must not adopt parent talon.json")
 		}
 	})
 
-	t.Run("picks up spectre.json inside the project", func(t *testing.T) {
+	t.Run("picks up talon.json inside the project", func(t *testing.T) {
 		project := t.TempDir()
-		local := filepath.Join(project, "spectre.json")
+		local := filepath.Join(project, "talon.json")
 		require.NoError(t, os.WriteFile(local, []byte(`{}`), 0o644))
 
 		got := lookupConfigs(project)
@@ -115,7 +115,7 @@ func TestLookupConfigs_BoundedByProject(t *testing.T) {
 				break
 			}
 		}
-		require.True(t, foundLocal, "expected project spectre.json to be in lookup result: %v", got)
+		require.True(t, foundLocal, "expected project talon.json to be in lookup result: %v", got)
 	})
 
 	t.Run("global config is always included regardless of boundary", func(t *testing.T) {
@@ -180,7 +180,7 @@ func TestConfig_setDefaults(t *testing.T) {
 		require.NotNil(t, cfg.Models)
 		require.NotNil(t, cfg.LSP)
 		require.NotNil(t, cfg.MCP)
-		require.Equal(t, filepath.Join(workingDir, ".spectre"), cfg.Options.DataDirectory)
+		require.Equal(t, filepath.Join(workingDir, ".talon"), cfg.Options.DataDirectory)
 		require.Equal(t, "AGENTS.md", cfg.Options.InitializeAs)
 		for _, path := range defaultContextPaths {
 			require.Contains(t, cfg.Options.ContextPaths, path)
@@ -235,10 +235,10 @@ func TestConfig_setDefaults(t *testing.T) {
 		require.Equal(t, filepath.Join(workingDir, "state"), cfg.Options.DataDirectory)
 	})
 
-	t.Run("does not adopt .spectre from a parent project", func(t *testing.T) {
+	t.Run("does not adopt .talon from a parent project", func(t *testing.T) {
 		parent := t.TempDir()
 
-		// .spectre in the parent: it should not be reused by the child
+		// .talon in the parent: it should not be reused by the child
 		// because there is no git context joining them.
 		require.NoError(t, os.Mkdir(filepath.Join(parent, defaultDataDirectory), 0o755))
 
@@ -255,14 +255,14 @@ func TestConfig_setDefaults(t *testing.T) {
 		)
 	})
 
-	t.Run("does not climb out of git worktree to find .spectre", func(t *testing.T) {
+	t.Run("does not climb out of git worktree to find .talon", func(t *testing.T) {
 		if _, err := exec.LookPath("git"); err != nil {
 			t.Skip("git not available")
 		}
 
 		parent := t.TempDir()
 
-		// Stray .spectre above the worktree root.
+		// Stray .talon above the worktree root.
 		require.NoError(t, os.Mkdir(filepath.Join(parent, defaultDataDirectory), 0o755))
 
 		worktree := filepath.Join(parent, "worktree")
@@ -291,7 +291,7 @@ func TestConfig_setDefaults(t *testing.T) {
 
 		strayEval, err := filepath.EvalSymlinks(filepath.Join(parent, defaultDataDirectory))
 		require.NoError(t, err)
-		require.NotEqual(t, strayEval, gotEval, "must not adopt parent .spectre")
+		require.NotEqual(t, strayEval, gotEval, "must not adopt parent .talon")
 
 		subEval, err := filepath.EvalSymlinks(sub)
 		require.NoError(t, err)
@@ -706,7 +706,7 @@ func TestConfig_setupAgentsWithDisabledTools(t *testing.T) {
 	coderAgent, ok := cfg.Agents[AgentCoder]
 	require.True(t, ok)
 
-	assert.Equal(t, []string{"agent", "analyze_image", "bash", "spectre_info", "spectre_logs", "job_output", "job_kill", "multiedit", "lsp_diagnostics", "lsp_references", "lsp_restart", "fetch", "agentic_fetch", "glob", "ls", "screenshot", "sourcegraph", "todos", "view", "write", "list_mcp_resources", "read_mcp_resource"}, coderAgent.AllowedTools)
+	assert.Equal(t, []string{"agent", "analyze_image", "bash", "talon_info", "talon_logs", "job_output", "job_kill", "multiedit", "lsp_diagnostics", "lsp_references", "lsp_restart", "fetch", "agentic_fetch", "glob", "ls", "screenshot", "sourcegraph", "todos", "view", "write", "list_mcp_resources", "read_mcp_resource"}, coderAgent.AllowedTools)
 
 	taskAgent, ok := cfg.Agents[AgentTask]
 	require.True(t, ok)
@@ -729,7 +729,7 @@ func TestConfig_setupAgentsWithEveryReadOnlyToolDisabled(t *testing.T) {
 	cfg.SetupAgents()
 	coderAgent, ok := cfg.Agents[AgentCoder]
 	require.True(t, ok)
-	assert.Equal(t, []string{"agent", "analyze_image", "bash", "spectre_info", "spectre_logs", "job_output", "job_kill", "download", "edit", "multiedit", "lsp_diagnostics", "lsp_references", "lsp_restart", "fetch", "agentic_fetch", "screenshot", "todos", "write", "list_mcp_resources", "read_mcp_resource"}, coderAgent.AllowedTools)
+	assert.Equal(t, []string{"agent", "analyze_image", "bash", "talon_info", "talon_logs", "job_output", "job_kill", "download", "edit", "multiedit", "lsp_diagnostics", "lsp_references", "lsp_restart", "fetch", "agentic_fetch", "screenshot", "todos", "write", "list_mcp_resources", "read_mcp_resource"}, coderAgent.AllowedTools)
 
 	taskAgent, ok := cfg.Agents[AgentTask]
 	require.True(t, ok)
@@ -1505,7 +1505,7 @@ func TestConfig_configureProvidersDisableDefaultProviders(t *testing.T) {
 
 func TestConfig_setDefaultsDisableDefaultProvidersEnvVar(t *testing.T) {
 	t.Run("sets option from environment variable", func(t *testing.T) {
-		t.Setenv("SPECTRE_DISABLE_DEFAULT_PROVIDERS", "true")
+		t.Setenv("TALON_DISABLE_DEFAULT_PROVIDERS", "true")
 
 		cfg := &Config{}
 		cfg.setDefaults("/tmp", "")
@@ -1528,7 +1528,7 @@ func TestConfig_setDefaultsDisableDefaultProvidersEnvVar(t *testing.T) {
 func TestConfig_configureSelectedModels(t *testing.T) {
 	t.Run("reload mode should not persist fallback defaults", func(t *testing.T) {
 		dir := t.TempDir()
-		globalPath := filepath.Join(dir, "spectre.json")
+		globalPath := filepath.Join(dir, "talon.json")
 		require.NoError(t, os.WriteFile(globalPath, []byte(`{"models":{"large":{"provider":"ghost","model":"missing"}}}`), 0o600))
 
 		knownProviders := []catwalk.Provider{

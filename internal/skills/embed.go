@@ -9,7 +9,7 @@ import (
 
 // BuiltinPrefix is the path prefix for builtin skill files. It is used by
 // the View tool to distinguish embedded files from disk files.
-const BuiltinPrefix = "spectre://skills/"
+const BuiltinPrefix = "talon://skills/"
 
 //go:embed builtin/*
 var builtinFS embed.FS
@@ -54,9 +54,9 @@ func DiscoverBuiltinWithStates() ([]*Skill, []*SkillState) {
 			return nil
 		}
 
-		// Set paths using the spectre prefix. Strip the leading "builtin/"
+		// Set paths using the talon prefix. Strip the leading "builtin/"
 		// so the path is relative to the embedded root
-		// (e.g., "spectre://skills/spectre-config/SKILL.md").
+		// (e.g., "talon://skills/talon-config/SKILL.md").
 		relPath, _ := filepath.Rel("builtin", path)
 		relPath = filepath.ToSlash(relPath)
 		skill.SkillFilePath = BuiltinPrefix + relPath

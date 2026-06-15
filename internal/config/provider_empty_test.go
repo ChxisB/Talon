@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
 	"github.com/stretchr/testify/require"
 )
 

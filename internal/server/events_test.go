@@ -5,11 +5,11 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/internal/agent/notify"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/proto"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
-	"github.com/ChxisB/spectre-proxy/internal/skills"
+	"github.com/ChxisB/talon/internal/agent/notify"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/proto"
+	"github.com/ChxisB/talon/internal/pubsub"
+	"github.com/ChxisB/talon/internal/skills"
 	"github.com/stretchr/testify/require"
 )
 
@@ -88,7 +88,7 @@ func TestSkillsEventToProto_RoundTrip(t *testing.T) {
 // TestRunCompleteToProto_RoundTrip verifies that the authoritative
 // per-run completion event survives the SSE envelope conversion with
 // all reconciliation fields intact. SessionID, MessageID, and Text
-// are what non-interactive clients (e.g. `spectre run`) rely on to
+// are what non-interactive clients (e.g. `talon run`) rely on to
 // terminate the run loop and guarantee final text on stdout when
 // message events arrive out of order.
 func TestRunCompleteToProto_RoundTrip(t *testing.T) {
@@ -125,7 +125,7 @@ func TestRunCompleteToProto_RoundTrip(t *testing.T) {
 
 // TestAgentErrorToProto_PreservesRunID verifies that an async agent
 // error notification carries its originating RunID (and SessionID)
-// through the SSE envelope. Without these correlators, `spectre run`
+// through the SSE envelope. Without these correlators, `talon run`
 // cannot tell whether an error event belongs to its own run and
 // would abort on any unrelated workspace failure.
 func TestAgentErrorToProto_PreservesRunID(t *testing.T) {
@@ -157,7 +157,7 @@ func TestAgentErrorToProto_PreservesRunID(t *testing.T) {
 
 // TestRunCompleteToProto_Error verifies that error- and cancel-shaped
 // RunComplete events round-trip cleanly so clients can distinguish
-// "agent failed" (returns non-zero from `spectre run`) from "agent
+// "agent failed" (returns non-zero from `talon run`) from "agent
 // cancelled by user" (clean exit).
 func TestRunCompleteToProto_Error(t *testing.T) {
 	t.Parallel()

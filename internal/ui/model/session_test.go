@@ -4,9 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	"github.com/ChxisB/spectre-proxy/internal/history"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	"github.com/ChxisB/talon/internal/history"
+	"github.com/ChxisB/talon/internal/ui/styles"
 	"github.com/stretchr/testify/require"
 )
 
@@ -34,7 +34,7 @@ func TestFileList(t *testing.T) {
 		got := fileList(st, "/", files, 10, 10)
 		plain := stripANSI(got)
 		for _, line := range strings.Split(plain, "\n") {
-			require.LessOrEqual(t, lipgloss.Width(line), 10, "line exceeds sidebar width: %q", line)
+			require.LessOrEqual(t, style.Width(line), 10, "line exceeds sidebar width: %q", line)
 		}
 	})
 
@@ -50,7 +50,7 @@ func TestFileList(t *testing.T) {
 		require.Contains(t, plain, "+5")
 		require.Contains(t, plain, "-3")
 		for _, line := range strings.Split(plain, "\n") {
-			require.LessOrEqual(t, lipgloss.Width(line), 20, "line exceeds sidebar width: %q", line)
+			require.LessOrEqual(t, style.Width(line), 20, "line exceeds sidebar width: %q", line)
 		}
 	})
 
@@ -79,7 +79,7 @@ func TestFileList(t *testing.T) {
 		require.Contains(t, plain, "+3")
 		require.NotContains(t, plain, "-0")
 		for _, line := range strings.Split(plain, "\n") {
-			require.LessOrEqual(t, lipgloss.Width(line), 20, "line exceeds sidebar width: %q", line)
+			require.LessOrEqual(t, style.Width(line), 20, "line exceeds sidebar width: %q", line)
 		}
 	})
 
@@ -95,7 +95,7 @@ func TestFileList(t *testing.T) {
 		require.NotContains(t, plain, "+0")
 		require.Contains(t, plain, "-7")
 		for _, line := range strings.Split(plain, "\n") {
-			require.LessOrEqual(t, lipgloss.Width(line), 20, "line exceeds sidebar width: %q", line)
+			require.LessOrEqual(t, style.Width(line), 20, "line exceeds sidebar width: %q", line)
 		}
 	})
 
@@ -113,12 +113,12 @@ func TestFileList(t *testing.T) {
 
 func minimalFileStyles() *styles.Styles {
 	st := styles.DefaultPantera()
-	st.Files.Path = lipgloss.NewStyle()
-	st.Files.Additions = lipgloss.NewStyle()
-	st.Files.Deletions = lipgloss.NewStyle()
-	st.Files.SectionTitle = lipgloss.NewStyle()
-	st.Files.EmptyMessage = lipgloss.NewStyle()
-	st.Files.TruncationHint = lipgloss.NewStyle()
+	st.Files.Path = style.NewStyle()
+	st.Files.Additions = style.NewStyle()
+	st.Files.Deletions = style.NewStyle()
+	st.Files.SectionTitle = style.NewStyle()
+	st.Files.EmptyMessage = style.NewStyle()
+	st.Files.TruncationHint = style.NewStyle()
 	return &st
 }
 

@@ -7,8 +7,8 @@ import (
 	"slices"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	"github.com/ChxisB/spectre-proxy/internal/message"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	"github.com/ChxisB/talon/internal/message"
 )
 
 // CreateMessageParams represents parameters for creating a message.

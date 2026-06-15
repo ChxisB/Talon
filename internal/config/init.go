@@ -7,7 +7,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/ChxisB/spectre-proxy/internal/fsext"
+	"github.com/ChxisB/talon/internal/fsext"
 )
 
 const (

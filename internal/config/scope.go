@@ -6,9 +6,9 @@ import "fmt"
 type Scope int
 
 const (
-	// ScopeGlobal targets the global data config (~/.local/share/spectre/spectre.json).
+	// ScopeGlobal targets the global data config (~/.local/share/talon/talon.json).
 	ScopeGlobal Scope = iota
-	// ScopeWorkspace targets the workspace config (.spectre/spectre.json).
+	// ScopeWorkspace targets the workspace config (.talon/talon.json).
 	ScopeWorkspace
 )
 

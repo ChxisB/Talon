@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/deps/util/powernap/pkg/lsp/protocol"
-	"github.com/ChxisB/spectre-proxy/internal/lsp"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/deps/util/powernap/pkg/lsp/protocol"
+	"github.com/ChxisB/talon/internal/lsp"
 )
 
 type DiagnosticsParams struct {
@@ -24,17 +24,17 @@ const DiagnosticsToolName = "lsp_diagnostics"
 //go:embed diagnostics.md
 var diagnosticsDescription string
 
-func NewDiagnosticsTool(lspManager *lsp.Manager) fantasy.AgentTool {
-	return fantasy.NewAgentTool(
+func NewDiagnosticsTool(lspManager *lsp.Manager) llm.AgentTool {
+	return llm.NewAgentTool(
 		DiagnosticsToolName,
 		diagnosticsDescription,
-		func(ctx context.Context, params DiagnosticsParams, call fantasy.ToolCall) (fantasy.ToolResponse, error) {
+		func(ctx context.Context, params DiagnosticsParams, call llm.ToolCall) (llm.ToolResponse, error) {
 			if lspManager.Clients().Len() == 0 {
-				return fantasy.NewTextErrorResponse("no LSP clients available"), nil
+				return llm.NewTextErrorResponse("no LSP clients available"), nil
 			}
 			notifyLSPs(ctx, lspManager, params.FilePath)
 			output := getDiagnostics(params.FilePath, lspManager)
-			return fantasy.NewTextResponse(output), nil
+			return llm.NewTextResponse(output), nil
 		},
 	)
 }

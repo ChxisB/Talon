@@ -18,8 +18,8 @@ out/
 *.out
 
 # ─── Go ────────────────────────────────────────────────────────────
-agent/spectre
-agent/spectre-server
+agent/talon
+agent/talon-server
 agent/*.exe
 
 # ─── TypeScript ────────────────────────────────────────────────────
@@ -53,8 +53,8 @@ ide/vscode/*.vsix
 docker-compose.override.yml
 
 # ─── Config (user-specific, regenerable) ───────────────────────────
-.spectre-proxy/
+.talon/
 
 # ─── Binary Files (not needed in git) ─────────────────────────────────
 *.bin
-spectre-test
+talon-test

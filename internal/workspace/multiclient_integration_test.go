@@ -7,13 +7,13 @@ import (
 	"testing"
 	"time"
 
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/internal/client"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/proto"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
-	"github.com/ChxisB/spectre-proxy/internal/server"
-	"github.com/ChxisB/spectre-proxy/internal/workspace"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/internal/client"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/proto"
+	"github.com/ChxisB/talon/internal/pubsub"
+	"github.com/ChxisB/talon/internal/server"
+	"github.com/ChxisB/talon/internal/workspace"
 	"github.com/stretchr/testify/require"
 )
 
@@ -84,14 +84,14 @@ func TestClientWorkspace_ConfigChangedRefreshesSiblingCache(t *testing.T) {
 	// Both clients attach event streams. They run for the
 	// lifetime of the test; cancelling via context tears them
 	// down. consumeEvents is exercised by Subscribe in production;
-	// here we run it inline so we don't need a real *tea.Program.
+	// here we run it inline so we don't need a real *bubble.Program.
 	evcA, err := cA.SubscribeEvents(ctx, wsProto.ID)
 	require.NoError(t, err)
 	evcB, err := cB.SubscribeEvents(ctx, wsProto.ID)
 	require.NoError(t, err)
 
-	go wsA.ConsumeEventsForTest(evcA, func(tea.Msg) {})
-	go wsB.ConsumeEventsForTest(evcB, func(tea.Msg) {})
+	go wsA.ConsumeEventsForTest(evcA, func(bubble.Msg) {})
+	go wsB.ConsumeEventsForTest(evcB, func(bubble.Msg) {})
 
 	// Pre-condition: neither cache has compact mode enabled yet.
 	require.NotNil(t, wsA.Config())

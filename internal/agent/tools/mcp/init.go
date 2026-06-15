@@ -1,5 +1,5 @@
 // Package mcp provides functionality for managing Model Context Protocol (MCP)
-// clients within the spectre application.
+// clients within the talon application.
 package mcp
 
 import (
@@ -16,12 +16,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/csync"
-	"github.com/ChxisB/spectre-proxy/internal/home"
-	"github.com/ChxisB/spectre-proxy/internal/permission"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
-	"github.com/ChxisB/spectre-proxy/internal/version"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/csync"
+	"github.com/ChxisB/talon/internal/home"
+	"github.com/ChxisB/talon/internal/permission"
+	"github.com/ChxisB/talon/internal/pubsub"
+	"github.com/ChxisB/talon/internal/version"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -364,9 +364,9 @@ func createSession(ctx context.Context, name string, m config.MCPConfig, resolve
 
 	client := mcp.NewClient(
 		&mcp.Implementation{
-			Name:    "spectre",
+			Name:    "talon",
 			Version: version.Version,
-			Title:   "Spectre",
+			Title:   "Talon",
 		},
 		&mcp.ClientOptions{
 			ToolListChangedHandler: func(context.Context, *mcp.ToolListChangedRequest) {

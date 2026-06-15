@@ -3,10 +3,10 @@ package dialog
 import (
 	"strings"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
-	"github.com/ChxisB/spectre-proxy/internal/ui/list"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	"github.com/ChxisB/talon/deps/util/ansi"
+	"github.com/ChxisB/talon/internal/ui/list"
+	"github.com/ChxisB/talon/internal/ui/styles"
 	"github.com/sahilm/fuzzy"
 )
 
@@ -125,12 +125,12 @@ func (c *CommandItem) Render(width int) string {
 		}
 		contentWidth := max(0, width-descStyle.GetHorizontalFrameSize()+1)
 		description := ansi.Truncate(strings.TrimSpace(c.description), contentWidth, "...")
-		descVisWidth := lipgloss.Width(description)
+		descVisWidth := style.Width(description)
 		gap := strings.Repeat(" ", max(0, contentWidth-descVisWidth))
 		if description == "" {
 			description = " "
 		}
-		rendered = lipgloss.JoinVertical(lipgloss.Left, rendered, descStyle.Render(description+gap))
+		rendered = style.JoinVertical(style.Left, rendered, descStyle.Render(description+gap))
 	}
 	return rendered
 }

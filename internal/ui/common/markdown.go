@@ -4,13 +4,13 @@ import (
 	"image/color"
 	"sync"
 
-	glamour "github.com/ChxisB/spectre-proxy/deps/render/v2"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
-	"github.com/ChxisB/spectre-proxy/internal/ui/xchroma"
+	glamour "github.com/ChxisB/talon/deps/render/v2"
+	"github.com/ChxisB/talon/internal/ui/styles"
+	"github.com/ChxisB/talon/internal/ui/xchroma"
 	"github.com/alecthomas/chroma/v2/formatters"
 )
 
-const formatterName = "spectre"
+const formatterName = "talon"
 
 func init() {
 	// NOTE: Glamour does not offer us an option to pass the formatter
@@ -38,7 +38,7 @@ var (
 //
 // The returned renderer is NOT safe for concurrent Render calls
 // (goldmark's BlockStack carries state across the public Render
-// API). spectre's TUI is single-threaded so production never
+// API). talon.s TUI is single-threaded so production never
 // contends, but parallel callers (most notably parallel tests)
 // must serialize via [LockMarkdownRenderer]. Treat the renderer
 // as effectively pinned to one goroutine at a time.

@@ -1,14 +1,14 @@
 ---
 name: builtin-skills
 description:
-  Use when creating a new builtin skill for Spectre, editing an existing builtin
+  Use when creating a new builtin skill for Talon, editing an existing builtin
   skill (internal/skills/builtin/), or when the user needs to understand how the
   embedded skill system works.
 ---
 
 # Builtin Skills
 
-Spectre embeds skills directly into the binary via `internal/skills/builtin/`.
+Talon embeds skills directly into the binary via `internal/skills/builtin/`.
 These are always available without user configuration.
 
 ## How It Works
@@ -17,8 +17,8 @@ These are always available without user configuration.
 - The tree is embedded at compile time via `//go:embed builtin/*` in
   `internal/skills/embed.go`.
 - `DiscoverBuiltin()` walks the embedded FS, parses each `SKILL.md`, and sets
-  paths with the `spectre://skills/` prefix (e.g., `spectre://skills/jq/SKILL.md`).
-- The View tool resolves `spectre://` paths from the embedded FS, not disk.
+  paths with the `talon://skills/` prefix (e.g., `talon://skills/jq/SKILL.md`).
+- The View tool resolves `talon://` paths from the embedded FS, not disk.
 - User skills with the same name override builtins (last occurrence wins in
   `Deduplicate()`).
 
@@ -37,6 +37,6 @@ These are always available without user configuration.
 
 | Skill          | Directory               | Description                                |
 | -------------- | ----------------------- | ------------------------------------------ |
-| `spectre-config` | `builtin/spectre-config/` | Spectre configuration help                   |
-| `spectre-hooks`  | `builtin/spectre-hooks/`  | Authoring, configuring and debugging hooks |
+| `talon-config` | `builtin/talon-config/` | Talon configuration help                   |
+| `talon-hooks`  | `builtin/talon-hooks/`  | Authoring, configuring and debugging hooks |
 | `jq`           | `builtin/jq/`           | jq JSON processor usage guide              |

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/deps/util/exp/golden"
+	"github.com/ChxisB/talon/deps/util/exp/golden"
 	"github.com/aymanbagabas/go-udiff"
 )
 

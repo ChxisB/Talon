@@ -10,8 +10,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/deps/util/term"
-	"github.com/ChxisB/spectre-proxy/internal/event"
+	"github.com/ChxisB/talon/deps/util/term"
+	"github.com/ChxisB/talon/internal/event"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
@@ -69,7 +69,7 @@ func RecoverPanic(name string, cleanup func()) {
 
 		// Create a timestamped panic log file
 		timestamp := time.Now().Format("20060102-150405")
-		filename := fmt.Sprintf("spectre-panic-%s-%s.log", name, timestamp)
+		filename := fmt.Sprintf("talon-panic-%s-%s.log", name, timestamp)
 
 		file, err := os.Create(filename)
 		if err == nil {

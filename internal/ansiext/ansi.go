@@ -3,7 +3,7 @@ package ansiext
 import (
 	"strings"
 
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
+	"github.com/ChxisB/talon/deps/util/ansi"
 )
 
 // Escape replaces control characters with their Unicode Control Picture

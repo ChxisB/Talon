@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/internal/db"
+	"github.com/ChxisB/talon/internal/db"
 )
 
 // Service defines the interface for tracking file reads in sessions.

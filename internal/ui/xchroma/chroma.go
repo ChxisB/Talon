@@ -5,7 +5,7 @@ import (
 	"image/color"
 	"io"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
+	lipstyle "github.com/ChxisB/talon/deps/style/v2"
 	"github.com/alecthomas/chroma/v2"
 )
 
@@ -27,7 +27,7 @@ func Formatter(bgColor color.Color, processValue func(string) string) chroma.For
 				continue
 			}
 
-			s := lipgloss.NewStyle().
+			s := lipstyle.NewStyle().
 				Background(bgColor)
 
 			if entry.Bold == chroma.Yes {
@@ -40,7 +40,7 @@ func Formatter(bgColor color.Color, processValue func(string) string) chroma.For
 				s = s.Italic(true)
 			}
 			if entry.Colour.IsSet() {
-				s = s.Foreground(lipgloss.Color(entry.Colour.String()))
+				s = s.Foreground(lipstyle.Color(entry.Colour.String()))
 			}
 
 			if _, err := fmt.Fprint(w, s.Render(value)); err != nil {

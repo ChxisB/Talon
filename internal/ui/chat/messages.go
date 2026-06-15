@@ -6,16 +6,16 @@ import (
 	"strings"
 	"time"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/ui/anim"
-	"github.com/ChxisB/spectre-proxy/internal/ui/attachments"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/ui/list"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/ui/anim"
+	"github.com/ChxisB/talon/internal/ui/attachments"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/ui/list"
+	"github.com/ChxisB/talon/internal/ui/styles"
 )
 
 // MessageLeftPaddingTotal is the total width that is taken up by the border +
@@ -32,8 +32,8 @@ type Identifiable interface {
 
 // Animatable is an interface for items that support animation.
 type Animatable interface {
-	StartAnimation() tea.Cmd
-	Animate(msg anim.StepMsg) tea.Cmd
+	StartAnimation() bubble.Cmd
+	Animate(msg anim.StepMsg) bubble.Cmd
 }
 
 // Expandable is an interface for items that can be expanded or collapsed.
@@ -45,7 +45,7 @@ type Expandable interface {
 
 // KeyEventHandler is an interface for items that can handle key events.
 type KeyEventHandler interface {
-	HandleKeyEvent(key tea.KeyMsg) (bool, tea.Cmd)
+	HandleKeyEvent(key bubble.KeyMsg) (bool, bubble.Cmd)
 }
 
 // MessageItem represents a [message.Message] item that can be displayed in the
@@ -307,7 +307,7 @@ func (a *AssistantInfoItem) RawRender(width int) string {
 	content, _, ok := a.getCachedRender(innerWidth)
 	if !ok {
 		content = a.renderContent(innerWidth)
-		height := lipgloss.Height(content)
+		height := style.Height(content)
 		a.setCachedRender(content, innerWidth, height)
 	}
 	return content
@@ -351,6 +351,14 @@ func (a *AssistantInfoItem) renderContent(width int) string {
 	}
 	provider := a.sty.Messages.AssistantInfoProvider.Render(fmt.Sprintf("via %s", providerName))
 	assistant := fmt.Sprintf("%s %s %s %s", icon, modelFormatted, provider, infoMsg)
+	if a.message.CompressionSavings > 0 {
+		savingsStr := a.sty.Messages.AssistantInfoDuration.Render(fmt.Sprintf("(saved ~%.0f%%)", a.message.CompressionSavings))
+		assistant = fmt.Sprintf("%s %s", assistant, savingsStr)
+	}
+	if a.message.InputSavings > 0 {
+		savingsStr := a.sty.Messages.AssistantInfoDuration.Render(fmt.Sprintf("(in saved ~%.0f%%)", a.message.InputSavings))
+		assistant = fmt.Sprintf("%s %s", assistant, savingsStr)
+	}
 	return common.Section(a.sty, assistant, width)
 }
 

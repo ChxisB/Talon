@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/ui/styles"
 	"github.com/stretchr/testify/require"
 )
 

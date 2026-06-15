@@ -5,11 +5,11 @@ import (
 	_ "embed"
 	"errors"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
+	llm "github.com/ChxisB/talon/deps/llm"
 
-	"github.com/ChxisB/spectre-proxy/internal/agent/prompt"
-	"github.com/ChxisB/spectre-proxy/internal/agent/tools"
-	"github.com/ChxisB/spectre-proxy/internal/config"
+	"github.com/ChxisB/talon/internal/agent/prompt"
+	"github.com/ChxisB/talon/internal/agent/tools"
+	"github.com/ChxisB/talon/internal/config"
 )
 
 //go:embed templates/agent_tool.md
@@ -23,7 +23,7 @@ const (
 	AgentToolName = "agent"
 )
 
-func (c *coordinator) agentTool(ctx context.Context) (fantasy.AgentTool, error) {
+func (c *coordinator) agentTool(ctx context.Context) (llm.AgentTool, error) {
 	agentCfg, ok := c.cfg.Config().Agents[config.AgentTask]
 	if !ok {
 		return nil, errors.New("task agent not configured")
@@ -37,22 +37,22 @@ func (c *coordinator) agentTool(ctx context.Context) (fantasy.AgentTool, error) 
 	if err != nil {
 		return nil, err
 	}
-	return fantasy.NewParallelAgentTool(
+	return llm.NewParallelAgentTool(
 		AgentToolName,
 		agentToolDescription,
-		func(ctx context.Context, params AgentParams, call fantasy.ToolCall) (fantasy.ToolResponse, error) {
+		func(ctx context.Context, params AgentParams, call llm.ToolCall) (llm.ToolResponse, error) {
 			if params.Prompt == "" {
-				return fantasy.NewTextErrorResponse("prompt is required"), nil
+				return llm.NewTextErrorResponse("prompt is required"), nil
 			}
 
 			sessionID := tools.GetSessionFromContext(ctx)
 			if sessionID == "" {
-				return fantasy.ToolResponse{}, errors.New("session id missing from context")
+				return llm.ToolResponse{}, errors.New("session id missing from context")
 			}
 
 			agentMessageID := tools.GetMessageFromContext(ctx)
 			if agentMessageID == "" {
-				return fantasy.ToolResponse{}, errors.New("agent message id missing from context")
+				return llm.ToolResponse{}, errors.New("agent message id missing from context")
 			}
 
 			return c.runSubAgent(ctx, subAgentParams{

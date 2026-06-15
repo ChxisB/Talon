@@ -10,8 +10,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ChxisB/spectre-proxy/internal/csync"
-	"github.com/ChxisB/spectre-proxy/internal/home"
+	"github.com/ChxisB/talon/internal/csync"
+	"github.com/ChxisB/talon/internal/home"
 	"github.com/charlievieth/fastwalk"
 	gitconfig "github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing/format/gitignore"
@@ -34,7 +34,7 @@ var fastIgnoreDirs = map[string]bool{
 	".Trash":          true,
 	".Spotlight-V100": true,
 	".fseventsd":      true,
-	".spectre":        true,
+	".talon":        true,
 	"OrbStack":        true,
 	".local":          true,
 	".share":          true,
@@ -108,14 +108,14 @@ var gitGlobalIgnorePatterns = sync.OnceValue(func() []gitignore.Pattern {
 	return parsePatterns(strings.Split(string(bts), "\n"), nil)
 })
 
-// spectreGlobalIgnorePatterns returns patterns from the user's
-// ~/.config/spectre/ignore file.
-var spectreGlobalIgnorePatterns = sync.OnceValue(func() []gitignore.Pattern {
-	name := filepath.Join(home.Config(), "spectre", "ignore")
+// talonGlobalIgnorePatterns returns patterns from the user's
+// ~/.config/talon/ignore file.
+var talonGlobalIgnorePatterns = sync.OnceValue(func() []gitignore.Pattern {
+	name := filepath.Join(home.Config(), "talon", "ignore")
 	bts, err := os.ReadFile(name)
 	if err != nil {
 		if !os.IsNotExist(err) {
-			slog.Debug("Failed to read spectre global ignore file", "path", name, "error", err)
+			slog.Debug("Failed to read talon global ignore file", "path", name, "error", err)
 		}
 		return nil
 	}
@@ -138,7 +138,7 @@ func parsePatterns(lines []string, domain []string) []gitignore.Pattern {
 }
 
 type directoryLister struct {
-	// dirPatterns caches parsed patterns from .gitignore/.spectreignore for each directory.
+	// dirPatterns caches parsed patterns from .gitignore/.talonignore for each directory.
 	// This avoids re-reading files when building combined matchers.
 	dirPatterns *csync.Map[string, []gitignore.Pattern]
 	// combinedMatchers caches a combined matcher for each directory that includes
@@ -165,7 +165,7 @@ func pathToComponents(path string) []string {
 }
 
 // getDirPatterns returns the parsed patterns for a specific directory's
-// .gitignore and .spectreignore files. Results are cached.
+// .gitignore and .talonignore files. Results are cached.
 func (dl *directoryLister) getDirPatterns(dir string) []gitignore.Pattern {
 	return dl.dirPatterns.GetOrSet(dir, func() []gitignore.Pattern {
 		var allPatterns []gitignore.Pattern
@@ -176,7 +176,7 @@ func (dl *directoryLister) getDirPatterns(dir string) []gitignore.Pattern {
 			domain = pathToComponents(relPath)
 		}
 
-		for _, ignoreFile := range []string{".gitignore", ".spectreignore"} {
+		for _, ignoreFile := range []string{".gitignore", ".talonignore"} {
 			ignPath := filepath.Join(dir, ignoreFile)
 			if content, err := os.ReadFile(ignPath); err == nil {
 				lines := strings.Split(string(content), "\n")
@@ -197,9 +197,9 @@ func (dl *directoryLister) getCombinedMatcher(dir string) gitignore.Matcher {
 		// Add common patterns first (lowest priority).
 		allPatterns = append(allPatterns, commonIgnorePatterns()...)
 
-		// Add global ignore patterns (git core.excludesFile + spectre global ignore).
+		// Add global ignore patterns (git core.excludesFile + talon global ignore).
 		allPatterns = append(allPatterns, gitGlobalIgnorePatterns()...)
-		allPatterns = append(allPatterns, spectreGlobalIgnorePatterns()...)
+		allPatterns = append(allPatterns, talonGlobalIgnorePatterns()...)
 
 		// Collect patterns from root to this directory.
 		relDir, _ := filepath.Rel(dl.rootPath, dir)

@@ -4,6 +4,7 @@ import (
 	"os"
 	"runtime/debug"
 	"strconv"
+	"strings"
 )
 
 // Build-time parameters set via -ldflags.
@@ -18,7 +19,7 @@ var (
 	BuildID = ""
 )
 
-// A user may install spectre using `go install github.com/ChxisB/spectre-proxy@latest`.
+// A user may install talon using `go install github.com/ChxisB/talon@latest`.
 // without -ldflags, in which case the version above is unset. As a workaround
 // we use the embedded build version that *is* set when using `go install` (and
 // is only set for `go install` and not for `go build`).
@@ -27,7 +28,9 @@ func init() {
 	if ok {
 		mainVersion := info.Main.Version
 		if mainVersion != "" && mainVersion != "(devel)" {
-			Version = mainVersion
+			// Strip the +dirty suffix that Go stamps when the working tree
+			// has uncommitted changes during build.
+			Version = strings.TrimSuffix(mainVersion, "+dirty")
 		}
 	}
 

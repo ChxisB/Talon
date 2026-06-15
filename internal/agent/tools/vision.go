@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
+	llm "github.com/ChxisB/talon/deps/llm"
 )
 
 // VisionToolName is the name of the vision analysis tool.
@@ -101,25 +101,25 @@ func visionDescription() string {
 
 // NewAnalyzeImageTool creates a tool that sends an image to a local vision model
 // (like MiniCPM-V via Ollama) for analysis and returns the text description.
-func NewAnalyzeImageTool(cfg VisionConfig) fantasy.AgentTool {
-	return fantasy.NewAgentTool(
+func NewAnalyzeImageTool(cfg VisionConfig) llm.AgentTool {
+	return llm.NewAgentTool(
 		VisionToolName,
 		visionDescription(),
-		func(ctx context.Context, params VisionParams, call fantasy.ToolCall) (fantasy.ToolResponse, error) {
+		func(ctx context.Context, params VisionParams, call llm.ToolCall) (llm.ToolResponse, error) {
 			if params.ImagePath == "" {
-				return fantasy.NewTextErrorResponse("The image_path parameter is required."), nil
+				return llm.NewTextErrorResponse("The image_path parameter is required."), nil
 			}
 
 			// Read the image file.
 			imageData, err := os.ReadFile(params.ImagePath)
 			if err != nil {
-				return fantasy.NewTextErrorResponse(
+				return llm.NewTextErrorResponse(
 					fmt.Sprintf("Failed to read image file %q: %s", params.ImagePath, err),
 				), nil
 			}
 
 			if len(imageData) > MaxImageSize {
-				return fantasy.NewTextErrorResponse(
+				return llm.NewTextErrorResponse(
 					fmt.Sprintf("Image file is too large (%d bytes). Maximum size is %d bytes.", len(imageData), MaxImageSize),
 				), nil
 			}
@@ -160,20 +160,20 @@ func NewAnalyzeImageTool(cfg VisionConfig) fantasy.AgentTool {
 
 			bodyBytes, err := json.Marshal(reqBody)
 			if err != nil {
-				return fantasy.NewTextErrorResponse(fmt.Sprintf("Failed to encode request: %s", err)), nil
+				return llm.NewTextErrorResponse(fmt.Sprintf("Failed to encode request: %s", err)), nil
 			}
 
 			// Make the HTTP request.
 			httpClient := &http.Client{Timeout: cfg.Timeout}
 			req, err := http.NewRequestWithContext(ctx, http.MethodPost, cfg.Endpoint, bytes.NewReader(bodyBytes))
 			if err != nil {
-				return fantasy.NewTextErrorResponse(fmt.Sprintf("Failed to create request: %s", err)), nil
+				return llm.NewTextErrorResponse(fmt.Sprintf("Failed to create request: %s", err)), nil
 			}
 			req.Header.Set("Content-Type", "application/json")
 
 			resp, err := httpClient.Do(req)
 			if err != nil {
-				return fantasy.NewTextErrorResponse(
+				return llm.NewTextErrorResponse(
 					fmt.Sprintf("Failed to connect to vision model at %s: %s. Make sure Ollama is running with the %s model loaded.", cfg.Endpoint, err, cfg.Model),
 				), nil
 			}
@@ -181,36 +181,36 @@ func NewAnalyzeImageTool(cfg VisionConfig) fantasy.AgentTool {
 
 			respBytes, err := io.ReadAll(resp.Body)
 			if err != nil {
-				return fantasy.NewTextErrorResponse(fmt.Sprintf("Failed to read response: %s", err)), nil
+				return llm.NewTextErrorResponse(fmt.Sprintf("Failed to read response: %s", err)), nil
 			}
 
 			if resp.StatusCode != http.StatusOK {
-				return fantasy.NewTextErrorResponse(
+				return llm.NewTextErrorResponse(
 					fmt.Sprintf("Vision model returned HTTP %d: %s", resp.StatusCode, string(respBytes)),
 				), nil
 			}
 
 			var result visionResponse
 			if err := json.Unmarshal(respBytes, &result); err != nil {
-				return fantasy.NewTextErrorResponse(fmt.Sprintf("Failed to parse response: %s", err)), nil
+				return llm.NewTextErrorResponse(fmt.Sprintf("Failed to parse response: %s", err)), nil
 			}
 
 			if result.Error != nil && result.Error.Message != "" {
-				return fantasy.NewTextErrorResponse(
+				return llm.NewTextErrorResponse(
 					fmt.Sprintf("Vision model error: %s", result.Error.Message),
 				), nil
 			}
 
 			if len(result.Choices) == 0 {
-				return fantasy.NewTextErrorResponse("Vision model returned no response."), nil
+				return llm.NewTextErrorResponse("Vision model returned no response."), nil
 			}
 
 			analysis := strings.TrimSpace(result.Choices[0].Message.Content)
 			if analysis == "" {
-				return fantasy.NewTextErrorResponse("Vision model returned an empty response."), nil
+				return llm.NewTextErrorResponse("Vision model returned an empty response."), nil
 			}
 
-			return fantasy.NewTextResponse(analysis), nil
+			return llm.NewTextResponse(analysis), nil
 		},
 	)
 }

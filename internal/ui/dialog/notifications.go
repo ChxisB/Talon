@@ -1,14 +1,14 @@
 package dialog
 
 import (
-	uv "github.com/ChxisB/spectre-proxy/deps/terminal"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/help"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/key"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/textinput"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/ui/list"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	term "github.com/ChxisB/talon/deps/terminal"
+	"github.com/ChxisB/talon/deps/ui/core/v2/help"
+	"github.com/ChxisB/talon/deps/ui/core/v2/key"
+	"github.com/ChxisB/talon/deps/ui/core/v2/textinput"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/ui/list"
+	"github.com/ChxisB/talon/internal/ui/styles"
 	"github.com/sahilm/fuzzy"
 )
 
@@ -118,9 +118,9 @@ func (n *Notifications) ID() string {
 }
 
 // HandleMsg implements [Dialog].
-func (n *Notifications) HandleMsg(msg tea.Msg) Action {
+func (n *Notifications) HandleMsg(msg bubble.Msg) Action {
 	switch msg := msg.(type) {
-	case tea.KeyPressMsg:
+	case bubble.KeyPressMsg:
 		switch {
 		case key.Matches(msg, n.keyMap.Close):
 			return ActionClose{}
@@ -153,7 +153,7 @@ func (n *Notifications) HandleMsg(msg tea.Msg) Action {
 			}
 			return ActionSelectNotificationStyle{Style: notifItem.style.ID}
 		default:
-			var cmd tea.Cmd
+			var cmd bubble.Cmd
 			n.input, cmd = n.input.Update(msg)
 			value := n.input.Value()
 			n.list.SetFilter(value)
@@ -166,12 +166,12 @@ func (n *Notifications) HandleMsg(msg tea.Msg) Action {
 }
 
 // Cursor returns the cursor position relative to the dialog.
-func (n *Notifications) Cursor() *tea.Cursor {
+func (n *Notifications) Cursor() *bubble.Cursor {
 	return InputCursor(n.com.Styles, n.input.Cursor())
 }
 
 // Draw implements [Dialog].
-func (n *Notifications) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
+func (n *Notifications) Draw(scr term.Screen, area term.Rectangle) *bubble.Cursor {
 	t := n.com.Styles
 	width := max(0, min(notificationsDialogMaxWidth, area.Dx()))
 	height := max(0, min(notificationsDialogMaxHeight, area.Dy()))

@@ -9,7 +9,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/internal/log"
+	"github.com/ChxisB/talon/internal/log"
 )
 
 var getRg = sync.OnceValue(func() string {

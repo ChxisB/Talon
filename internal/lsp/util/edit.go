@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	powernap "github.com/ChxisB/spectre-proxy/deps/util/powernap/pkg/lsp"
-	"github.com/ChxisB/spectre-proxy/deps/util/powernap/pkg/lsp/protocol"
+	powernap "github.com/ChxisB/talon/deps/util/powernap/pkg/lsp"
+	"github.com/ChxisB/talon/deps/util/powernap/pkg/lsp/protocol"
 )
 
 func applyTextEdits(uri protocol.DocumentURI, edits []protocol.TextEdit, encoding powernap.OffsetEncoding) error {

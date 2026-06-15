@@ -5,10 +5,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/textarea"
-	"github.com/ChxisB/spectre-proxy/internal/session"
-	"github.com/ChxisB/spectre-proxy/internal/ui/chat"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
+	"github.com/ChxisB/talon/deps/ui/core/v2/textarea"
+	"github.com/ChxisB/talon/internal/session"
+	"github.com/ChxisB/talon/internal/ui/chat"
+	"github.com/ChxisB/talon/internal/ui/common"
 )
 
 // testMessageItem is a minimal chat item used to populate the chat list
@@ -123,7 +123,7 @@ func TestHandleTextareaHeightChange_FollowModeStaysAtBottom(t *testing.T) {
 func TestAutoExpandPillsIfReasonable(t *testing.T) {
 	t.Parallel()
 
-	t.Run("expands when terminal is tall enough and todos exist", func(t *testing.T) {
+	t.Run("does not expand for todos alone", func(t *testing.T) {
 		t.Parallel()
 
 		u := newTestUI()
@@ -135,11 +135,8 @@ func TestAutoExpandPillsIfReasonable(t *testing.T) {
 
 		u.autoExpandPillsIfReasonable()
 
-		if !u.pillsExpanded {
-			t.Fatal("expected pillsExpanded to be true")
-		}
-		if u.focusedPillSection != pillSectionTodos {
-			t.Fatalf("expected focusedPillSection to be pillSectionTodos, got %d", u.focusedPillSection)
+		if u.pillsExpanded {
+			t.Fatal("expected pillsExpanded to be false (todos no longer trigger auto-expand)")
 		}
 	})
 

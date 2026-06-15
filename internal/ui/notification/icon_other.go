@@ -6,5 +6,5 @@ import (
 	_ "embed"
 )
 
-//go:embed spectre-icon-solo.png
+//go:embed talon-icon-solo.png
 var Icon []byte

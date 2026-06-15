@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	githubApiUrl = "https://api.github.com/repos/spectre-proxy/spectre-proxy/releases/latest"
-	userAgent    = "spectre/1.0"
+	githubApiUrl = "https://api.github.com/repos/talon/talon/releases/latest"
+	userAgent    = "talon/1.0"
 )
 
 // Default is the default [Client].

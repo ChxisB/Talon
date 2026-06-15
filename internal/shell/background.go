@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/internal/csync"
+	"github.com/ChxisB/talon/internal/csync"
 )
 
 const (

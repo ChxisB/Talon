@@ -8,11 +8,11 @@ import (
 	"log/slog"
 	"strings"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/internal/agent/tools/mcp"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/filepathext"
-	"github.com/ChxisB/spectre-proxy/internal/permission"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/internal/agent/tools/mcp"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/filepathext"
+	"github.com/ChxisB/talon/internal/permission"
 )
 
 type ReadMCPResourceParams struct {
@@ -30,23 +30,23 @@ const ReadMCPResourceToolName = "read_mcp_resource"
 //go:embed read_mcp_resource.md
 var readMCPResourceDescription string
 
-func NewReadMCPResourceTool(cfg *config.ConfigStore, permissions permission.Service) fantasy.AgentTool {
-	return fantasy.NewParallelAgentTool(
+func NewReadMCPResourceTool(cfg *config.ConfigStore, permissions permission.Service) llm.AgentTool {
+	return llm.NewParallelAgentTool(
 		ReadMCPResourceToolName,
 		readMCPResourceDescription,
-		func(ctx context.Context, params ReadMCPResourceParams, call fantasy.ToolCall) (fantasy.ToolResponse, error) {
+		func(ctx context.Context, params ReadMCPResourceParams, call llm.ToolCall) (llm.ToolResponse, error) {
 			params.MCPName = strings.TrimSpace(params.MCPName)
 			params.URI = strings.TrimSpace(params.URI)
 			if params.MCPName == "" {
-				return fantasy.NewTextErrorResponse("mcp_name parameter is required"), nil
+				return llm.NewTextErrorResponse("mcp_name parameter is required"), nil
 			}
 			if params.URI == "" {
-				return fantasy.NewTextErrorResponse("uri parameter is required"), nil
+				return llm.NewTextErrorResponse("uri parameter is required"), nil
 			}
 
 			sessionID := GetSessionFromContext(ctx)
 			if sessionID == "" {
-				return fantasy.ToolResponse{}, fmt.Errorf("session ID is required for reading MCP resources")
+				return llm.ToolResponse{}, fmt.Errorf("session ID is required for reading MCP resources")
 			}
 
 			relPath := filepathext.SmartJoin(cfg.WorkingDir(), cmp.Or(params.URI, "mcp-resource"))
@@ -63,7 +63,7 @@ func NewReadMCPResourceTool(cfg *config.ConfigStore, permissions permission.Serv
 				},
 			)
 			if err != nil {
-				return fantasy.ToolResponse{}, err
+				return llm.ToolResponse{}, err
 			}
 			if !p {
 				return NewPermissionDeniedResponse(), nil
@@ -71,10 +71,10 @@ func NewReadMCPResourceTool(cfg *config.ConfigStore, permissions permission.Serv
 
 			contents, err := mcp.ReadResource(ctx, cfg, params.MCPName, params.URI)
 			if err != nil {
-				return fantasy.NewTextErrorResponse(err.Error()), nil
+				return llm.NewTextErrorResponse(err.Error()), nil
 			}
 			if len(contents) == 0 {
-				return fantasy.NewTextResponse(""), nil
+				return llm.NewTextResponse(""), nil
 			}
 
 			var textParts []string
@@ -94,10 +94,10 @@ func NewReadMCPResourceTool(cfg *config.ConfigStore, permissions permission.Serv
 			}
 
 			if len(textParts) == 0 {
-				return fantasy.NewTextResponse(""), nil
+				return llm.NewTextResponse(""), nil
 			}
 
-			return fantasy.NewTextResponse(strings.Join(textParts, "\n")), nil
+			return llm.NewTextResponse(strings.Join(textParts, "\n")), nil
 		},
 	)
 }

@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 
-	"github.com/ChxisB/spectre-proxy/internal/agent"
-	"github.com/ChxisB/spectre-proxy/internal/agent/notify"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/proto"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
+	"github.com/ChxisB/talon/internal/agent"
+	"github.com/ChxisB/talon/internal/agent/notify"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/proto"
+	"github.com/ChxisB/talon/internal/pubsub"
 )
 
 // SendMessage validates and accepts a prompt for the workspace's agent,
@@ -66,7 +66,7 @@ func (b *Backend) SendMessage(workspaceID string, msg proto.AgentMessage) error 
 // On a non-cancel error it surfaces the failure to observers via a
 // notify.TypeAgentError notification (lossy, best-effort). That alone is
 // not a reliable terminal signal: the agent-event fan-in uses lossy
-// subscribers, so a `spectre run` caller blocking on its RunID could hang
+// subscribers, so a `talon run` caller blocking on its RunID could hang
 // if the event is dropped. To guarantee termination, when msg.RunID is
 // non-empty and the coordinator did not already publish the run's
 // authoritative terminal RunComplete (e.g. the error was returned before

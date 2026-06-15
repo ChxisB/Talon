@@ -1,11 +1,11 @@
 ---
 name: shell-builtins
-description: Use when creating a new shell builtin command for Spectre (internal/shell/), editing an existing one, or when the user needs to understand how commands are intercepted in Spectre's embedded shell.
+description: Use when creating a new shell builtin command for Talon (internal/shell/), editing an existing one, or when the user needs to understand how commands are intercepted in Talon.s embedded shell.
 ---
 
 # Shell Builtins
 
-Spectre's shell (`internal/shell/`) uses `mvdan.cc/sh/v3` for POSIX shell
+Talon.s shell (`internal/shell/`) uses `mvdan.cc/sh/v3` for POSIX shell
 emulation. Commands can be intercepted before they reach the OS by adding
 **builtins** — functions handled in-process.
 

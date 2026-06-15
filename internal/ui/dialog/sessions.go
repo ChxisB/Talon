@@ -4,16 +4,16 @@ import (
 	"context"
 	"strings"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	uv "github.com/ChxisB/spectre-proxy/deps/terminal"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/help"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/key"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/textinput"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/internal/session"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/ui/list"
-	"github.com/ChxisB/spectre-proxy/internal/ui/util"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	term "github.com/ChxisB/talon/deps/terminal"
+	"github.com/ChxisB/talon/deps/ui/core/v2/help"
+	"github.com/ChxisB/talon/deps/ui/core/v2/key"
+	"github.com/ChxisB/talon/deps/ui/core/v2/textinput"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/internal/session"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/ui/list"
+	"github.com/ChxisB/talon/internal/ui/util"
 )
 
 // SessionsID is the identifier for the session selector dialog.
@@ -139,9 +139,9 @@ func (s *Session) ID() string {
 }
 
 // HandleMsg implements Dialog.
-func (s *Session) HandleMsg(msg tea.Msg) Action {
+func (s *Session) HandleMsg(msg bubble.Msg) Action {
 	switch msg := msg.(type) {
-	case tea.KeyPressMsg:
+	case bubble.KeyPressMsg:
 		switch s.sessionsMode {
 		case sessionsModeDeleting:
 			switch {
@@ -208,7 +208,7 @@ func (s *Session) HandleMsg(msg tea.Msg) Action {
 					return ActionSelectSession{sessionItem.Session}
 				}
 			default:
-				var cmd tea.Cmd
+				var cmd bubble.Cmd
 				s.input, cmd = s.input.Update(msg)
 				value := s.input.Value()
 				s.list.SetFilter(value)
@@ -222,12 +222,12 @@ func (s *Session) HandleMsg(msg tea.Msg) Action {
 }
 
 // Cursor returns the cursor position relative to the dialog.
-func (s *Session) Cursor() *tea.Cursor {
+func (s *Session) Cursor() *bubble.Cursor {
 	return InputCursor(s.com.Styles, s.input.Cursor())
 }
 
 // Draw implements [Dialog].
-func (s *Session) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
+func (s *Session) Draw(scr term.Screen, area term.Rectangle) *bubble.Cursor {
 	t := s.com.Styles
 	width := max(0, min(defaultDialogMaxWidth, area.Dx()-t.Dialog.View.GetHorizontalBorderSize()))
 	height := max(0, min(defaultDialogHeight, area.Dy()-t.Dialog.View.GetVerticalBorderSize()))
@@ -251,7 +251,7 @@ func (s *Session) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 		s.list.ScrollToSelected()
 	}
 
-	var cur *tea.Cursor
+	var cur *bubble.Cursor
 	rc := NewRenderContext(t, width)
 	rc.Title = "Sessions"
 	switch s.sessionsMode {
@@ -300,7 +300,7 @@ func (s *Session) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 			inputStyle.GetPaddingBottom() +
 			dialogStyle.GetPaddingTop() +
 			dialogStyle.GetBorderTopSize() +
-			lipgloss.Height(message) - 1
+			style.Height(message) - 1
 
 		// move the cursor by one down until we see the selectedIndex
 		for ; start <= end && start != selectedIndex && selectedIndex > -1; start++ {
@@ -314,7 +314,7 @@ func (s *Session) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 	listView := t.Dialog.List.Height(s.list.Height()).Render(s.list.Render())
 	scrollbar := common.Scrollbar(t, listHeight, listTotalHeight, listHeight, s.list.Offset())
 	if scrollbar != "" {
-		listView = lipgloss.JoinHorizontal(lipgloss.Top, listView, scrollbar)
+		listView = style.JoinHorizontal(style.Top, listView, scrollbar)
 	}
 	rc.AddPart(listView)
 	rc.Help = s.help.View(s)
@@ -354,8 +354,8 @@ func (s *Session) removeSession(id string) {
 	s.sessions = newSessions
 }
 
-func (s *Session) deleteSessionCmd(id string) tea.Cmd {
-	return func() tea.Msg {
+func (s *Session) deleteSessionCmd(id string) bubble.Cmd {
+	return func() bubble.Msg {
 		err := s.com.Workspace.DeleteSession(context.TODO(), id)
 		if err != nil {
 			return util.NewErrorMsg(err)
@@ -390,8 +390,8 @@ func (s *Session) updateSession(session session.Session) {
 	}
 }
 
-func (s *Session) updateSessionCmd(session session.Session) tea.Cmd {
-	return func() tea.Msg {
+func (s *Session) updateSessionCmd(session session.Session) bubble.Cmd {
+	return func() bubble.Msg {
 		_, err := s.com.Workspace.SaveSession(context.TODO(), session)
 		if err != nil {
 			return util.NewErrorMsg(err)

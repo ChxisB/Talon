@@ -9,14 +9,14 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/internal/version"
+	"github.com/ChxisB/talon/internal/version"
 	"github.com/posthog/posthog-go"
 )
 
 const (
 	// Telemetry disabled for local Docker deployment.
 	endpoint = ""
-	key      = "spectre-proxy"
+	key      = "talon"
 
 	nonInteractiveAttrName      = "NonInteractive"
 	continueSessionByIDAttrName = "ContinueSessionByID"

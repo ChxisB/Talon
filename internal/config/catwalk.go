@@ -7,8 +7,8 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/embedded"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	"github.com/ChxisB/talon/deps/testing/pkg/embedded"
 )
 
 type catwalkClient interface {

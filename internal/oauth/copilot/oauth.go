@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/internal/oauth"
+	"github.com/ChxisB/talon/internal/oauth"
 )
 
 const (

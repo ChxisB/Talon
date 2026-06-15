@@ -1,11 +1,11 @@
 package dialog
 
 import (
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	uv "github.com/ChxisB/spectre-proxy/deps/terminal"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/key"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	term "github.com/ChxisB/talon/deps/terminal"
+	"github.com/ChxisB/talon/deps/ui/core/v2/key"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/internal/ui/common"
 )
 
 // QuitID is the identifier for the quit dialog.
@@ -68,9 +68,9 @@ func (*Quit) ID() string {
 }
 
 // HandleMsg implements [Model].
-func (q *Quit) HandleMsg(msg tea.Msg) Action {
+func (q *Quit) HandleMsg(msg bubble.Msg) Action {
 	switch msg := msg.(type) {
-	case tea.KeyPressMsg:
+	case bubble.KeyPressMsg:
 		switch {
 		case key.Matches(msg, q.keyMap.Quit):
 			return ActionQuit{}
@@ -94,7 +94,7 @@ func (q *Quit) HandleMsg(msg tea.Msg) Action {
 }
 
 // Draw implements [Dialog].
-func (q *Quit) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
+func (q *Quit) Draw(scr term.Screen, area term.Rectangle) *bubble.Cursor {
 	const question = "Are you sure you want to quit?"
 	baseStyle := q.com.Styles.Dialog.Quit.Content
 	buttonOpts := []common.ButtonOpts{
@@ -103,8 +103,8 @@ func (q *Quit) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 	}
 	buttons := common.ButtonGroup(q.com.Styles, buttonOpts, " ")
 	content := baseStyle.Render(
-		lipgloss.JoinVertical(
-			lipgloss.Center,
+		style.JoinVertical(
+			style.Center,
 			question,
 			"",
 			buttons,

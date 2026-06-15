@@ -9,14 +9,17 @@ RUN go mod download
 
 # Copy the rest of the source tree
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -trimpath -o /spectre-server .
+ARG VERSION=0.1.0
+RUN CGO_ENABLED=0 GOOS=linux go build \
+    -ldflags="-s -w -X github.com/ChxisB/talon/internal/version.Version=${VERSION}" \
+    -trimpath -o /talon-server .
 
 # ─── Production stage ─────────────────────────────────────────
 FROM alpine:3.20
 RUN apk add --no-cache ca-certificates
 
-COPY --from=builder /spectre-server /usr/local/bin/spectre-server
+COPY --from=builder /talon-server /usr/local/bin/talon-server
 
 EXPOSE 8082
 
-CMD ["spectre-server", "server", "--host", "tcp://0.0.0.0:8082"]
+CMD ["talon-server", "server", "--host", "tcp://0.0.0.0:8082", "--data-dir", "/data"]

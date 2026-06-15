@@ -4,10 +4,10 @@ import (
 	"strings"
 	"testing"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	"github.com/ChxisB/talon/deps/util/ansi"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/ui/styles"
 	"github.com/stretchr/testify/require"
 )
 
@@ -76,7 +76,7 @@ func renderedThinkingHeight(t *testing.T, item *AssistantMessageItem, width int)
 	_ = item.RawRender(width)
 	require.NotEmpty(t, item.thinkingSec.out,
 		"thinking section must be populated after RawRender")
-	return lipgloss.Height(item.thinkingSec.out)
+	return style.Height(item.thinkingSec.out)
 }
 
 // TestThinkingWindow_CollapsedCapPreserved guards that F5 did not

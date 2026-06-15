@@ -43,7 +43,7 @@ tasks:
   build:
     desc: Run build
     vars:
-      LDFLAGS: '{{if .VERSION}}-ldflags="-X github.com/ChxisB/spectre-proxy/internal/version.Version={{.VERSION}}"{{end}}'
+      LDFLAGS: '{{if .VERSION}}-ldflags="-X github.com/ChxisB/talon/internal/version.Version={{.VERSION}}"{{end}}'
     cmds:
       - "go build -v {{if .RACE}}-race{{end}} {{.LDFLAGS}} ."
     sources:
@@ -53,13 +53,13 @@ tasks:
       - internal/agent/**/*.md.tpl
       - internal/agent/hyper/provider.json
     generates:
-      - spectre{{exeExt}}
+      - talon{{exeExt}}
 
   run:
     desc: Run build
     cmds:
       - task: build
-      - "./spectre{{exeExt}} {{.CLI_ARGS}} {{if .RACE}}2>race.log{{end}}"
+      - "./talon{{exeExt}} {{.CLI_ARGS}} {{if .RACE}}2>race.log{{end}}"
 
   run:catwalk:
     desc: Run build with local Catwalk
@@ -67,17 +67,17 @@ tasks:
       CATWALK_URL: http://localhost:8080
     cmds:
       - task: build
-      - ./spectre{{exeExt}} {{.CLI_ARGS}}
+      - ./talon{{exeExt}} {{.CLI_ARGS}}
 
   run:onboarding:
     desc: Run build with custom config to test onboarding
     env:
-      SPECTRE_GLOBAL_DATA: tmp/onboarding/data
-      SPECTRE_GLOBAL_CONFIG: tmp/onboarding/config
+      TALON_GLOBAL_DATA: tmp/onboarding/data
+      TALON_GLOBAL_CONFIG: tmp/onboarding/config
     cmds:
       - task: build
       - rm -rf tmp/onboarding
-      - ./spectre{{exeExt}} {{.CLI_ARGS}}
+      - ./talon{{exeExt}} {{.CLI_ARGS}}
 
   test:
     desc: Run tests
@@ -109,14 +109,14 @@ tasks:
   dev:
     desc: Run with profiling enabled
     env:
-      SPECTRE_PROFILE: true
+      TALON_PROFILE: true
     cmds:
       - go run .
 
   install:
     desc: Install the application
     vars:
-      LDFLAGS: '{{if .VERSION}}-ldflags="-X github.com/ChxisB/spectre-proxy/internal/version.Version={{.VERSION}}"{{end}}'
+      LDFLAGS: '{{if .VERSION}}-ldflags="-X github.com/ChxisB/talon/internal/version.Version={{.VERSION}}"{{end}}'
     cmds:
       - task: fetch-tags
       - go install {{.LDFLAGS}} -v .

@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/internal/history"
-	"github.com/ChxisB/spectre-proxy/internal/permission"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
+	"github.com/ChxisB/talon/internal/history"
+	"github.com/ChxisB/talon/internal/permission"
+	"github.com/ChxisB/talon/internal/pubsub"
 	"github.com/stretchr/testify/require"
 )
 

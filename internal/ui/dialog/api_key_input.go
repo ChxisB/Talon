@@ -5,18 +5,18 @@ import (
 	"strings"
 	"time"
 
-	uv "github.com/ChxisB/spectre-proxy/deps/terminal"
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/help"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/key"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/spinner"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/textinput"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/exp/palette"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
-	"github.com/ChxisB/spectre-proxy/internal/ui/util"
+	term "github.com/ChxisB/talon/deps/terminal"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	"github.com/ChxisB/talon/deps/ui/core/v2/help"
+	"github.com/ChxisB/talon/deps/ui/core/v2/key"
+	"github.com/ChxisB/talon/deps/ui/core/v2/spinner"
+	"github.com/ChxisB/talon/deps/ui/core/v2/textinput"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/deps/util/exp/palette"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/ui/styles"
+	"github.com/ChxisB/talon/internal/ui/util"
 )
 
 type APIKeyInputState int
@@ -61,7 +61,7 @@ func NewAPIKeyInput(
 	provider catwalk.Provider,
 	model config.SelectedModel,
 	modelType config.SelectedModelType,
-) (*APIKeyInput, tea.Cmd) {
+) (*APIKeyInput, bubble.Cmd) {
 	t := com.Styles
 
 	m := APIKeyInput{}
@@ -104,25 +104,25 @@ func (m *APIKeyInput) ID() string {
 }
 
 // HandleMsg implements [Dialog].
-func (m *APIKeyInput) HandleMsg(msg tea.Msg) Action {
+func (m *APIKeyInput) HandleMsg(msg bubble.Msg) Action {
 	switch msg := msg.(type) {
 	case ActionChangeAPIKeyState:
 		m.state = msg.State
 		switch m.state {
 		case APIKeyInputStateVerifying:
-			cmd := tea.Batch(m.spinner.Tick, m.verifyAPIKey)
+			cmd := bubble.Batch(m.spinner.Tick, m.verifyAPIKey)
 			return ActionCmd{cmd}
 		}
 	case spinner.TickMsg:
 		switch m.state {
 		case APIKeyInputStateVerifying:
-			var cmd tea.Cmd
+			var cmd bubble.Cmd
 			m.spinner, cmd = m.spinner.Update(msg)
 			if cmd != nil {
 				return ActionCmd{cmd}
 			}
 		}
-	case tea.KeyPressMsg:
+	case bubble.KeyPressMsg:
 		switch {
 		case m.state == APIKeyInputStateVerifying:
 			// do nothing
@@ -141,14 +141,14 @@ func (m *APIKeyInput) HandleMsg(msg tea.Msg) Action {
 				return m.saveKeyAndContinue()
 			}
 		default:
-			var cmd tea.Cmd
+			var cmd bubble.Cmd
 			m.input, cmd = m.input.Update(msg)
 			if cmd != nil {
 				return ActionCmd{cmd}
 			}
 		}
-	case tea.PasteMsg:
-		var cmd tea.Cmd
+	case bubble.PasteMsg:
+		var cmd bubble.Cmd
 		m.input, cmd = m.input.Update(msg)
 		if cmd != nil {
 			return ActionCmd{cmd}
@@ -158,7 +158,7 @@ func (m *APIKeyInput) HandleMsg(msg tea.Msg) Action {
 }
 
 // Draw implements [Dialog].
-func (m *APIKeyInput) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
+func (m *APIKeyInput) Draw(scr term.Screen, area term.Rectangle) *bubble.Cursor {
 	t := m.com.Styles
 
 	textStyle := t.Dialog.SecondaryText
@@ -259,7 +259,7 @@ func (m *APIKeyInput) inputView() string {
 }
 
 // Cursor returns the cursor position relative to the dialog.
-func (m *APIKeyInput) Cursor() *tea.Cursor {
+func (m *APIKeyInput) Cursor() *bubble.Cursor {
 	return InputCursor(m.com.Styles, m.input.Cursor())
 }
 
@@ -281,7 +281,7 @@ func (m *APIKeyInput) ShortHelp() []key.Binding {
 	}
 }
 
-func (m *APIKeyInput) verifyAPIKey() tea.Msg {
+func (m *APIKeyInput) verifyAPIKey() bubble.Msg {
 	start := time.Now()
 
 	providerConfig := config.ProviderConfig{

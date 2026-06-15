@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/internal/home"
+	"github.com/ChxisB/talon/internal/home"
 	"github.com/stretchr/testify/require"
 )
 

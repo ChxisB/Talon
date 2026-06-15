@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/shell"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/shell"
 )
 
 // abandonGrace is how long runOne waits after ctx cancellation for the
@@ -155,7 +155,7 @@ func (r *Runner) matchingHooks(toolName string) []config.HookConfig {
 
 // runOne executes a single hook command and returns its result.
 //
-// Execution goes through spectre's embedded POSIX shell (shell.Run) so the
+// Execution goes through talon.s embedded POSIX shell (shell.Run) so the
 // same interpreter, builtins, and coreutils are visible to hooks as to
 // the bash tool. BlockFuncs are intentionally omitted: hooks are
 // user-authored config that carry the same trust as a shell alias.

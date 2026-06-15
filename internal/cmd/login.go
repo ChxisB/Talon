@@ -7,13 +7,13 @@ import (
 	"os"
 	"os/signal"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
-	"github.com/ChxisB/spectre-proxy/internal/client"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/oauth"
-	"github.com/ChxisB/spectre-proxy/internal/oauth/copilot"
-	"github.com/ChxisB/spectre-proxy/internal/oauth/hyper"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	"github.com/ChxisB/talon/deps/util/ansi"
+	"github.com/ChxisB/talon/internal/client"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/oauth"
+	"github.com/ChxisB/talon/internal/oauth/copilot"
+	"github.com/ChxisB/talon/internal/oauth/hyper"
 	"github.com/atotto/clipboard"
 	"github.com/pkg/browser"
 	"github.com/spf13/cobra"
@@ -22,19 +22,19 @@ import (
 var loginCmd = &cobra.Command{
 	Aliases: []string{"auth"},
 	Use:     "login [platform]",
-	Short:   "Login Spectre to a platform",
-	Long: `Login Spectre to a specified platform.
+	Short:   "Login Talon to a platform",
+	Long: `Login Talon to a specified platform.
 The platform should be provided as an argument.
 Available platforms are: hyper, copilot.`,
 	Example: `
-# Authenticate with Spectre Hyper
-spectre login
+# Authenticate with Talon Hyper
+talon login
 
 # Authenticate with GitHub Copilot
-spectre login copilot
+talon login copilot
 
 # Force re-authentication even if already logged in
-spectre login -f copilot
+talon login -f copilot
   `,
 	ValidArgs: []cobra.Completion{
 		"hyper",
@@ -102,11 +102,11 @@ func loginHyper(c *client.Client, wsID string, force bool) error {
 	}
 
 	fmt.Println()
-	fmt.Println(lipgloss.NewStyle().Bold(true).Render(resp.UserCode))
+	fmt.Println(style.NewStyle().Bold(true).Render(resp.UserCode))
 	fmt.Println()
 	fmt.Println("Press enter to open this URL, and then paste it there:")
 	fmt.Println()
-	fmt.Println(lipgloss.NewStyle().Hyperlink(resp.VerificationURL, "id=hyper").Render(resp.VerificationURL))
+	fmt.Println(style.NewStyle().Hyperlink(resp.VerificationURL, "id=hyper").Render(resp.VerificationURL))
 	fmt.Println()
 	waitEnter()
 	if err := browser.OpenURL(resp.VerificationURL); err != nil {
@@ -182,9 +182,9 @@ func loginCopilot(c *client.Client, wsID string, force bool) error {
 		fmt.Println()
 		fmt.Println("Open the following URL and follow the instructions to authenticate with GitHub Copilot:")
 		fmt.Println()
-		fmt.Println(lipgloss.NewStyle().Hyperlink(dc.VerificationURI, "id=copilot").Render(dc.VerificationURI))
+		fmt.Println(style.NewStyle().Hyperlink(dc.VerificationURI, "id=copilot").Render(dc.VerificationURI))
 		fmt.Println()
-		fmt.Println("Code:", lipgloss.NewStyle().Bold(true).Render(dc.UserCode))
+		fmt.Println("Code:", style.NewStyle().Bold(true).Render(dc.UserCode))
 		fmt.Println()
 		fmt.Println("Waiting for authorization...")
 
@@ -193,11 +193,11 @@ func loginCopilot(c *client.Client, wsID string, force bool) error {
 			fmt.Println()
 			fmt.Println("GitHub Copilot is unavailable for this account. To signup, go to the following page:")
 			fmt.Println()
-			fmt.Println(lipgloss.NewStyle().Hyperlink(copilot.SignupURL, "id=copilot-signup").Render(copilot.SignupURL))
+			fmt.Println(style.NewStyle().Hyperlink(copilot.SignupURL, "id=copilot-signup").Render(copilot.SignupURL))
 			fmt.Println()
 			fmt.Println("You may be able to request free access if eligible. For more information, see:")
 			fmt.Println()
-			fmt.Println(lipgloss.NewStyle().Hyperlink(copilot.FreeURL, "id=copilot-free").Render(copilot.FreeURL))
+			fmt.Println(style.NewStyle().Hyperlink(copilot.FreeURL, "id=copilot-free").Render(copilot.FreeURL))
 		}
 		if err != nil {
 			return err

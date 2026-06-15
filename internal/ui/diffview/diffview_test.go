@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
-	"github.com/ChxisB/spectre-proxy/deps/util/exp/golden"
-	"github.com/ChxisB/spectre-proxy/internal/ui/diffview"
+	"github.com/ChxisB/talon/deps/util/ansi"
+	"github.com/ChxisB/talon/deps/util/exp/golden"
+	"github.com/ChxisB/talon/internal/ui/diffview"
 	"github.com/alecthomas/chroma/v2/styles"
 )
 

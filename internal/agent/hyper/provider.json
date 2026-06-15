@@ -1,5 +1,5 @@
 {
-  "name": "Spectre Hyper",
+  "name": "Talon Hyper",
   "id": "hyper",
   "api_endpoint": "http://localhost:8080/api/v1/fantasy",
   "type": "hyper",

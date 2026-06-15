@@ -4,10 +4,10 @@ import (
 	"context"
 	"sync"
 
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/internal/agent/notify"
-	"github.com/ChxisB/spectre-proxy/internal/permission"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/internal/agent/notify"
+	"github.com/ChxisB/talon/internal/permission"
+	"github.com/ChxisB/talon/internal/pubsub"
 )
 
 // NewForTest constructs a minimal [App] suitable for in-process tests
@@ -30,7 +30,7 @@ func NewForTest(ctx context.Context) *App {
 	app := &App{
 		Permissions:        permission.NewPermissionService("", false, nil),
 		globalCtx:          ctx,
-		events:             pubsub.NewBroker[tea.Msg](),
+		events:             pubsub.NewBroker[bubble.Msg](),
 		serviceEventsWG:    &sync.WaitGroup{},
 		tuiWG:              &sync.WaitGroup{},
 		agentNotifications: pubsub.NewBroker[notify.Notification](),

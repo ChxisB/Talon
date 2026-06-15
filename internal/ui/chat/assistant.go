@@ -6,14 +6,14 @@ import (
 	"hash/fnv"
 	"strings"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/ui/anim"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/ui/list"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/deps/util/ansi"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/ui/anim"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/ui/list"
+	"github.com/ChxisB/talon/internal/ui/styles"
 )
 
 // assistantMessageTruncateFormat is the text shown when an assistant message is
@@ -83,7 +83,7 @@ func (s *assistantSection) store(width int, srcHash, extra uint64, out string, a
 	s.srcHash = srcHash
 	s.extra = extra
 	s.out = out
-	s.h = lipgloss.Height(out)
+	s.h = style.Height(out)
 	s.aux = aux
 	s.valid = true
 }
@@ -172,7 +172,7 @@ func NewAssistantMessageItem(sty *styles.Styles, message *message.Message) Messa
 }
 
 // StartAnimation starts the assistant message animation if it should be spinning.
-func (a *AssistantMessageItem) StartAnimation() tea.Cmd {
+func (a *AssistantMessageItem) StartAnimation() bubble.Cmd {
 	if !a.isSpinning() {
 		return nil
 	}
@@ -180,7 +180,7 @@ func (a *AssistantMessageItem) StartAnimation() tea.Cmd {
 }
 
 // Animate progresses the assistant message animation if it should be spinning.
-func (a *AssistantMessageItem) Animate(msg anim.StepMsg) tea.Cmd {
+func (a *AssistantMessageItem) Animate(msg anim.StepMsg) bubble.Cmd {
 	if !a.isSpinning() {
 		return nil
 	}
@@ -223,7 +223,7 @@ func (a *AssistantMessageItem) RawRender(width int) string {
 // Render implements MessageItem.
 func (a *AssistantMessageItem) Render(width int) string {
 	// XXX: Here, we're manually applying the focused/blurred styles because
-	// using lipgloss.Render can degrade performance for long messages due to
+	// using style.Render can degrade performance for long messages due to
 	// it's wrapping logic.
 	// We already know that the content is wrapped to the correct width in
 	// RawRender, so we can just apply the styles directly to each line.
@@ -346,7 +346,7 @@ func (a *AssistantMessageItem) renderMessageContent(width int) (string, int) {
 	}
 
 	out := strings.Join(messageParts, "\n")
-	return out, lipgloss.Height(out)
+	return out, style.Height(out)
 }
 
 // thinkingKey returns the (srcHash, extra) cache key components for the
@@ -480,7 +480,7 @@ func (a *AssistantMessageItem) renderThinking(thinking string, width int) string
 
 	thinkingStyle := a.sty.Messages.ThinkingBox.Width(width)
 	result := thinkingStyle.Render(strings.Join(lines, "\n"))
-	a.thinkingBoxHeight = lipgloss.Height(result)
+	a.thinkingBoxHeight = style.Height(result)
 
 	var footer string
 	// if thinking is done add the thought for footer
@@ -526,7 +526,7 @@ func (a *AssistantMessageItem) renderSpinning() string {
 func (a *AssistantMessageItem) renderError(width int) string {
 	finishPart := a.message.FinishPart()
 	errTag := a.sty.Messages.ErrorTag.Render("ERROR")
-	truncated := ansi.Truncate(finishPart.Message, width-2-lipgloss.Width(errTag), "...")
+	truncated := ansi.Truncate(finishPart.Message, width-2-style.Width(errTag), "...")
 	title := fmt.Sprintf("%s %s", errTag, a.sty.Messages.ErrorTitle.Render(truncated))
 	details := a.sty.Messages.ErrorDetails.Width(width - 2).Render(finishPart.Details)
 	return fmt.Sprintf("%s\n\n%s", title, details)
@@ -545,7 +545,7 @@ func (a *AssistantMessageItem) isSpinning() bool {
 // sub-section caches whose source text or extras changed are
 // invalidated; the others survive and serve cache hits on the next
 // RawRender.
-func (a *AssistantMessageItem) SetMessage(msg *message.Message) tea.Cmd {
+func (a *AssistantMessageItem) SetMessage(msg *message.Message) bubble.Cmd {
 	wasSpinning := a.isSpinning()
 	a.message = msg
 	// Bump the F6 version even if the underlying *message.Message
@@ -659,7 +659,7 @@ func (a *AssistantMessageItem) HandleMouseClick(btn ansi.MouseButton, x, y int) 
 }
 
 // HandleKeyEvent implements KeyEventHandler.
-func (a *AssistantMessageItem) HandleKeyEvent(key tea.KeyMsg) (bool, tea.Cmd) {
+func (a *AssistantMessageItem) HandleKeyEvent(key bubble.KeyMsg) (bool, bubble.Cmd) {
 	if k := key.String(); k == "c" || k == "y" {
 		text := a.message.Content().Text
 		return true, common.CopyToClipboard(text, "Message copied to clipboard")

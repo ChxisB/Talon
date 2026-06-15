@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/internal/env"
-	"github.com/ChxisB/spectre-proxy/internal/shell"
+	"github.com/ChxisB/talon/internal/env"
+	"github.com/ChxisB/talon/internal/shell"
 )
 
 // resolveTimeout bounds how long a single ResolveValue call may spend

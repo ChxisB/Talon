@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/oauth"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/oauth"
 )
 
 // ConfigSetRequest represents a request to set a config field.

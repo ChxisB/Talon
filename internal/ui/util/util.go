@@ -7,21 +7,21 @@ import (
 	"os/exec"
 	"time"
 
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
 	"mvdan.cc/sh/v3/shell"
 )
 
 type Cursor interface {
-	Cursor() *tea.Cursor
+	Cursor() *bubble.Cursor
 }
 
-func CmdHandler(msg tea.Msg) tea.Cmd {
-	return func() tea.Msg {
+func CmdHandler(msg bubble.Msg) bubble.Cmd {
+	return func() bubble.Msg {
 		return msg
 	}
 }
 
-func ReportError(err error) tea.Cmd {
+func ReportError(err error) bubble.Cmd {
 	return CmdHandler(NewErrorMsg(err))
 }
 
@@ -56,11 +56,11 @@ func NewErrorMsg(err error) InfoMsg {
 	}
 }
 
-func ReportInfo(info string) tea.Cmd {
+func ReportInfo(info string) bubble.Cmd {
 	return CmdHandler(NewInfoMsg(info))
 }
 
-func ReportWarn(warn string) tea.Cmd {
+func ReportWarn(warn string) bubble.Cmd {
 	return CmdHandler(NewWarnMsg(warn))
 }
 
@@ -82,7 +82,7 @@ func (m InfoMsg) IsEmpty() bool {
 // ExecShell parses a shell command string and executes it with exec.Command.
 // Uses shell.Fields for proper handling of shell syntax like quotes and
 // arguments while preserving TTY handling for terminal editors.
-func ExecShell(ctx context.Context, cmdStr string, callback tea.ExecCallback) tea.Cmd {
+func ExecShell(ctx context.Context, cmdStr string, callback bubble.ExecCallback) bubble.Cmd {
 	fields, err := shell.Fields(cmdStr, nil)
 	if err != nil {
 		return ReportError(err)
@@ -92,5 +92,5 @@ func ExecShell(ctx context.Context, cmdStr string, callback tea.ExecCallback) te
 	}
 
 	cmd := exec.CommandContext(ctx, fields[0], fields[1:]...)
-	return tea.ExecProcess(cmd, callback)
+	return bubble.ExecProcess(cmd, callback)
 }

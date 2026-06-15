@@ -4,26 +4,26 @@ import (
 	"testing"
 	"time"
 
-	uv "github.com/ChxisB/spectre-proxy/deps/terminal"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
+	term "github.com/ChxisB/talon/deps/terminal"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
 	"github.com/stretchr/testify/require"
 )
 
 // stubDialog is a minimal Dialog for testing Overlay behavior.
 type stubDialog struct {
 	id       string
-	received []tea.Msg
+	received []bubble.Msg
 }
 
 func (s *stubDialog) ID() string { return s.id }
-func (s *stubDialog) HandleMsg(msg tea.Msg) Action {
+func (s *stubDialog) HandleMsg(msg bubble.Msg) Action {
 	s.received = append(s.received, msg)
 	return nil
 }
-func (s *stubDialog) Draw(_ uv.Screen, _ uv.Rectangle) *tea.Cursor { return nil }
+func (s *stubDialog) Draw(_ term.Screen, _ term.Rectangle) *bubble.Cursor { return nil }
 
-func keyMsg(r rune) tea.KeyPressMsg {
-	return tea.KeyPressMsg{Code: r, Text: string(r)}
+func keyMsg(r rune) bubble.KeyPressMsg {
+	return bubble.KeyPressMsg{Code: r, Text: string(r)}
 }
 
 // TestOverlay_GracePeriodSwallowsKeys verifies that all keystrokes
@@ -126,6 +126,6 @@ func TestOverlay_NonKeyMessagesPassDuringGrace(t *testing.T) {
 	o := NewOverlay()
 	o.OpenDialogWithGrace(d)
 
-	o.Update(tea.MouseWheelMsg{})
+	o.Update(bubble.MouseWheelMsg{})
 	require.Len(t, d.received, 1, "non-key messages should pass through during grace")
 }

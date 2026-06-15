@@ -4,13 +4,13 @@ import (
 	"slices"
 	"strings"
 
-	colorprofile "github.com/ChxisB/spectre-proxy/deps/color"
-	uv "github.com/ChxisB/spectre-proxy/deps/terminal"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
-	xstrings "github.com/ChxisB/spectre-proxy/deps/util/exp/strings"
+	colorprofile "github.com/ChxisB/talon/deps/color"
+	term "github.com/ChxisB/talon/deps/terminal"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/deps/util/ansi"
+	xstr "github.com/ChxisB/talon/deps/util/exp/strings"
 
-	"github.com/ChxisB/spectre-proxy/internal/ui/notification"
+	"github.com/ChxisB/talon/internal/ui/notification"
 )
 
 // Capabilities define different terminal capabilities supported.
@@ -32,7 +32,7 @@ type Capabilities struct {
 	// SixelGraphics indicates whether the terminal supports Sixel graphics.
 	SixelGraphics bool
 	// Env is the terminal environment variables.
-	Env uv.Environ
+	Env term.Environ
 	// TerminalVersion is the terminal version string.
 	TerminalVersion string
 	// ReportFocusEvents indicates whether the terminal supports focus events.
@@ -44,39 +44,39 @@ type Capabilities struct {
 // Update updates the capabilities based on the given message.
 func (c *Capabilities) Update(msg any) {
 	switch m := msg.(type) {
-	case tea.EnvMsg:
-		c.Env = uv.Environ(m)
-	case tea.ColorProfileMsg:
+	case bubble.EnvMsg:
+		c.Env = term.Environ(m)
+	case bubble.ColorProfileMsg:
 		c.Profile = m.Profile
-	case tea.WindowSizeMsg:
+	case bubble.WindowSizeMsg:
 		c.Columns = m.Width
 		c.Rows = m.Height
-	case uv.PixelSizeEvent:
+	case term.PixelSizeEvent:
 		c.PixelX = m.Width
 		c.PixelY = m.Height
-	case uv.KittyGraphicsEvent:
+	case term.KittyGraphicsEvent:
 		c.KittyGraphics = true
-	case uv.PrimaryDeviceAttributesEvent:
+	case term.PrimaryDeviceAttributesEvent:
 		if slices.Contains(m, 4) {
 			c.SixelGraphics = true
 		}
-	case tea.TerminalVersionMsg:
+	case bubble.TerminalVersionMsg:
 		c.TerminalVersion = m.Name
-	case tea.ModeReportMsg:
+	case bubble.ModeReportMsg:
 		switch m.Mode {
 		case ansi.ModeFocusEvent:
 			c.ReportFocusEvents = modeSupported(m.Value)
 		}
-	case uv.UnknownOscEvent:
+	case term.UnknownOscEvent:
 		if notification.DetectOSC99Support(string(m)) {
 			c.OSC99Notifications = true
 		}
 	}
 }
 
-// QueryCmd returns a [tea.Cmd] that queries the terminal for different
+// QueryCmd returns a [bubble.Cmd] that queries the terminal for different
 // capabilities.
-func QueryCmd(env uv.Environ) tea.Cmd {
+func QueryCmd(env term.Environ) bubble.Cmd {
 	var sb strings.Builder
 	sb.WriteString(ansi.RequestPrimaryDeviceAttributes)
 	sb.WriteString(ansi.QueryModifyOtherKeys)
@@ -95,7 +95,7 @@ func QueryCmd(env uv.Environ) tea.Cmd {
 		sb.WriteString(kittyReq)
 	}
 
-	return tea.Raw(sb.String())
+	return bubble.Raw(sb.String())
 }
 
 // SupportsTrueColor returns true if the terminal supports true color.
@@ -128,7 +128,7 @@ func modeSupported(v ansi.ModeSetting) bool {
 // kittyTerminals defines terminals supporting querying capabilities.
 var kittyTerminals = []string{"alacritty", "ghostty", "kitty", "rio", "wezterm"}
 
-func shouldQueryCapabilities(env uv.Environ) bool {
+func shouldQueryCapabilities(env term.Environ) bool {
 	const osVendorTypeApple = "Apple"
 	termType := env.Getenv("TERM")
 	termProg, okTermProg := env.LookupEnv("TERM_PROGRAM")
@@ -139,5 +139,5 @@ func shouldQueryCapabilities(env uv.Environ) bool {
 	return (!okTermProg && !okSSHTTY) ||
 		(!strings.Contains(termProg, osVendorTypeApple) && !okSSHTTY) ||
 		// Terminals that do support XTVERSION.
-		xstrings.ContainsAnyOf(termType, kittyTerminals...)
+		xstr.ContainsAnyOf(termType, kittyTerminals...)
 }

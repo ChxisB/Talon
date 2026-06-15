@@ -8,17 +8,17 @@ import (
 	"context"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	mcptools "github.com/ChxisB/spectre-proxy/internal/agent/tools/mcp"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/history"
-	"github.com/ChxisB/spectre-proxy/internal/lsp"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/oauth"
-	"github.com/ChxisB/spectre-proxy/internal/permission"
-	"github.com/ChxisB/spectre-proxy/internal/session"
-	"github.com/ChxisB/spectre-proxy/internal/skills"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	mcptools "github.com/ChxisB/talon/internal/agent/tools/mcp"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/history"
+	"github.com/ChxisB/talon/internal/lsp"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/oauth"
+	"github.com/ChxisB/talon/internal/permission"
+	"github.com/ChxisB/talon/internal/session"
+	"github.com/ChxisB/talon/internal/skills"
 )
 
 // LSPClientInfo holds information about an LSP client's state. This is
@@ -156,7 +156,7 @@ type Workspace interface {
 	DisableDockerMCP() error
 
 	// Events
-	Subscribe(program *tea.Program)
+	Subscribe(program *bubble.Program)
 	Shutdown()
 }
 

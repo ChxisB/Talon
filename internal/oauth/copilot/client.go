@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/ChxisB/spectre-proxy/internal/log"
+	"github.com/ChxisB/talon/internal/log"
 )
 
 var assistantRolePattern = regexp.MustCompile(`"role"\s*:\s*"assistant"`)

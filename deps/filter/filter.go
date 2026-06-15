@@ -60,7 +60,7 @@ func Filter(args []string, level Level) (*Result, error) {
 	}
 
 	// Route to command-specific filter
-	filtered := filterOutput(cmdName, cmdArgs, result.Stdout, level)
+	filtered := FilterOutput(cmdName, cmdArgs, result.Stdout, level)
 	if filtered != result.Stdout {
 		result.Stdout = filtered
 		result.Filtered = true
@@ -69,8 +69,11 @@ func Filter(args []string, level Level) (*Result, error) {
 	return result, nil
 }
 
-// filterOutput routes to the appropriate command-specific filter.
-func filterOutput(cmd string, args []string, output string, level Level) string {
+// FilterOutput applies command-specific output filtering to the given text.
+// It detects the command type from cmdName (e.g. "git", "npm", "cargo")
+// and applies the appropriate filter strategy. Pass the raw output text
+// and get back the filtered version.
+func FilterOutput(cmd string, args []string, output string, level Level) string {
 	switch cmd {
 	case "git":
 		return filterGit(args, output, level)

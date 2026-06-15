@@ -7,11 +7,11 @@ import (
 	"slices"
 	"strings"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/key"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
-	"github.com/ChxisB/spectre-proxy/internal/message"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	"github.com/ChxisB/talon/deps/ui/core/v2/key"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/deps/util/ansi"
+	"github.com/ChxisB/talon/internal/message"
 )
 
 const maxFilename = 15
@@ -39,12 +39,12 @@ type Attachments struct {
 func (m *Attachments) List() []message.Attachment { return m.list }
 func (m *Attachments) Reset()                     { m.list = nil }
 
-func (m *Attachments) Update(msg tea.Msg) bool {
+func (m *Attachments) Update(msg bubble.Msg) bool {
 	switch msg := msg.(type) {
 	case message.Attachment:
 		m.list = append(m.list, msg)
 		return true
-	case tea.KeyPressMsg:
+	case bubble.KeyPressMsg:
 		switch {
 		case key.Matches(msg, m.keyMap.DeleteMode):
 			if len(m.list) > 0 {
@@ -82,7 +82,7 @@ func (m *Attachments) Render(width int) string {
 // styles in place.
 func (m *Attachments) Renderer() *Renderer { return m.renderer }
 
-func NewRenderer(normalStyle, deletingStyle, imageStyle, textStyle, skillStyle lipgloss.Style) *Renderer {
+func NewRenderer(normalStyle, deletingStyle, imageStyle, textStyle, skillStyle style.Style) *Renderer {
 	return &Renderer{
 		normalStyle:   normalStyle,
 		textStyle:     textStyle,
@@ -93,7 +93,7 @@ func NewRenderer(normalStyle, deletingStyle, imageStyle, textStyle, skillStyle l
 }
 
 // SetStyles updates the renderer styles in place.
-func (r *Renderer) SetStyles(normalStyle, deletingStyle, imageStyle, textStyle, skillStyle lipgloss.Style) {
+func (r *Renderer) SetStyles(normalStyle, deletingStyle, imageStyle, textStyle, skillStyle style.Style) {
 	r.normalStyle = normalStyle
 	r.textStyle = textStyle
 	r.imageStyle = imageStyle
@@ -102,13 +102,13 @@ func (r *Renderer) SetStyles(normalStyle, deletingStyle, imageStyle, textStyle, 
 }
 
 type Renderer struct {
-	normalStyle, textStyle, imageStyle, skillStyle, deletingStyle lipgloss.Style
+	normalStyle, textStyle, imageStyle, skillStyle, deletingStyle style.Style
 }
 
 func (r *Renderer) Render(attachments []message.Attachment, deleting bool, width int) string {
 	var chips []string
 
-	maxItemWidth := lipgloss.Width(r.imageStyle.String() + r.normalStyle.Render(strings.Repeat("x", maxFilename)))
+	maxItemWidth := style.Width(r.imageStyle.String() + r.normalStyle.Render(strings.Repeat("x", maxFilename)))
 	fits := int(math.Floor(float64(width)/float64(maxItemWidth))) - 1
 
 	for i, att := range attachments {
@@ -133,15 +133,15 @@ func (r *Renderer) Render(attachments []message.Attachment, deleting bool, width
 		}
 
 		if i == fits && len(attachments) > i {
-			chips = append(chips, lipgloss.NewStyle().Width(maxItemWidth).Render(fmt.Sprintf("%d more…", len(attachments)-fits)))
+			chips = append(chips, style.NewStyle().Width(maxItemWidth).Render(fmt.Sprintf("%d more…", len(attachments)-fits)))
 			break
 		}
 	}
 
-	return lipgloss.JoinHorizontal(lipgloss.Left, chips...)
+	return style.JoinHorizontal(style.Left, chips...)
 }
 
-func (r *Renderer) icon(a message.Attachment) lipgloss.Style {
+func (r *Renderer) icon(a message.Attachment) style.Style {
 	if a.IsImage() {
 		return r.imageStyle
 	}

@@ -5,18 +5,18 @@ import (
 	"fmt"
 	"strings"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	uv "github.com/ChxisB/spectre-proxy/deps/terminal"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/help"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/key"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/viewport"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/internal/agent/tools"
-	"github.com/ChxisB/spectre-proxy/internal/fsext"
-	"github.com/ChxisB/spectre-proxy/internal/permission"
-	"github.com/ChxisB/spectre-proxy/internal/stringext"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	term "github.com/ChxisB/talon/deps/terminal"
+	"github.com/ChxisB/talon/deps/ui/core/v2/help"
+	"github.com/ChxisB/talon/deps/ui/core/v2/key"
+	"github.com/ChxisB/talon/deps/ui/core/v2/viewport"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/internal/agent/tools"
+	"github.com/ChxisB/talon/internal/fsext"
+	"github.com/ChxisB/talon/internal/permission"
+	"github.com/ChxisB/talon/internal/stringext"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/ui/styles"
 )
 
 // PermissionsID is the identifier for the permissions dialog.
@@ -231,9 +231,9 @@ func (p *Permissions) ToolCallID() string {
 }
 
 // HandleMsg implements [Dialog].
-func (p *Permissions) HandleMsg(msg tea.Msg) Action {
+func (p *Permissions) HandleMsg(msg bubble.Msg) Action {
 	switch msg := msg.(type) {
-	case tea.KeyPressMsg:
+	case bubble.KeyPressMsg:
 		switch {
 		case key.Matches(msg, p.keyMap.Close):
 			// Escape denies the permission request.
@@ -278,12 +278,12 @@ func (p *Permissions) HandleMsg(msg tea.Msg) Action {
 				p.viewport, _ = p.viewport.Update(msg)
 			}
 		}
-	case tea.MouseWheelMsg:
+	case bubble.MouseWheelMsg:
 		if p.hasDiffView() {
 			switch msg.Button {
-			case tea.MouseWheelLeft:
+			case bubble.MouseWheelLeft:
 				p.scrollLeft()
-			case tea.MouseWheelRight:
+			case bubble.MouseWheelRight:
 				p.scrollRight()
 			default:
 				p.viewport, _ = p.viewport.Update(msg)
@@ -302,7 +302,7 @@ func (p *Permissions) HandleMsg(msg tea.Msg) Action {
 	return nil
 }
 
-func (p *Permissions) selectCurrentOption() tea.Msg {
+func (p *Permissions) selectCurrentOption() bubble.Msg {
 	switch p.selectedOption {
 	case 0:
 		return p.respond(PermissionAllow)
@@ -313,7 +313,7 @@ func (p *Permissions) selectCurrentOption() tea.Msg {
 	}
 }
 
-func (p *Permissions) respond(action PermissionAction) tea.Msg {
+func (p *Permissions) respond(action PermissionAction) bubble.Msg {
 	return ActionPermissionResponse{
 		Permission: p.permission,
 		Action:     action,
@@ -348,7 +348,7 @@ func (p *Permissions) scrollRight() {
 }
 
 // Draw implements [Dialog].
-func (p *Permissions) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
+func (p *Permissions) Draw(scr term.Screen, area term.Rectangle) *bubble.Cursor {
 	t := p.com.Styles
 	// Force fullscreen when window is too small.
 	forceFullscreen := area.Dx() <= minWindowWidth || area.Dy() <= minWindowHeight
@@ -377,16 +377,16 @@ func (p *Permissions) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 	helpView := p.help.View(p)
 
 	// Calculate available height for content.
-	headerHeight := lipgloss.Height(header)
-	buttonsHeight := lipgloss.Height(buttons)
-	helpHeight := lipgloss.Height(helpView)
+	headerHeight := style.Height(header)
+	buttonsHeight := style.Height(buttons)
+	helpHeight := style.Height(helpView)
 	frameHeight := dialogStyle.GetVerticalFrameSize() + layoutSpacingLines
 
 	p.defaultDiffSplitMode = width >= splitModeMinWidth
 
 	// Pre-render content to measure its actual height.
 	renderedContent := p.renderContent(contentWidth)
-	contentHeight := lipgloss.Height(renderedContent)
+	contentHeight := style.Height(renderedContent)
 
 	// For non-diff views, shrink dialog to fit content if it's smaller than max.
 	var availableHeight int
@@ -432,7 +432,7 @@ func (p *Permissions) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 
 	// Join content with scrollbar if present.
 	if scrollbar != "" {
-		content = lipgloss.JoinHorizontal(lipgloss.Top, content, scrollbar)
+		content = style.JoinHorizontal(style.Top, content, scrollbar)
 	}
 
 	parts := []string{header}
@@ -441,7 +441,7 @@ func (p *Permissions) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 	}
 	parts = append(parts, "", buttons, "", helpView)
 
-	innerContent := lipgloss.JoinVertical(lipgloss.Left, parts...)
+	innerContent := style.JoinVertical(style.Left, parts...)
 	DrawCenterCursor(scr, area, dialogStyle.Render(innerContent), nil)
 	return nil
 }
@@ -490,7 +490,7 @@ func (p *Permissions) renderHeader(contentWidth int) string {
 		}
 	}
 
-	return lipgloss.JoinVertical(lipgloss.Left, lines...)
+	return style.JoinVertical(style.Left, lines...)
 }
 
 func (p *Permissions) renderKeyValue(key, value string, width int) string {
@@ -499,9 +499,9 @@ func (p *Permissions) renderKeyValue(key, value string, width int) string {
 	valueStyle := t.Dialog.Permissions.ValueText
 
 	keyStr := keyStyle.Render(key)
-	valueStr := valueStyle.Width(width - lipgloss.Width(keyStr) - 1).Render(" " + value)
+	valueStr := valueStyle.Width(width - style.Width(keyStr) - 1).Render(" " + value)
 
-	return lipgloss.JoinHorizontal(lipgloss.Left, keyStr, valueStr)
+	return style.JoinHorizontal(style.Left, keyStr, valueStr)
 }
 
 func (p *Permissions) renderToolName(width int) string {
@@ -745,17 +745,17 @@ func (p *Permissions) renderButtons(contentWidth int) string {
 	content := common.ButtonGroup(p.com.Styles, buttons, "  ")
 
 	// If buttons are too wide, stack them vertically.
-	if lipgloss.Width(content) > contentWidth {
+	if style.Width(content) > contentWidth {
 		content = common.ButtonGroup(p.com.Styles, buttons, "\n")
-		return lipgloss.NewStyle().
+		return style.NewStyle().
 			Width(contentWidth).
-			Align(lipgloss.Center).
+			Align(style.Center).
 			Render(content)
 	}
 
-	return lipgloss.NewStyle().
+	return style.NewStyle().
 		Width(contentWidth).
-		Align(lipgloss.Right).
+		Align(style.Right).
 		Render(content)
 }
 

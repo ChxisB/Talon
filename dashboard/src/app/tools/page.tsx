@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import SpectreConfig from "@/components/SpectreConfig";
+import { useState, useEffect } from "react";
+import TalonConfig from "@/components/TalonConfig";
 import Modal from "@/components/Modal";
-import { Clock, Puzzle, Workflow, Zap, Sparkles, Cog, Power, Bot, FileText, MessageSquare, Brain, Layout, Filter, BarChart2, Share2, Minimize2 } from "lucide-react";
+import { Clock, Puzzle, Workflow, Sparkles, Cog, Power, Bot, Brain, Layout, Filter, BarChart2, Share2, Minimize2, Database, Zap, GitBranch, Archive } from "lucide-react";
 
 // ─── Curated Plugins ──────────────────────────────────────────────────
 
@@ -36,12 +36,12 @@ function WorkspaceSection() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    fetch("/api/spectre-proxy/admin/config").then(r => r.json()).then(d => { if (d.config?.DEFAULT_WORKSPACE) setWorkspace(d.config.DEFAULT_WORKSPACE); }).catch(() => {});
+    fetch("/api/talon/admin/config").then(r => r.json()).then(d => { if (d.config?.DEFAULT_WORKSPACE) setWorkspace(d.config.DEFAULT_WORKSPACE); }).catch(() => {});
   }, []);
 
   const save = async () => {
     try {
-      await fetch("/api/spectre-proxy/admin/config", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ DEFAULT_WORKSPACE: workspace }) });
+      await fetch("/api/talon/admin/config", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ DEFAULT_WORKSPACE: workspace }) });
       setSaved(true); setTimeout(() => setSaved(false), 2000);
     } catch {}
   };
@@ -109,19 +109,19 @@ function CronSection() {
   const [prompt, setPrompt] = useState("");
   const [interval, setIntervalVal] = useState("1d");
 
-  const load = () => fetch("/api/spectre-proxy/cron").then(r => r.json()).then(d => setJobs(d.jobs || [])).catch(() => {});
+  const load = () => fetch("/api/talon/cron").then(r => r.json()).then(d => setJobs(d.jobs || [])).catch(() => {});
   useEffect(() => { load(); const i = setInterval(load, 10000); return () => clearInterval(i); }, []);
 
   const addCron = async () => {
     if (!name.trim() || !prompt.trim()) return;
-    await fetch("/api/spectre-proxy/cron", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "add", name: name.trim(), prompt: prompt.trim(), interval }) });
+    await fetch("/api/talon/cron", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "add", name: name.trim(), prompt: prompt.trim(), interval }) });
     setName(""); setPrompt(""); setShowAdd(false); load();
   };
-  const toggleCron = async (id: string) => { await fetch("/api/spectre-proxy/cron", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "toggle", id }) }); load(); };
-  const removeCron = async (id: string) => { await fetch("/api/spectre-proxy/cron", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "remove", id }) }); load(); };
+  const toggleCron = async (id: string) => { await fetch("/api/talon/cron", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "toggle", id }) }); load(); };
+  const removeCron = async (id: string) => { await fetch("/api/talon/cron", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "remove", id }) }); load(); };
   const addDreamCron = async () => {
-    await fetch("/api/spectre-proxy/cron", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "add", name: "[Dream] Auto vault dreaming", prompt: "__dream__", interval: "6h" }) });
-    fetch("/api/spectre-proxy/dream").catch(() => {}); load();
+    await fetch("/api/talon/cron", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "add", name: "[Dream] Auto vault dreaming", prompt: "__dream__", interval: "6h" }) });
+    fetch("/api/talon/dream").catch(() => {}); load();
   };
 
   return (
@@ -190,10 +190,10 @@ function MCPSection() {
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
 
-  const load = () => { const local: any[] = JSON.parse(localStorage.getItem("spectre-mcps") || "[]"); setMcps(local); };
+  const load = () => { const local: any[] = JSON.parse(localStorage.getItem("talon-mcps") || "[]"); setMcps(local); };
   useEffect(() => { load(); }, []);
 
-  const save = (next: any[]) => { setMcps(next); localStorage.setItem("spectre-mcps", JSON.stringify(next)); };
+  const save = (next: any[]) => { setMcps(next); localStorage.setItem("talon-mcps", JSON.stringify(next)); };
   const add = () => { if (!name.trim() || !url.trim()) return; save([...mcps, { id: crypto.randomUUID(), name: name.trim(), url: url.trim(), enabled: true }]); setName(""); setUrl(""); setOpen(false); setEditId(null); };
   const update = () => { if (!name.trim() || !url.trim() || !editId) return; save(mcps.map(m => m.id === editId ? { ...m, name: name.trim(), url: url.trim() } : m)); setName(""); setUrl(""); setOpen(false); setEditId(null); };
   const toggle = (id: string) => save(mcps.map(m => m.id === id ? { ...m, enabled: !m.enabled } : m));
@@ -257,13 +257,13 @@ function SubAgentsSection() {
   const [instructions, setInstructions] = useState("");
 
   const load = () => {
-    const local = JSON.parse(localStorage.getItem("spectre-subagents") || "[]");
+    const local = JSON.parse(localStorage.getItem("talon-subagents") || "[]");
     setAgents(local);
-    fetch("/api/spectre-proxy/agents").then(r => r.json()).then(d => setFsAgents(d.agents || [])).catch(() => {});
+    fetch("/api/talon/agents").then(r => r.json()).then(d => setFsAgents(d.agents || [])).catch(() => {});
   };
   useEffect(() => { load(); }, []);
 
-  const save = (next: any[]) => { setAgents(next); localStorage.setItem("spectre-subagents", JSON.stringify(next)); };
+  const save = (next: any[]) => { setAgents(next); localStorage.setItem("talon-subagents", JSON.stringify(next)); };
   const add = () => {
     if (!name.trim()) return;
     save([...agents, { id: crypto.randomUUID(), name: name.trim(), model: "auto", instructions: instructions.trim() }]);
@@ -277,10 +277,10 @@ function SubAgentsSection() {
   const remove = (id: string) => save(agents.filter(a => a.id !== id));
   const updateFS = async () => {
     if (!name.trim() || !editModal?.file) return;
-    await fetch("/api/spectre-proxy/agents", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "update", file: editModal.file, name: name.trim(), keywords: keywords.split(",").map((k: string) => k.trim()).filter(Boolean), instructions: instructions.trim() }) });
+    await fetch("/api/talon/agents", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "update", file: editModal.file, name: name.trim(), keywords: keywords.split(",").map((k: string) => k.trim()).filter(Boolean), instructions: instructions.trim() }) });
     closeEdit(); load();
   };
-  const deleteFS = async (file: string) => { await fetch("/api/spectre-proxy/agents", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "delete", file }) }); load(); };
+  const deleteFS = async (file: string) => { await fetch("/api/talon/agents", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "delete", file }) }); load(); };
 
   const openCreate = () => { setName(""); setKeywords(""); setInstructions(""); setEditModal({}); };
   const openEdit = (a: any) => { setName(a.name); setKeywords(""); setInstructions(a.instructions); setEditModal({ agent: a }); };
@@ -297,7 +297,7 @@ function SubAgentsSection() {
         <div className="flex items-center gap-3">
           <Bot size={18} className="text-primary" />
           <h3 className="font-bold text-sm">Sub-Agents</h3>
-          <span className="badge badge-sm text-xs bg-base-300 text-base-content/60">.md files in ~/.spectre/agents/</span>
+          <span className="badge badge-sm text-xs bg-base-300 text-base-content/60">.md files in ~/.talon/agents/</span>
         </div>
         <button className="btn btn-primary btn-xs" onClick={openCreate}>
           <span className="material-symbols-outlined text-sm">add</span> Create
@@ -384,147 +384,6 @@ function SubAgentsSection() {
   );
 }
 
-// ─── Token Saver Settings ─────────────────────────────────────────────
-
-function TokenSaverSection() {
-  const [settings, setSettings] = useState({
-    CLI_BACKEND: "claude",
-    CMD_COMPRESS_ENABLED: "true",
-    RESPONSE_COMPRESS_LEVEL: "full",
-    BEHAVIOR_ENABLED: "true",
-  });
-  const [saved, setSaved] = useState(false);
-  const [saverReport, setSaverReport] = useState("");
-
-  useEffect(() => {
-    fetch("/api/spectre-proxy/admin/config").then(r => r.json()).then(d => {
-      if (d.config) {
-        setSettings(prev => ({
-          ...prev,
-          CLI_BACKEND: d.config.CLI_BACKEND || prev.CLI_BACKEND,
-          CMD_COMPRESS_ENABLED: d.config.CMD_COMPRESS_ENABLED || prev.CMD_COMPRESS_ENABLED,
-          RESPONSE_COMPRESS_LEVEL: d.config.RESPONSE_COMPRESS_LEVEL || prev.RESPONSE_COMPRESS_LEVEL,
-          BEHAVIOR_ENABLED: d.config.BEHAVIOR_ENABLED || prev.BEHAVIOR_ENABLED,
-        }));
-      }
-    }).catch(() => {});
-    // Fetch saver report via CLI
-    fetch("/api/spectre-proxy/status").then(() => {
-      // The saver report is available via the token_savings MCP tool
-    }).catch(() => {});
-  }, []);
-
-  const save = async (updates: Record<string, string>) => {
-    const next = { ...settings, ...updates };
-    setSettings(next);
-    try {
-      await fetch("/api/spectre-proxy/admin/config", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(next),
-      });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
-    } catch {}
-  };
-
-  return (
-    <div className="rounded-xl bg-base-200 border border-base-content/10 p-5 shadow-sm">
-      <div className="flex flex-col gap-4">
-
-        {/* Default CLI */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center">
-              <Brain size={16} className="text-primary" />
-            </div>
-            <div>
-              <div className="text-sm font-medium">Default CLI Backend</div>
-              <div className="text-xs text-base-content/60">Which coding agent to launch with <code>spectre</code></div>
-            </div>
-          </div>
-          <select
-            value={settings.CLI_BACKEND}
-            onChange={e => save({ CLI_BACKEND: e.target.value })}
-            className="select select-sm max-w-32 bg-base-300 border-base-content/20"
-          >
-            <option value="claude">Claude Code</option>
-            <option value="codex">Codex</option>
-            <option value="gemini">Gemini</option>
-          </select>
-        </div>
-
-        <div className="divider my-1" />
-
-        {/* Command compression */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center">
-              <FileText size={16} className="text-primary" />
-            </div>
-            <div>
-              <div className="text-sm font-medium">Command Compression</div>
-              <div className="text-xs text-base-content/60">Compress command output (git, ls, cargo, etc.) before sending to LLM</div>
-            </div>
-          </div>
-          <input
-            type="checkbox"
-            className="toggle toggle-sm"
-            checked={settings.CMD_COMPRESS_ENABLED === "true"}
-            onChange={e => save({ CMD_COMPRESS_ENABLED: e.target.checked ? "true" : "false" })}
-          />
-        </div>
-
-        {/* Response compression */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center">
-              <MessageSquare size={16} className="text-primary" />
-            </div>
-            <div>
-              <div className="text-sm font-medium">Response Compression</div>
-              <div className="text-xs text-base-content/60">Strip filler, pleasantries, and hedging from agent responses</div>
-            </div>
-          </div>
-          <select
-            value={settings.RESPONSE_COMPRESS_LEVEL}
-            onChange={e => save({ RESPONSE_COMPRESS_LEVEL: e.target.value })}
-            className="select select-sm max-w-28 bg-base-300 border-base-content/20"
-          >
-            <option value="off">Off</option>
-            <option value="lite">Lite</option>
-            <option value="full">Full</option>
-            <option value="ultra">Ultra</option>
-          </select>
-        </div>
-
-        {/* Behavioral guidelines */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center">
-              <Brain size={16} className="text-primary" />
-            </div>
-            <div>
-              <div className="text-sm font-medium">Behavioral Guidelines</div>
-              <div className="text-xs text-base-content/60">Inject behavioral guidelines (think before coding, simplicity first, surgical changes)</div>
-            </div>
-          </div>
-          <input
-            type="checkbox"
-            className="toggle toggle-sm"
-            checked={settings.BEHAVIOR_ENABLED === "true"}
-            onChange={e => save({ BEHAVIOR_ENABLED: e.target.checked ? "true" : "false" })}
-          />
-        </div>
-
-        {saved && (
-          <div className="text-xs text-success font-medium text-center">Settings saved</div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 // ─── Built-in Tools ────────────────────────────────────────────
 
 interface BuiltInTool {
@@ -546,6 +405,10 @@ const TOOL_ICONS: Record<string, React.ReactNode> = {
   filter: <Filter size={16} />,
   "bar-chart-2": <BarChart2 size={16} />,
   "share-2": <Share2 size={16} />,
+  database: <Database size={16} />,
+  "git-branch": <GitBranch size={16} />,
+  zap: <Zap size={16} />,
+  archive: <Archive size={16} />,
 };
 
 function BuiltInToolsSection() {
@@ -554,7 +417,7 @@ function BuiltInToolsSection() {
   const [saving, setSaving] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/spectre-proxy/tools")
+    fetch("/api/talon/tools")
       .then((r) => r.json())
       .then((d) => {
         setTools(d.tools || []);
@@ -566,7 +429,7 @@ function BuiltInToolsSection() {
   const toggleTool = async (id: string, enabled: boolean) => {
     setSaving(id);
     try {
-      await fetch("/api/spectre-proxy/tools", {
+      await fetch("/api/talon/tools", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, enabled }),
@@ -581,7 +444,7 @@ function BuiltInToolsSection() {
   const setLevel = async (id: string, level: string) => {
     setSaving(id);
     try {
-      await fetch("/api/spectre-proxy/tools", {
+      await fetch("/api/talon/tools", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, level }),
@@ -595,13 +458,13 @@ function BuiltInToolsSection() {
 
   const resetAll = async () => {
     try {
-      await fetch("/api/spectre-proxy/tools", {
+      await fetch("/api/talon/tools", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "reset" }),
       });
       // Reload
-      const r = await fetch("/api/spectre-proxy/tools");
+      const r = await fetch("/api/talon/tools");
       const d = await r.json();
       setTools(d.tools || []);
     } catch {}
@@ -653,7 +516,7 @@ function BuiltInToolsSection() {
             {/* Level selector (for configurable tools) */}
             {tool.configurable && tool.levels && tool.enabled && (
               <select
-                value={tool.level || "full"}
+                value={tool.level || "recommended"}
                 onChange={(e) => setLevel(tool.id, e.target.value)}
                 className="select select-xs max-w-24 bg-base-200 border-base-content/20"
               >
@@ -695,13 +558,7 @@ export default function ToolsPage() {
       {/* ─── Configuration ────────────────────────────────────────── */}
       <section>
         <SectionHeader icon={<Cog size={20} />} title="Configuration" subtitle="API keys, model routing, and proxy settings" />
-        <SpectreConfig />
-      </section>
-
-      {/* ─── Token Saver ──────────────────────────────────────────── */}
-      <section>
-        <SectionHeader icon={<Zap size={20} />} title="Token Saver" subtitle="Compression layers to reduce token usage (all enabled by default)" />
-        <TokenSaverSection />
+        <TalonConfig />
       </section>
 
       {/* ─── Built-in Tools ──────────────────────────────────────── */}

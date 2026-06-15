@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"testing"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
+	llm "github.com/ChxisB/talon/deps/llm"
 )
 
 type (
@@ -63,8 +63,8 @@ func GetModelNameFromContext(ctx context.Context) string {
 
 // NewPermissionDeniedResponse returns a tool response indicating the user
 // denied permission, with StopTurn set so the agent loop does not retry.
-func NewPermissionDeniedResponse() fantasy.ToolResponse {
-	resp := fantasy.NewTextErrorResponse("User denied permission")
+func NewPermissionDeniedResponse() llm.ToolResponse {
+	resp := llm.NewTextErrorResponse("User denied permission")
 	resp.StopTurn = true
 	return resp
 }
@@ -94,6 +94,11 @@ func renderToolDescription(tmpl *template.Template) string {
 	}
 	return out.String()
 }
+
+// BashOutputFilter is a function that filters bash command output text.
+// It receives the command name, arguments, and the output text, and returns
+// the filtered output. Return the input unchanged if no filtering is needed.
+type BashOutputFilter func(cmdName string, args []string, output string) string
 
 // renderTemplate renders a Go template with the given data.
 func renderTemplate(tmpl *template.Template, data any) string {

@@ -19,10 +19,11 @@ const iconMap: Record<string, React.ReactNode> = {
 };
 
 const PAGES = [
-  { id: "chat",      label: "Spectre Chat",     icon: "chat",        href: "/chat" },
+  { id: "chat",      label: "Talon Chat",     icon: "chat",        href: "/chat" },
   { id: "projects",  label: "Projects",         icon: "folder",      href: "/projects" },
   { id: "kanban",    label: "Task Board",       icon: "checklist",   href: "/kanban" },
   { id: "diagrams",  label: "Diagrams",         icon: "image",       href: "/diagrams" },
+  { id: "security",  label: "Security",         icon: "security",    href: "/security" },
   { id: "activity",  label: "Activity Stream",  icon: "timeline",    href: "/activity" },
   { id: "plugins",   label: "Plugins",          icon: "extension",   href: "/plugins" },
   { id: "settings",  label: "Settings",         icon: "settings",    href: "/settings" },

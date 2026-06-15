@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/ui/styles"
 )
 
 // GenericToolMessageItem is a message item that represents an unknown tool call.

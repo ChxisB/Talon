@@ -8,21 +8,21 @@ import (
 	"testing"
 	"time"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/deps/llm/providers/openaicompat"
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	"github.com/ChxisB/spectre-proxy/deps/util/vcr"
-	"github.com/ChxisB/spectre-proxy/internal/agent/prompt"
-	"github.com/ChxisB/spectre-proxy/internal/agent/tools"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/csync"
-	"github.com/ChxisB/spectre-proxy/internal/db"
-	"github.com/ChxisB/spectre-proxy/internal/filetracker"
-	"github.com/ChxisB/spectre-proxy/internal/history"
-	"github.com/ChxisB/spectre-proxy/internal/lsp"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/permission"
-	"github.com/ChxisB/spectre-proxy/internal/session"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/deps/llm/providers/openaicompat"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	"github.com/ChxisB/talon/deps/util/vcr"
+	"github.com/ChxisB/talon/internal/agent/prompt"
+	"github.com/ChxisB/talon/internal/agent/tools"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/csync"
+	"github.com/ChxisB/talon/internal/db"
+	"github.com/ChxisB/talon/internal/filetracker"
+	"github.com/ChxisB/talon/internal/history"
+	"github.com/ChxisB/talon/internal/lsp"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/permission"
+	"github.com/ChxisB/talon/internal/session"
 	"github.com/stretchr/testify/require"
 
 	_ "github.com/joho/godotenv/autoload"
@@ -39,7 +39,7 @@ type fakeEnv struct {
 	lspClients  *csync.Map[string, *lsp.Client]
 }
 
-type builderFunc func(t *testing.T, r *vcr.Recorder) (fantasy.LanguageModel, error)
+type builderFunc func(t *testing.T, r *vcr.Recorder) (llm.LanguageModel, error)
 
 type modelPair struct {
 	name       string
@@ -48,10 +48,10 @@ type modelPair struct {
 }
 
 func hyperBuilder(model string) builderFunc {
-	return func(t *testing.T, r *vcr.Recorder) (fantasy.LanguageModel, error) {
+	return func(t *testing.T, r *vcr.Recorder) (llm.LanguageModel, error) {
 		provider, err := openaicompat.New(
 			openaicompat.WithBaseURL("http://localhost:8080/v1"),
-			openaicompat.WithAPIKey(os.Getenv("SPECTRE_HYPER_API_KEY")),
+			openaicompat.WithAPIKey(os.Getenv("TALON_HYPER_API_KEY")),
 			openaicompat.WithHTTPClient(&http.Client{Transport: r}),
 		)
 		if err != nil {
@@ -62,7 +62,7 @@ func hyperBuilder(model string) builderFunc {
 }
 
 func testEnv(t *testing.T) fakeEnv {
-	workingDir := filepath.Join("/tmp/spectre-test/", t.Name())
+	workingDir := filepath.Join("/tmp/talon-test/", t.Name())
 	os.RemoveAll(workingDir)
 
 	err := os.MkdirAll(workingDir, 0o755)
@@ -96,7 +96,7 @@ func testEnv(t *testing.T) fakeEnv {
 	}
 }
 
-func testSessionAgent(env fakeEnv, large, small fantasy.LanguageModel, systemPrompt string, tools ...fantasy.AgentTool) SessionAgent {
+func testSessionAgent(env fakeEnv, large, small llm.LanguageModel, systemPrompt string, tools ...llm.AgentTool) SessionAgent {
 	largeModel := Model{
 		Model: large,
 		CatwalkCfg: catwalk.Model{
@@ -123,7 +123,7 @@ func testSessionAgent(env fakeEnv, large, small fantasy.LanguageModel, systemPro
 	return agent
 }
 
-func coderAgent(r *vcr.Recorder, env fakeEnv, large, small fantasy.LanguageModel) (SessionAgent, error) {
+func coderAgent(r *vcr.Recorder, env fakeEnv, large, small llm.LanguageModel) (SessionAgent, error) {
 	fixedTime := func() time.Time {
 		t, _ := time.Parse("1/2/2006", "1/1/2025")
 		return t
@@ -142,7 +142,7 @@ func coderAgent(r *vcr.Recorder, env fakeEnv, large, small fantasy.LanguageModel
 	}
 
 	// NOTE(@andreynering): Set a fixed config to ensure cassettes match
-	// independently of user config on `$HOME/.config/spectre/spectre.json`.
+	// independently of user config on `$HOME/.config/talon/talon.json`.
 	cfg.Config().Options.Attribution = &config.Attribution{
 		TrailerStyle:  "co-authored-by",
 		GeneratedWith: true,
@@ -150,7 +150,7 @@ func coderAgent(r *vcr.Recorder, env fakeEnv, large, small fantasy.LanguageModel
 
 	// Clear some fields to avoid issues with VCR cassette matching.
 	cfg.Config().Options.SkillsPaths = nil
-	cfg.Config().Options.DisabledSkills = []string{"spectre-config"}
+	cfg.Config().Options.DisabledSkills = []string{"talon-config"}
 	cfg.Config().Options.ContextPaths = nil
 	cfg.Config().Options.GlobalContextPaths = nil
 	cfg.Config().LSP = nil
@@ -166,7 +166,7 @@ func coderAgent(r *vcr.Recorder, env fakeEnv, large, small fantasy.LanguageModel
 		modelName = model.Name
 	}
 
-	allTools := []fantasy.AgentTool{
+	allTools := []llm.AgentTool{
 		tools.NewBashTool(env.permissions, env.workingDir, cfg.Config().Options.Attribution, modelName),
 		tools.NewDownloadTool(env.permissions, env.workingDir, r.GetDefaultClient()),
 		tools.NewEditTool(nil, env.permissions, env.history, *env.filetracker, env.workingDir),

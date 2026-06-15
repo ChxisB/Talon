@@ -6,7 +6,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/internal/skills"
+	"github.com/ChxisB/talon/internal/skills"
 	"github.com/stretchr/testify/require"
 )
 

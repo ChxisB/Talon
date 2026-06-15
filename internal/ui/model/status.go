@@ -4,13 +4,13 @@ import (
 	"strings"
 	"time"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	uv "github.com/ChxisB/spectre-proxy/deps/terminal"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/help"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/ui/util"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	term "github.com/ChxisB/talon/deps/terminal"
+	"github.com/ChxisB/talon/deps/ui/core/v2/help"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/deps/util/ansi"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/ui/util"
 )
 
 // DefaultStatusTTL is the default time-to-live for status messages.
@@ -68,10 +68,10 @@ func (s *Status) SetHideHelp(hideHelp bool) {
 }
 
 // Draw draws the status bar onto the screen.
-func (s *Status) Draw(scr uv.Screen, area uv.Rectangle) {
+func (s *Status) Draw(scr term.Screen, area term.Rectangle) {
 	if !s.hideHelp {
 		helpView := s.com.Styles.Status.Help.Render(s.help.View(s.helpKm))
-		uv.NewStyledString(helpView).Draw(scr, area)
+		term.NewStyledString(helpView).Draw(scr, area)
 	}
 
 	// Render notifications
@@ -79,8 +79,8 @@ func (s *Status) Draw(scr uv.Screen, area uv.Rectangle) {
 		return
 	}
 
-	var indStyle lipgloss.Style
-	var msgStyle lipgloss.Style
+	var indStyle style.Style
+	var msgStyle style.Style
 	switch s.msg.Type {
 	case util.InfoTypeError:
 		indStyle = s.com.Styles.Status.ErrorIndicator
@@ -100,24 +100,24 @@ func (s *Status) Draw(scr uv.Screen, area uv.Rectangle) {
 	}
 
 	ind := indStyle.String()
-	indWidth := lipgloss.Width(ind)
+	indWidth := style.Width(ind)
 	msgPad := msgStyle.GetPaddingLeft() + msgStyle.GetPaddingRight()
 	avail := max(0, area.Dx()-indWidth-msgPad)
 	msg := strings.Join(strings.Split(s.msg.Msg, "\n"), " ")
 	msg = ansi.Truncate(msg, avail, "…")
-	if w := lipgloss.Width(msg); w < avail {
+	if w := style.Width(msg); w < avail {
 		msg += strings.Repeat(" ", avail-w)
 	}
 	info := msgStyle.Render(msg)
 
 	// Draw the info message over the help view
-	uv.NewStyledString(ind+info).Draw(scr, area)
+	term.NewStyledString(ind+info).Draw(scr, area)
 }
 
 // clearInfoMsgCmd returns a command that clears the info message after the
 // given TTL.
-func clearInfoMsgCmd(ttl time.Duration) tea.Cmd {
-	return tea.Tick(ttl, func(time.Time) tea.Msg {
+func clearInfoMsgCmd(ttl time.Duration) bubble.Cmd {
+	return bubble.Tick(ttl, func(time.Time) bubble.Msg {
 		return util.ClearStatusMsg{}
 	})
 }

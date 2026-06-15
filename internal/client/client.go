@@ -12,16 +12,16 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/proto"
-	"github.com/ChxisB/spectre-proxy/internal/server"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/proto"
+	"github.com/ChxisB/talon/internal/server"
 	"github.com/google/uuid"
 )
 
 // DummyHost is used to satisfy the http.Client's requirement for a URL.
-const DummyHost = "api.spectre.localhost"
+const DummyHost = "api.talon.localhost"
 
-// Client represents an RPC client connected to a Spectre server.
+// Client represents an RPC client connected to a Talon server.
 type Client struct {
 	h        *http.Client
 	path     string

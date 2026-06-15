@@ -37,8 +37,8 @@ export default function Vitals() {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       <VitalTile
-        icon={<AgentAvatar agent="spectre" size={20} />}
-        label="Spectre Proxy"
+        icon={<AgentAvatar agent="talon" size={20} />}
+        label="Talon"
         value="Online"
         sub="v0.1 · Proxy 8082"
         status="ok"

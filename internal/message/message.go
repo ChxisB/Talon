@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/internal/db"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
+	"github.com/ChxisB/talon/internal/db"
+	"github.com/ChxisB/talon/internal/pubsub"
 	"github.com/google/uuid"
 )
 

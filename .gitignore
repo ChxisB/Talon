@@ -14,13 +14,14 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-# Go workspace file
-go.work
+# Local Go workspace files
 go.work.sum
 
 # IDE specific files
 .idea/
 .vscode/
+.zed/
+.cursor/
 *.swp
 *.swo
 
@@ -47,7 +48,7 @@ Thumbs.db
 .direnv/
 
 # Compiled binary
-/spectre-proxy
+/talon
 
 /tmp/
 

@@ -14,19 +14,19 @@ import (
 	"syscall"
 	"time"
 
-	colorprofile "github.com/ChxisB/spectre-proxy/deps/color"
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
-	"github.com/ChxisB/spectre-proxy/deps/util/exp/palette"
-	"github.com/ChxisB/spectre-proxy/deps/util/term"
-	"github.com/ChxisB/spectre-proxy/internal/agent/tools"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/db"
-	"github.com/ChxisB/spectre-proxy/internal/event"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/session"
-	"github.com/ChxisB/spectre-proxy/internal/ui/chat"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	colorprofile "github.com/ChxisB/talon/deps/color"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	"github.com/ChxisB/talon/deps/util/ansi"
+	"github.com/ChxisB/talon/deps/util/exp/palette"
+	"github.com/ChxisB/talon/deps/util/term"
+	"github.com/ChxisB/talon/internal/agent/tools"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/db"
+	"github.com/ChxisB/talon/internal/event"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/session"
+	"github.com/ChxisB/talon/internal/ui/chat"
+	"github.com/ChxisB/talon/internal/ui/styles"
 	"github.com/spf13/cobra"
 )
 
@@ -34,7 +34,7 @@ var sessionCmd = &cobra.Command{
 	Use:     "session",
 	Aliases: []string{"sessions", "s"},
 	Short:   "Manage sessions",
-	Long:    "Manage spectre sessions. Agents can use --json for machine-readable output.",
+	Long:    "Manage talon sessions. Agents can use --json for machine-readable output.",
 }
 
 var (
@@ -169,8 +169,8 @@ func runSessionList(cmd *cobra.Command, _ []string) error {
 	w, cleanup, usingPager := sessionWriter(ctx, len(list))
 	defer cleanup()
 
-	hashStyle := lipgloss.NewStyle().Foreground(palette.Malibu)
-	dateStyle := lipgloss.NewStyle().Foreground(palette.Damson)
+	hashStyle := style.NewStyle().Foreground(palette.Malibu)
+	dateStyle := style.NewStyle().Foreground(palette.Damson)
 
 	width := sessionOutputWidth
 	if tw, _, err := term.GetSize(os.Stdout.Fd()); err == nil && tw > 0 {
@@ -453,8 +453,8 @@ func outputSessionHuman(ctx context.Context, cfg *config.ConfigStore, sess sessi
 	}
 	contentWidth := min(width, sessionMaxContentWidth)
 
-	keyStyle := lipgloss.NewStyle().Foreground(palette.Damson)
-	valStyle := lipgloss.NewStyle().Foreground(palette.Malibu)
+	keyStyle := style.NewStyle().Foreground(palette.Damson)
+	valStyle := style.NewStyle().Foreground(palette.Malibu)
 
 	hash := session.HashID(sess.ID)[:12]
 	created := time.Unix(sess.CreatedAt, 0).Format("Mon Jan 2 15:04:05 2006 -0700")

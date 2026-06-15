@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/internal/filetracker"
-	"github.com/ChxisB/spectre-proxy/internal/permission"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/internal/filetracker"
+	"github.com/ChxisB/talon/internal/permission"
+	"github.com/ChxisB/talon/internal/pubsub"
 	"github.com/stretchr/testify/require"
 )
 
@@ -248,18 +248,18 @@ func (m mockFileTracker) ListReadFiles(ctx context.Context, sessionID string) ([
 	return nil, nil
 }
 
-func newViewToolForTest(workingDir string) fantasy.AgentTool {
+func newViewToolForTest(workingDir string) llm.AgentTool {
 	permissions := &mockViewPermissionService{Broker: pubsub.NewBroker[permission.PermissionRequest]()}
 	return NewViewTool(nil, permissions, mockFileTracker{}, nil, workingDir)
 }
 
-func runViewTool(t *testing.T, tool fantasy.AgentTool, ctx context.Context, params ViewParams) fantasy.ToolResponse {
+func runViewTool(t *testing.T, tool llm.AgentTool, ctx context.Context, params ViewParams) llm.ToolResponse {
 	t.Helper()
 
 	input, err := json.Marshal(params)
 	require.NoError(t, err)
 
-	call := fantasy.ToolCall{
+	call := llm.ToolCall{
 		ID:    "test-call",
 		Name:  ViewToolName,
 		Input: string(input),
@@ -275,22 +275,22 @@ var _ filetracker.Service = mockFileTracker{}
 func TestReadBuiltinFile(t *testing.T) {
 	t.Parallel()
 
-	t.Run("reads spectre-config skill", func(t *testing.T) {
+	t.Run("reads talon-config skill", func(t *testing.T) {
 		t.Parallel()
 
 		resp, err := readBuiltinFile(ViewParams{
-			FilePath: "spectre://skills/spectre-config/SKILL.md",
+			FilePath: "talon://skills/talon-config/SKILL.md",
 		}, nil)
 		require.NoError(t, err)
 		require.NotEmpty(t, resp.Content)
-		require.Contains(t, resp.Content, "Spectre Configuration")
+		require.Contains(t, resp.Content, "Talon Configuration")
 	})
 
 	t.Run("not found", func(t *testing.T) {
 		t.Parallel()
 
 		resp, err := readBuiltinFile(ViewParams{
-			FilePath: "spectre://skills/nonexistent/SKILL.md",
+			FilePath: "talon://skills/nonexistent/SKILL.md",
 		}, nil)
 		require.NoError(t, err)
 		require.True(t, resp.IsError)
@@ -300,14 +300,14 @@ func TestReadBuiltinFile(t *testing.T) {
 		t.Parallel()
 
 		resp, err := readBuiltinFile(ViewParams{
-			FilePath: "spectre://skills/spectre-config/SKILL.md",
+			FilePath: "talon://skills/talon-config/SKILL.md",
 		}, nil)
 		require.NoError(t, err)
 
 		var meta ViewResponseMetadata
 		require.NoError(t, json.Unmarshal([]byte(resp.Metadata), &meta))
 		require.Equal(t, ViewResourceSkill, meta.ResourceType)
-		require.Equal(t, "spectre-config", meta.ResourceName)
+		require.Equal(t, "talon-config", meta.ResourceName)
 		require.NotEmpty(t, meta.ResourceDescription)
 	})
 
@@ -315,7 +315,7 @@ func TestReadBuiltinFile(t *testing.T) {
 		t.Parallel()
 
 		resp, err := readBuiltinFile(ViewParams{
-			FilePath: "spectre://skills/spectre-config/SKILL.md",
+			FilePath: "talon://skills/talon-config/SKILL.md",
 			Offset:   5,
 		}, nil)
 		require.NoError(t, err)

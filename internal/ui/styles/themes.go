@@ -3,7 +3,7 @@ package styles
 import (
 	"image/color"
 
-	"github.com/ChxisB/spectre-proxy/deps/util/exp/palette"
+	"github.com/ChxisB/talon/deps/util/exp/palette"
 )
 
 // ThemeForProvider returns the Styles associated with the given provider
@@ -12,18 +12,19 @@ import (
 func ThemeForProvider(providerID string) Styles {
 	switch providerID {
 	case "hyper":
-		return HyperSpectreObsidiana()
+		return HyperTalonObsidiana()
 	default:
 		return DefaultPantera()
 	}
 }
 
-// Default themePantera returns the Default dark theme. It's the default style
-// for the UI.
+// Default themePantera returns the Default dark theme. It matches the
+// dashboard daisyUI halloween colour scheme with orange primary and
+// purple secondary.
 func DefaultPantera() Styles {
 	return quickStyle(quickStyleOpts{
-		primary:   color.RGBA{0x8b, 0x5c, 0xf6, 0xff}, // purple (dashboard accent)
-		secondary: color.RGBA{0x0e, 0xa5, 0x6e, 0xff}, // green (terminal green)
+		primary:   color.RGBA{0xf9, 0x73, 0x16, 0xff}, // orange (dashboard halloween primary)
+		secondary: color.RGBA{0x7c, 0x3a, 0xed, 0xff}, // purple (dashboard halloween secondary)
 		accent:    palette.Bok,
 
 		fgBase:       palette.Sash,
@@ -55,11 +56,11 @@ func DefaultPantera() Styles {
 	})
 }
 
-// HyperSpectreObsidiana returns the HyperSpectre dark theme.
-func HyperSpectreObsidiana() Styles {
+// HyperTalonObsidiana returns the HyperTalon dark theme.
+func HyperTalonObsidiana() Styles {
 	return quickStyle(quickStyleOpts{
-		primary:   color.RGBA{0x8b, 0x5c, 0xf6, 0xff}, // purple (dashboard accent)
-		secondary: color.RGBA{0x0e, 0xa5, 0x6e, 0xff}, // green (terminal green)
+		primary:   color.RGBA{0xf9, 0x73, 0x16, 0xff}, // orange (dashboard halloween primary)
+		secondary: color.RGBA{0x7c, 0x3a, 0xed, 0xff}, // purple (dashboard halloween secondary)
 		accent:    palette.Bok,
 
 		fgBase:       palette.Sash,

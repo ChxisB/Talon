@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"image/color"
 
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	"github.com/ChxisB/talon/internal/ui/styles"
 	"github.com/alecthomas/chroma/v2"
 	"github.com/alecthomas/chroma/v2/formatters"
 	"github.com/alecthomas/chroma/v2/lexers"
@@ -31,7 +31,7 @@ func SyntaxHighlight(st *styles.Styles, source, fileName string, bg color.Color)
 		f = formatters.Fallback
 	}
 
-	style := chroma.MustNewStyle("spectre", st.ChromaTheme())
+	style := chroma.MustNewStyle("talon", st.ChromaTheme())
 
 	// Modify the style to use the provided background
 	s, err := style.Builder().Transform(

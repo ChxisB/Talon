@@ -9,22 +9,22 @@ import (
 	"sync"
 	"time"
 
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/powernap/pkg/lsp/protocol"
-	"github.com/ChxisB/spectre-proxy/internal/agent/notify"
-	"github.com/ChxisB/spectre-proxy/internal/agent/tools/mcp"
-	"github.com/ChxisB/spectre-proxy/internal/client"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/history"
-	"github.com/ChxisB/spectre-proxy/internal/log"
-	"github.com/ChxisB/spectre-proxy/internal/lsp"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/oauth"
-	"github.com/ChxisB/spectre-proxy/internal/permission"
-	"github.com/ChxisB/spectre-proxy/internal/proto"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
-	"github.com/ChxisB/spectre-proxy/internal/session"
-	"github.com/ChxisB/spectre-proxy/internal/skills"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/deps/util/powernap/pkg/lsp/protocol"
+	"github.com/ChxisB/talon/internal/agent/notify"
+	"github.com/ChxisB/talon/internal/agent/tools/mcp"
+	"github.com/ChxisB/talon/internal/client"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/history"
+	"github.com/ChxisB/talon/internal/log"
+	"github.com/ChxisB/talon/internal/lsp"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/oauth"
+	"github.com/ChxisB/talon/internal/permission"
+	"github.com/ChxisB/talon/internal/proto"
+	"github.com/ChxisB/talon/internal/pubsub"
+	"github.com/ChxisB/talon/internal/session"
+	"github.com/ChxisB/talon/internal/skills"
 )
 
 // ClientWorkspace implements the Workspace interface by delegating all
@@ -597,7 +597,7 @@ func (w *ClientWorkspace) DisableDockerMCP() error {
 
 // -- Lifecycle --
 
-func (w *ClientWorkspace) Subscribe(program *tea.Program) {
+func (w *ClientWorkspace) Subscribe(program *bubble.Program) {
 	defer log.RecoverPanic("ClientWorkspace.Subscribe", func() {
 		slog.Info("TUI subscription panic: attempting graceful shutdown")
 		program.Quit()
@@ -613,10 +613,10 @@ func (w *ClientWorkspace) Subscribe(program *tea.Program) {
 }
 
 // consumeEvents drives the workspace event loop. It is split out from
-// Subscribe so tests can drive it without a real *tea.Program.
+// Subscribe so tests can drive it without a real *bubble.Program.
 // ConfigChanged events trigger a workspace refresh; all other events
 // are translated into domain types and forwarded to send.
-func (w *ClientWorkspace) consumeEvents(evc <-chan any, send func(tea.Msg)) {
+func (w *ClientWorkspace) consumeEvents(evc <-chan any, send func(bubble.Msg)) {
 	for ev := range evc {
 		if _, ok := ev.(pubsub.Event[proto.ConfigChanged]); ok {
 			w.refreshWorkspace()
@@ -637,7 +637,7 @@ func (w *ClientWorkspace) Shutdown() {
 // that the TUI's Update() method expects. Skills events also update the
 // process-local skills.Manager so callers reading
 // skills.GetLatestStates see fresh data.
-func (w *ClientWorkspace) translateEvent(ev any) tea.Msg {
+func (w *ClientWorkspace) translateEvent(ev any) bubble.Msg {
 	switch e := ev.(type) {
 	case pubsub.Event[proto.LSPEvent]:
 		return pubsub.Event[LSPEvent]{

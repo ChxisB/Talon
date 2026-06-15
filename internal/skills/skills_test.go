@@ -364,8 +364,8 @@ func TestToPromptXMLBuiltinType(t *testing.T) {
 	t.Parallel()
 
 	skills := []*Skill{
-		{Name: "builtin-skill", Description: "A builtin.", SkillFilePath: "spectre://skills/builtin-skill/SKILL.md", Builtin: true},
-		{Name: "user-skill", Description: "A user skill.", SkillFilePath: "/home/user/.config/spectre/skills/user-skill/SKILL.md"},
+		{Name: "builtin-skill", Description: "A builtin.", SkillFilePath: "talon://skills/builtin-skill/SKILL.md", Builtin: true},
+		{Name: "user-skill", Description: "A user skill.", SkillFilePath: "/home/user/.config/talon/skills/user-skill/SKILL.md"},
 	}
 	xml := ToPromptXML(skills)
 	require.Contains(t, xml, "<type>builtin</type>")
@@ -408,25 +408,25 @@ func TestDiscoverBuiltin(t *testing.T) {
 
 	var found bool
 	for _, s := range discovered {
-		if s.Name == "spectre-config" {
+		if s.Name == "talon-config" {
 			found = true
 			require.True(t, strings.HasPrefix(s.SkillFilePath, BuiltinPrefix))
 			require.True(t, strings.HasPrefix(s.Path, BuiltinPrefix))
-			require.Equal(t, "spectre://skills/spectre-config/SKILL.md", s.SkillFilePath)
-			require.Equal(t, "spectre://skills/spectre-config", s.Path)
+			require.Equal(t, "talon://skills/talon-config/SKILL.md", s.SkillFilePath)
+			require.Equal(t, "talon://skills/talon-config", s.Path)
 			require.NotEmpty(t, s.Description)
 			require.NotEmpty(t, s.Instructions)
 			require.True(t, s.Builtin)
 		}
 	}
-	require.True(t, found, "spectre-config builtin skill not found")
+	require.True(t, found, "talon-config builtin skill not found")
 
 	var foundJQ bool
 	for _, s := range discovered {
 		if s.Name == "jq" {
 			foundJQ = true
-			require.Equal(t, "spectre://skills/jq/SKILL.md", s.SkillFilePath)
-			require.Equal(t, "spectre://skills/jq", s.Path)
+			require.Equal(t, "talon://skills/jq/SKILL.md", s.SkillFilePath)
+			require.Equal(t, "talon://skills/jq", s.Path)
 			require.NotEmpty(t, s.Description)
 			require.NotEmpty(t, s.Instructions)
 			require.True(t, s.Builtin)
@@ -436,16 +436,16 @@ func TestDiscoverBuiltin(t *testing.T) {
 
 	var foundHooks bool
 	for _, s := range discovered {
-		if s.Name == "spectre-hooks" {
+		if s.Name == "talon-hooks" {
 			foundHooks = true
-			require.Equal(t, "spectre://skills/spectre-hooks/SKILL.md", s.SkillFilePath)
-			require.Equal(t, "spectre://skills/spectre-hooks", s.Path)
+			require.Equal(t, "talon://skills/talon-hooks/SKILL.md", s.SkillFilePath)
+			require.Equal(t, "talon://skills/talon-hooks", s.Path)
 			require.NotEmpty(t, s.Description)
 			require.NotEmpty(t, s.Instructions)
 			require.True(t, s.Builtin)
 		}
 	}
-	require.True(t, foundHooks, "spectre-hooks builtin skill not found")
+	require.True(t, foundHooks, "talon-hooks builtin skill not found")
 }
 
 func TestDeduplicate(t *testing.T) {
@@ -465,10 +465,10 @@ func TestDeduplicate(t *testing.T) {
 		},
 		{
 			name:     "user overrides builtin",
-			input:    []*Skill{{Name: "spectre-config", Path: "spectre://skills/spectre-config"}, {Name: "spectre-config", Path: "/user/spectre-config"}},
+			input:    []*Skill{{Name: "talon-config", Path: "talon://skills/talon-config"}, {Name: "talon-config", Path: "/user/talon-config"}},
 			wantLen:  1,
-			wantName: "spectre-config",
-			wantPath: "/user/spectre-config",
+			wantName: "talon-config",
+			wantPath: "/user/talon-config",
 		},
 		{
 			name:    "empty",

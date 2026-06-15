@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
+	"github.com/ChxisB/talon/deps/util/ansi"
 )
 
 func pad(v any, width int) string {

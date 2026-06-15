@@ -11,9 +11,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	xetag "github.com/ChxisB/spectre-proxy/deps/util/etag"
-	"github.com/ChxisB/spectre-proxy/internal/agent/hyper"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	xetag "github.com/ChxisB/talon/deps/util/etag"
+	"github.com/ChxisB/talon/internal/agent/hyper"
 )
 
 type hyperClient interface {

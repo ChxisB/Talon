@@ -5,12 +5,12 @@ import (
 	"image"
 	"os"
 
-	uv "github.com/ChxisB/spectre-proxy/deps/terminal"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
-	"github.com/ChxisB/spectre-proxy/internal/ui/util"
-	"github.com/ChxisB/spectre-proxy/internal/workspace"
+	term "github.com/ChxisB/talon/deps/terminal"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/ui/styles"
+	"github.com/ChxisB/talon/internal/ui/util"
+	"github.com/ChxisB/talon/internal/workspace"
 	"github.com/atotto/clipboard"
 )
 
@@ -63,7 +63,7 @@ func (c *Common) IsHyper() bool {
 
 // CenterRect returns a new [Rectangle] centered within the given area with the
 // specified width and height.
-func CenterRect(area uv.Rectangle, width, height int) uv.Rectangle {
+func CenterRect(area term.Rectangle, width, height int) term.Rectangle {
 	centerX := area.Min.X + area.Dx()/2
 	centerY := area.Min.Y + area.Dy()/2
 	minX := centerX - width/2
@@ -75,7 +75,7 @@ func CenterRect(area uv.Rectangle, width, height int) uv.Rectangle {
 
 // BottomLeftRect returns a new [Rectangle] positioned at the bottom-left within the given area with the
 // specified width and height.
-func BottomLeftRect(area uv.Rectangle, width, height int) uv.Rectangle {
+func BottomLeftRect(area term.Rectangle, width, height int) term.Rectangle {
 	minX := area.Min.X
 	maxX := minX + width
 	maxY := area.Max.Y
@@ -101,17 +101,17 @@ func IsFileTooBig(filePath string, sizeLimit int64) (bool, error) {
 // CopyToClipboard copies the given text to the clipboard using both OSC 52
 // (terminal escape sequence) and native clipboard for maximum compatibility.
 // Returns a command that reports success to the user with the given message.
-func CopyToClipboard(text, successMessage string) tea.Cmd {
+func CopyToClipboard(text, successMessage string) bubble.Cmd {
 	return CopyToClipboardWithCallback(text, successMessage, nil)
 }
 
 // CopyToClipboardWithCallback copies text to clipboard and executes a callback
 // before showing the success message.
 // This is useful when you need to perform additional actions like clearing UI state.
-func CopyToClipboardWithCallback(text, successMessage string, callback tea.Cmd) tea.Cmd {
-	return tea.Sequence(
-		tea.SetClipboard(text),
-		func() tea.Msg {
+func CopyToClipboardWithCallback(text, successMessage string, callback bubble.Cmd) bubble.Cmd {
+	return bubble.Sequence(
+		bubble.SetClipboard(text),
+		func() bubble.Msg {
 			_ = clipboard.WriteAll(text)
 			return nil
 		},

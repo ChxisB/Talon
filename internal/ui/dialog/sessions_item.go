@@ -6,13 +6,13 @@ import (
 	"strings"
 	"time"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	"github.com/ChxisB/spectre-proxy/deps/ui/core/v2/textinput"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
-	"github.com/ChxisB/spectre-proxy/internal/session"
-	"github.com/ChxisB/spectre-proxy/internal/ui/list"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	lip "github.com/ChxisB/talon/deps/style/v2"
+	"github.com/ChxisB/talon/deps/ui/core/v2/textinput"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/deps/util/ansi"
+	"github.com/ChxisB/talon/internal/session"
+	"github.com/ChxisB/talon/internal/ui/list"
+	"github.com/ChxisB/talon/internal/ui/styles"
 	"github.com/dustin/go-humanize"
 	"github.com/rivo/uniseg"
 	"github.com/sahilm/fuzzy"
@@ -90,8 +90,8 @@ func (s *SessionItem) InputValue() string {
 }
 
 // HandleInput forwards input message to the update title input
-func (s *SessionItem) HandleInput(msg tea.Msg) tea.Cmd {
-	var cmd tea.Cmd
+func (s *SessionItem) HandleInput(msg bubble.Msg) bubble.Cmd {
+	var cmd bubble.Cmd
 	s.updateTitleInput, cmd = s.updateTitleInput.Update(msg)
 	if s.Versioned != nil {
 		s.Bump()
@@ -100,7 +100,7 @@ func (s *SessionItem) HandleInput(msg tea.Msg) tea.Cmd {
 }
 
 // Cursor returns the cursor of the update title input
-func (s *SessionItem) Cursor() *tea.Cursor {
+func (s *SessionItem) Cursor() *bubble.Cursor {
 	return s.updateTitleInput.Cursor()
 }
 
@@ -134,10 +134,10 @@ func (s *SessionItem) Render(width int) string {
 }
 
 type ListItemStyles struct {
-	ItemBlurred     lipgloss.Style
-	ItemFocused     lipgloss.Style
-	InfoTextBlurred lipgloss.Style
-	InfoTextFocused lipgloss.Style
+	ItemBlurred     lip.Style
+	ItemFocused     lip.Style
+	InfoTextBlurred lip.Style
+	InfoTextFocused lip.Style
 }
 
 func renderItem(t ListItemStyles, title string, info string, focused bool, width int, cache map[int]string, m *fuzzy.Match) string {
@@ -166,11 +166,11 @@ func renderItem(t ListItemStyles, title string, info string, focused bool, width
 			infoText = t.InfoTextBlurred.Render(infoText)
 		}
 
-		infoWidth = lipgloss.Width(infoText)
+		infoWidth = lip.Width(infoText)
 	}
 
 	title = ansi.Truncate(title, max(0, lineWidth-infoWidth), "…")
-	titleWidth := lipgloss.Width(title)
+	titleWidth := lip.Width(title)
 	gap := strings.Repeat(" ", max(0, lineWidth-titleWidth-infoWidth))
 	content := title
 	if m != nil && len(m.MatchedIndexes) > 0 {

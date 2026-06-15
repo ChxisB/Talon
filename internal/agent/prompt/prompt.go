@@ -12,11 +12,11 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/filepathext"
-	"github.com/ChxisB/spectre-proxy/internal/home"
-	"github.com/ChxisB/spectre-proxy/internal/shell"
-	"github.com/ChxisB/spectre-proxy/internal/skills"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/filepathext"
+	"github.com/ChxisB/talon/internal/home"
+	"github.com/ChxisB/talon/internal/shell"
+	"github.com/ChxisB/talon/internal/skills"
 )
 
 // Prompt represents a template-based prompt generator.

@@ -11,12 +11,12 @@ import (
 	"testing"
 	"time"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/internal/agent"
-	"github.com/ChxisB/spectre-proxy/internal/app"
-	"github.com/ChxisB/spectre-proxy/internal/backend"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/proto"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/internal/agent"
+	"github.com/ChxisB/talon/internal/app"
+	"github.com/ChxisB/talon/internal/backend"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/proto"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
@@ -46,7 +46,7 @@ func newRunCoordinator(returnFn func(ctx context.Context) error) *runCoordinator
 	}
 }
 
-func (s *runCoordinator) Run(ctx context.Context, sessionID, prompt string, attachments ...message.Attachment) (*fantasy.AgentResult, error) {
+func (s *runCoordinator) Run(ctx context.Context, sessionID, prompt string, attachments ...message.Attachment) (*llm.AgentResult, error) {
 	s.mu.Lock()
 	s.gotCtx = ctx
 	s.mu.Unlock()
@@ -60,7 +60,7 @@ func (s *runCoordinator) Run(ctx context.Context, sessionID, prompt string, atta
 	return nil, s.returnFn(ctx)
 }
 
-func (s *runCoordinator) RunAccepted(ctx context.Context, accept *agent.AcceptedRun, sessionID, prompt string, attachments ...message.Attachment) (*fantasy.AgentResult, error) {
+func (s *runCoordinator) RunAccepted(ctx context.Context, accept *agent.AcceptedRun, sessionID, prompt string, attachments ...message.Attachment) (*llm.AgentResult, error) {
 	return s.Run(ctx, sessionID, prompt, attachments...)
 }
 

@@ -13,9 +13,9 @@ import (
 	"sort"
 	"strings"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/internal/filepathext"
-	"github.com/ChxisB/spectre-proxy/internal/fsext"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/internal/filepathext"
+	"github.com/ChxisB/talon/internal/fsext"
 )
 
 const GlobToolName = "glob"
@@ -48,20 +48,20 @@ type GlobResponseMetadata struct {
 	Truncated     bool `json:"truncated"`
 }
 
-func NewGlobTool(workingDir string) fantasy.AgentTool {
-	return fantasy.NewAgentTool(
+func NewGlobTool(workingDir string) llm.AgentTool {
+	return llm.NewAgentTool(
 		GlobToolName,
 		globDescription(),
-		func(ctx context.Context, params GlobParams, call fantasy.ToolCall) (fantasy.ToolResponse, error) {
+		func(ctx context.Context, params GlobParams, call llm.ToolCall) (llm.ToolResponse, error) {
 			if params.Pattern == "" {
-				return fantasy.NewTextErrorResponse("pattern is required"), nil
+				return llm.NewTextErrorResponse("pattern is required"), nil
 			}
 
 			searchPath := cmp.Or(params.Path, workingDir)
 
 			files, truncated, err := globFiles(ctx, params.Pattern, searchPath, 100)
 			if err != nil {
-				return fantasy.NewTextErrorResponse(fmt.Sprintf("error finding files: %v", err)), nil
+				return llm.NewTextErrorResponse(fmt.Sprintf("error finding files: %v", err)), nil
 			}
 
 			var output string
@@ -75,8 +75,8 @@ func NewGlobTool(workingDir string) fantasy.AgentTool {
 				}
 			}
 
-			return fantasy.WithResponseMetadata(
-				fantasy.NewTextResponse(output),
+			return llm.WithResponseMetadata(
+				llm.NewTextResponse(output),
 				GlobResponseMetadata{
 					NumberOfFiles: len(files),
 					Truncated:     truncated,

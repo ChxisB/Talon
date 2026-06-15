@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log/slog"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/exp/palette"
-	"github.com/ChxisB/spectre-proxy/internal/config"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	"github.com/ChxisB/talon/deps/util/exp/palette"
+	"github.com/ChxisB/talon/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -18,22 +18,22 @@ var updateProvidersCmd = &cobra.Command{
 	Long:  `Update provider information from a specified local path or remote URL.`,
 	Example: `
 # Update Catwalk providers remotely (default)
-spectre update-providers
+talon update-providers
 
 # Update Catwalk providers from a custom URL
-spectre update-providers https://example.com/providers.json
+talon update-providers https://example.com/providers.json
 
 # Update Catwalk providers from a local file
-spectre update-providers /path/to/local-providers.json
+talon update-providers /path/to/local-providers.json
 
 # Update Catwalk providers from embedded version
-spectre update-providers embedded
+talon update-providers embedded
 
 # Update Hyper provider information
-spectre update-providers --source=hyper
+talon update-providers --source=hyper
 
 # Update Hyper from a custom URL
-spectre update-providers --source=hyper https://hyper.example.com
+talon update-providers --source=hyper https://hyper.example.com
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// NOTE(@andreynering): We want to skip logging output do stdout here.
@@ -60,7 +60,7 @@ spectre update-providers --source=hyper https://hyper.example.com
 
 		// NOTE(@andreynering): This style is more-or-less copied from Fang's
 		// error message, adapted for success.
-		headerStyle := lipgloss.NewStyle().
+		headerStyle := style.NewStyle().
 			Foreground(palette.Butter).
 			Background(palette.Guac).
 			Bold(true).
@@ -68,7 +68,7 @@ spectre update-providers --source=hyper https://hyper.example.com
 			Margin(1).
 			MarginLeft(2).
 			SetString("SUCCESS")
-		textStyle := lipgloss.NewStyle().
+		textStyle := style.NewStyle().
 			MarginLeft(2).
 			SetString(fmt.Sprintf("%s provider updated successfully.", updateProvidersSource))
 

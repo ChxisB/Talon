@@ -14,7 +14,7 @@ interface RawLink { source: string; target: string; }
 interface GLink { source: GNode; target: GNode; }
 
 const PARA_COLORS: Record<string, string> = {
-  "Spectre Proxy": "#14b8a6",
+  "Talon": "#14b8a6",
   "Memories":   "#fb7185",
   "root":       "#e2e8f0",
 };

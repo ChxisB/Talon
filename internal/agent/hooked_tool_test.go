@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/hooks"
-	"github.com/ChxisB/spectre-proxy/internal/permission"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/hooks"
+	"github.com/ChxisB/talon/internal/permission"
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,21 +17,21 @@ type fakeTool struct {
 	name   string
 	called bool
 	gotCtx context.Context
-	resp   fantasy.ToolResponse
+	resp   llm.ToolResponse
 }
 
-func (f *fakeTool) Info() fantasy.ToolInfo {
-	return fantasy.ToolInfo{Name: f.name}
+func (f *fakeTool) Info() llm.ToolInfo {
+	return llm.ToolInfo{Name: f.name}
 }
 
-func (f *fakeTool) Run(ctx context.Context, _ fantasy.ToolCall) (fantasy.ToolResponse, error) {
+func (f *fakeTool) Run(ctx context.Context, _ llm.ToolCall) (llm.ToolResponse, error) {
 	f.called = true
 	f.gotCtx = ctx
 	return f.resp, nil
 }
 
-func (f *fakeTool) ProviderOptions() fantasy.ProviderOptions     { return nil }
-func (f *fakeTool) SetProviderOptions(_ fantasy.ProviderOptions) {}
+func (f *fakeTool) ProviderOptions() llm.ProviderOptions     { return nil }
+func (f *fakeTool) SetProviderOptions(_ llm.ProviderOptions) {}
 
 // newRunner builds a hooks.Runner from a single HookConfig, running the
 // config-loader path that compiles the matcher regex.
@@ -49,11 +49,11 @@ func newRunner(t *testing.T, cmd string) *hooks.Runner {
 func TestHookedTool_AllowStampsHookApproval(t *testing.T) {
 	t.Parallel()
 
-	inner := &fakeTool{name: "view", resp: fantasy.NewTextResponse("ok")}
+	inner := &fakeTool{name: "view", resp: llm.NewTextResponse("ok")}
 	runner := newRunner(t, `echo '{"decision":"allow"}'`)
 	tool := newHookedTool(inner, runner)
 
-	_, err := tool.Run(t.Context(), fantasy.ToolCall{ID: "call-1", Name: "view"})
+	_, err := tool.Run(t.Context(), llm.ToolCall{ID: "call-1", Name: "view"})
 	require.NoError(t, err)
 	require.True(t, inner.called, "inner tool should have run")
 
@@ -73,11 +73,11 @@ func TestHookedTool_AllowStampsHookApproval(t *testing.T) {
 func TestHookedTool_SilentDoesNotStampApproval(t *testing.T) {
 	t.Parallel()
 
-	inner := &fakeTool{name: "view", resp: fantasy.NewTextResponse("ok")}
+	inner := &fakeTool{name: "view", resp: llm.NewTextResponse("ok")}
 	runner := newRunner(t, `exit 0`) // no stdout, no decision
 	tool := newHookedTool(inner, runner)
 
-	_, err := tool.Run(t.Context(), fantasy.ToolCall{ID: "call-2", Name: "view"})
+	_, err := tool.Run(t.Context(), llm.ToolCall{ID: "call-2", Name: "view"})
 	require.NoError(t, err)
 	require.True(t, inner.called)
 
@@ -106,7 +106,7 @@ func TestHookedTool_DenySkipsInnerTool(t *testing.T) {
 	runner := newRunner(t, `echo "blocked" >&2; exit 2`)
 	tool := newHookedTool(inner, runner)
 
-	resp, err := tool.Run(t.Context(), fantasy.ToolCall{ID: "call-3", Name: "bash"})
+	resp, err := tool.Run(t.Context(), llm.ToolCall{ID: "call-3", Name: "bash"})
 	require.NoError(t, err)
 	require.False(t, inner.called, "denied call must not reach the inner tool")
 	require.True(t, resp.IsError)
@@ -117,7 +117,7 @@ func TestWrapToolsWithHooks(t *testing.T) {
 	t.Parallel()
 
 	runner := newRunner(t, `exit 0`)
-	inputs := []fantasy.AgentTool{&fakeTool{name: "a"}, &fakeTool{name: "b"}}
+	inputs := []llm.AgentTool{&fakeTool{name: "a"}, &fakeTool{name: "b"}}
 
 	t.Run("top-level agent wraps every tool", func(t *testing.T) {
 		t.Parallel()

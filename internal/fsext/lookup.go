@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ChxisB/spectre-proxy/internal/home"
+	"github.com/ChxisB/talon/internal/home"
 )
 
 // Lookup searches for a target files or directories starting from dir

@@ -10,6 +10,7 @@ const TITLES: Record<string, { title: string; sub: string }> = {
   "/diagrams": { title: "Diagrams",  sub: "Architecture, workflow, sequence, and dataflow diagrams." },
   "/tools":    { title: "Tools",     sub: "API keys, plugins, cron jobs, MCP servers, and configuration." },
   "/activity": { title: "Activity",  sub: "Full event log of agent actions and system events." },
+  "/security": { title: "Security",  sub: "CVE vulnerability database with search, filters, and severity tracking." },
 };
 
 export default function TopAppBar() {

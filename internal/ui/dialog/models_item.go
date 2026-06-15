@@ -1,13 +1,13 @@
 package dialog
 
 import (
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/ui/list"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	"github.com/ChxisB/talon/deps/util/ansi"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/ui/list"
+	"github.com/ChxisB/talon/internal/ui/styles"
 	"github.com/sahilm/fuzzy"
 )
 
@@ -51,7 +51,7 @@ func (m *ModelGroup) Render(width int) string {
 	}
 
 	title := " " + m.Title + " "
-	title = ansi.Truncate(title, max(0, width-lipgloss.Width(configured)-1), "…")
+	title = ansi.Truncate(title, max(0, width-style.Width(configured)-1), "…")
 
 	return common.Section(m.t, title, width, configured)
 }

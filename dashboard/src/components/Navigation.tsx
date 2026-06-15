@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutDashboard, ListChecks, Wrench, Moon, Sun, Radar, Image, Network } from "lucide-react";
+import { LayoutDashboard, ListChecks, Wrench, Moon, Sun, Radar, Image, Network, Shield } from "lucide-react";
 
 interface NavItem {
   href: string;
@@ -18,6 +18,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/memory", label: "Code Graph", icon: Network },
   { href: "/diagrams", label: "Diagrams", icon: Image },
   { href: "/tools",  label: "Tools",     icon: Wrench },
+  { href: "/security", label: "Security", icon: Shield },
 ];
 
 const itemVariants = {
@@ -37,7 +38,7 @@ export default function Navigation() {
 
   useEffect(() => {
     setMounted(true);
-    const saved = localStorage.getItem("spectre-theme") as "halloween" | "emerald" | null;
+    const saved = localStorage.getItem("talon-theme") as "halloween" | "emerald" | null;
     const t = saved || "halloween";
     setTheme(t);
     document.documentElement.setAttribute("data-theme", t);
@@ -59,7 +60,7 @@ export default function Navigation() {
   const toggleTheme = () => {
     const next = theme === "halloween" ? "emerald" : "halloween";
     setTheme(next);
-    localStorage.setItem("spectre-theme", next);
+    localStorage.setItem("talon-theme", next);
     document.documentElement.setAttribute("data-theme", next);
   };
 
@@ -121,7 +122,7 @@ export default function Navigation() {
                 exit={{ opacity: 0, width: 0 }}
                 className="text-sm font-bold overflow-hidden whitespace-nowrap"
               >
-                Spectre
+                Talon
               </motion.span>
             )}
           </AnimatePresence>

@@ -11,13 +11,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	hyperp "github.com/ChxisB/spectre-proxy/internal/agent/hyper"
-	"github.com/ChxisB/spectre-proxy/internal/env"
-	"github.com/ChxisB/spectre-proxy/internal/lock"
-	"github.com/ChxisB/spectre-proxy/internal/oauth"
-	"github.com/ChxisB/spectre-proxy/internal/oauth/copilot"
-	"github.com/ChxisB/spectre-proxy/internal/oauth/hyper"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	hyperp "github.com/ChxisB/talon/internal/agent/hyper"
+	"github.com/ChxisB/talon/internal/env"
+	"github.com/ChxisB/talon/internal/lock"
+	"github.com/ChxisB/talon/internal/oauth"
+	"github.com/ChxisB/talon/internal/oauth/copilot"
+	"github.com/ChxisB/talon/internal/oauth/hyper"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 )
@@ -58,8 +58,8 @@ type ConfigStore struct {
 	config             *Config
 	workingDir         string
 	resolver           VariableResolver
-	globalDataPath     string   // ~/.local/share/spectre/spectre.json
-	workspacePath      string   // .spectre/spectre.json
+	globalDataPath     string   // ~/.local/share/talon/talon.json
+	workspacePath      string   // .talon/talon.json
 	loadedPaths        []string // config files that were successfully loaded
 	knownProviders     []catwalk.Provider
 	overrides          RuntimeOverrides

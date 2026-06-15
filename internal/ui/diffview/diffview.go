@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"strings"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
-	"github.com/ChxisB/spectre-proxy/internal/ansiext"
-	"github.com/ChxisB/spectre-proxy/internal/ui/xchroma"
+	lip "github.com/ChxisB/talon/deps/style/v2"
+	"github.com/ChxisB/talon/deps/util/ansi"
+	"github.com/ChxisB/talon/internal/ansiext"
+	"github.com/ChxisB/talon/internal/ui/xchroma"
 	"github.com/alecthomas/chroma/v2"
 	"github.com/alecthomas/chroma/v2/lexers"
 	"github.com/aymanbagabas/go-udiff"
@@ -219,7 +219,7 @@ func (dv *DiffView) String() string {
 		dv.resizeCodeWidth()
 	}
 
-	style := lipgloss.NewStyle()
+	style := lip.NewStyle()
 	if dv.width > 0 {
 		style = style.MaxWidth(dv.width)
 	}
@@ -286,8 +286,8 @@ func (dv *DiffView) convertDiffToSplit() {
 
 // adjustStyles adjusts adds padding and alignment to the styles.
 func (dv *DiffView) adjustStyles() {
-	setPadding := func(s lipgloss.Style) lipgloss.Style {
-		return s.Padding(0, lineNumPadding).Align(lipgloss.Right)
+	setPadding := func(s lip.Style) lip.Style {
+		return s.Padding(0, lineNumPadding).Align(lip.Right)
 	}
 	dv.style.MissingLine.LineNumber = setPadding(dv.style.MissingLine.LineNumber)
 	dv.style.DividerLine.LineNumber = setPadding(dv.style.DividerLine.LineNumber)
@@ -412,7 +412,7 @@ func (dv *DiffView) resizeCodeWidth() {
 func (dv *DiffView) renderUnified() string {
 	var b strings.Builder
 
-	fullContentStyle := lipgloss.NewStyle().MaxWidth(dv.fullCodeWidth)
+	fullContentStyle := lip.NewStyle().MaxWidth(dv.fullCodeWidth)
 	printedLines := -dv.yOffset
 	shouldWrite := func() bool { return printedLines >= 0 }
 
@@ -535,8 +535,8 @@ outer:
 func (dv *DiffView) renderSplit() string {
 	var b strings.Builder
 
-	beforeFullContentStyle := lipgloss.NewStyle().MaxWidth(dv.fullCodeWidth)
-	afterFullContentStyle := lipgloss.NewStyle().MaxWidth(dv.fullCodeWidth + btoi(dv.extraColOnAfter))
+	beforeFullContentStyle := lip.NewStyle().MaxWidth(dv.fullCodeWidth)
+	afterFullContentStyle := lip.NewStyle().MaxWidth(dv.fullCodeWidth + btoi(dv.extraColOnAfter))
 	printedLines := -dv.yOffset
 	shouldWrite := func() bool { return printedLines >= 0 }
 

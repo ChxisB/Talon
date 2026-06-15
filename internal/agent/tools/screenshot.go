@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
+	llm "github.com/ChxisB/talon/deps/llm"
 )
 
 // ScreenshotToolName is the name of the screenshot tool.
@@ -68,7 +68,7 @@ func captureScreen(tempDir string) (string, error) {
 	}
 
 	// Create temp file with .png extension.
-	tmpFile, err := os.CreateTemp(tempDir, "spectre-screenshot-*.png")
+	tmpFile, err := os.CreateTemp(tempDir, "talon-screenshot-*.png")
 	if err != nil {
 		return "", fmt.Errorf("failed to create temp file: %w", err)
 	}
@@ -193,15 +193,15 @@ func analyzeImageWithVision(ctx context.Context, imagePath, question, endpoint, 
 
 // NewScreenshotTool creates a tool that captures the screen and optionally
 // analyzes it using a local vision model (like MiniCPM-V).
-func NewScreenshotTool(cfg ScreenshotConfig) fantasy.AgentTool {
-	return fantasy.NewAgentTool(
+func NewScreenshotTool(cfg ScreenshotConfig) llm.AgentTool {
+	return llm.NewAgentTool(
 		ScreenshotToolName,
 		screenshotDescription(),
-		func(ctx context.Context, params ScreenshotParams, call fantasy.ToolCall) (fantasy.ToolResponse, error) {
+		func(ctx context.Context, params ScreenshotParams, call llm.ToolCall) (llm.ToolResponse, error) {
 			// Capture the screen.
 			screenshotPath, err := captureScreen(cfg.TempDir)
 			if err != nil {
-				return fantasy.NewTextErrorResponse(
+				return llm.NewTextErrorResponse(
 					fmt.Sprintf("Failed to capture screenshot: %s. Make sure you have a screenshot tool installed.", err),
 				), nil
 			}
@@ -210,7 +210,7 @@ func NewScreenshotTool(cfg ScreenshotConfig) fantasy.AgentTool {
 			imageData, err := os.ReadFile(screenshotPath)
 			if err != nil {
 				os.Remove(screenshotPath)
-				return fantasy.NewTextErrorResponse(fmt.Sprintf("Failed to read screenshot: %s", err)), nil
+				return llm.NewTextErrorResponse(fmt.Sprintf("Failed to read screenshot: %s", err)), nil
 			}
 
 			// If a vision endpoint is configured, analyze the screenshot
@@ -229,14 +229,14 @@ func NewScreenshotTool(cfg ScreenshotConfig) fantasy.AgentTool {
 				os.Remove(screenshotPath)
 
 				if err != nil {
-					return fantasy.NewTextErrorResponse(
+					return llm.NewTextErrorResponse(
 						fmt.Sprintf("Screenshot captured but vision analysis failed: %s", err),
 					), nil
 				}
 
 				// Return the analysis with metadata about the image for rendering.
-				return fantasy.WithResponseMetadata(
-					fantasy.NewTextResponse(analysis),
+				return llm.WithResponseMetadata(
+					llm.NewTextResponse(analysis),
 					fmt.Sprintf(`{"screenshot":true,"file":"%s"}`, screenshotPath),
 				), nil
 			}
@@ -244,7 +244,7 @@ func NewScreenshotTool(cfg ScreenshotConfig) fantasy.AgentTool {
 			// No vision endpoint: return image data for vision-capable models.
 			// Clean up the temp file after reading.
 			os.Remove(screenshotPath)
-			return fantasy.NewImageResponse(imageData, "image/png"), nil
+			return llm.NewImageResponse(imageData, "image/png"), nil
 		},
 	)
 }

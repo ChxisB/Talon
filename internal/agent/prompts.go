@@ -4,8 +4,8 @@ import (
 	"context"
 	_ "embed"
 
-	"github.com/ChxisB/spectre-proxy/internal/agent/prompt"
-	"github.com/ChxisB/spectre-proxy/internal/config"
+	"github.com/ChxisB/talon/internal/agent/prompt"
+	"github.com/ChxisB/talon/internal/config"
 )
 
 //go:embed templates/coder.md.tpl

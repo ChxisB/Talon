@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/internal/config"
+	"github.com/ChxisB/talon/internal/config"
 	"github.com/stretchr/testify/require"
 )
 

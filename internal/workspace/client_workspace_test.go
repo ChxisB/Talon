@@ -8,12 +8,12 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/internal/client"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/permission"
-	"github.com/ChxisB/spectre-proxy/internal/proto"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
-	"github.com/ChxisB/spectre-proxy/internal/skills"
+	"github.com/ChxisB/talon/internal/client"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/permission"
+	"github.com/ChxisB/talon/internal/proto"
+	"github.com/ChxisB/talon/internal/pubsub"
+	"github.com/ChxisB/talon/internal/skills"
 	"github.com/stretchr/testify/require"
 )
 

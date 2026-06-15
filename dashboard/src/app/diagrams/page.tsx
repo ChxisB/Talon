@@ -142,7 +142,7 @@ export default function DiagramsPage() {
     setHtmlPreview(null);
 
     try {
-      const res = await fetch("/api/spectre-proxy/diagrams/generate", {
+      const res = await fetch("/api/talon/diagrams/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: diagramType, json: jsonInput }),

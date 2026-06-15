@@ -3,7 +3,7 @@ package common
 import (
 	"strings"
 
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
+	"github.com/ChxisB/talon/internal/ui/styles"
 )
 
 // Scrollbar renders a vertical scrollbar based on content and viewport size.

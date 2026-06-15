@@ -1,4 +1,4 @@
-// Package hyper provides a fantasy.Provider that proxies requests to Hyper.
+// Package hyper provides a llm.Provider that proxies requests to Hyper.
 package hyper
 
 import (
@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
 )
 
 //go:generate echo "provider.json should be manually configured"
@@ -37,7 +37,7 @@ const (
 	// Name is the default name of this meta provider.
 	Name = "hyper"
 	// DisplayName is the display name of Hyper.
-	DisplayName = "Spectre Hyper"
+	DisplayName = "Talon Hyper"
 	// defaultBaseURL is the default proxy URL.
 	defaultBaseURL = ""
 )

@@ -8,13 +8,13 @@ package agenttest
 import (
 	"context"
 
-	"github.com/ChxisB/spectre-proxy/deps/llm/providers/openaicompat"
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	"github.com/ChxisB/spectre-proxy/internal/agent"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/permission"
-	"github.com/ChxisB/spectre-proxy/internal/session"
+	"github.com/ChxisB/talon/deps/llm/providers/openaicompat"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	"github.com/ChxisB/talon/internal/agent"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/permission"
+	"github.com/ChxisB/talon/internal/session"
 )
 
 // NewCoordinator builds a real agent.Coordinator through the production

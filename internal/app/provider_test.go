@@ -3,8 +3,8 @@ package app
 import (
 	"testing"
 
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	"github.com/ChxisB/spectre-proxy/internal/config"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	"github.com/ChxisB/talon/internal/config"
 	"github.com/stretchr/testify/require"
 )
 

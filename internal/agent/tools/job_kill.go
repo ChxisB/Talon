@@ -5,8 +5,8 @@ import (
 	_ "embed"
 	"fmt"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/internal/shell"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/internal/shell"
 )
 
 const (
@@ -26,20 +26,20 @@ type JobKillResponseMetadata struct {
 	Description string `json:"description"`
 }
 
-func NewJobKillTool() fantasy.AgentTool {
-	return fantasy.NewAgentTool(
+func NewJobKillTool() llm.AgentTool {
+	return llm.NewAgentTool(
 		JobKillToolName,
 		jobKillDescription,
-		func(ctx context.Context, params JobKillParams, call fantasy.ToolCall) (fantasy.ToolResponse, error) {
+		func(ctx context.Context, params JobKillParams, call llm.ToolCall) (llm.ToolResponse, error) {
 			if params.ShellID == "" {
-				return fantasy.NewTextErrorResponse("missing shell_id"), nil
+				return llm.NewTextErrorResponse("missing shell_id"), nil
 			}
 
 			bgManager := shell.GetBackgroundShellManager()
 
 			bgShell, ok := bgManager.Get(params.ShellID)
 			if !ok {
-				return fantasy.NewTextErrorResponse(fmt.Sprintf("background shell not found: %s", params.ShellID)), nil
+				return llm.NewTextErrorResponse(fmt.Sprintf("background shell not found: %s", params.ShellID)), nil
 			}
 
 			metadata := JobKillResponseMetadata{
@@ -50,11 +50,11 @@ func NewJobKillTool() fantasy.AgentTool {
 
 			err := bgManager.Kill(params.ShellID)
 			if err != nil {
-				return fantasy.NewTextErrorResponse(err.Error()), nil
+				return llm.NewTextErrorResponse(err.Error()), nil
 			}
 
 			result := fmt.Sprintf("Background shell %s terminated successfully", params.ShellID)
-			return fantasy.WithResponseMetadata(fantasy.NewTextResponse(result), metadata), nil
+			return llm.WithResponseMetadata(llm.NewTextResponse(result), metadata), nil
 		},
 	)
 }

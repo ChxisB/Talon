@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
+	llm "github.com/ChxisB/talon/deps/llm"
 	"github.com/stretchr/testify/require"
 )
 
@@ -43,12 +43,12 @@ func TestToAIMessage_CorruptedMediaData(t *testing.T) {
 	require.Len(t, messages, 1)
 	require.Len(t, messages[0].Content, 1)
 
-	part, ok := messages[0].Content[0].(fantasy.ToolResultPart)
+	part, ok := messages[0].Content[0].(llm.ToolResultPart)
 	require.True(t, ok)
 
 	require.Equal(t, "call_123", part.ToolCallID)
 
-	textContent, ok := part.Output.(fantasy.ToolResultOutputContentText)
+	textContent, ok := part.Output.(llm.ToolResultOutputContentText)
 	require.True(t, ok, "corrupted media should be downgraded to text")
 	require.Equal(t, mediaLoadFailedPlaceholder, textContent.Text)
 }
@@ -75,12 +75,12 @@ func TestToAIMessage_ValidMediaData(t *testing.T) {
 	require.Len(t, messages, 1)
 	require.Len(t, messages[0].Content, 1)
 
-	part, ok := messages[0].Content[0].(fantasy.ToolResultPart)
+	part, ok := messages[0].Content[0].(llm.ToolResultPart)
 	require.True(t, ok)
 
 	require.Equal(t, "call_456", part.ToolCallID)
 
-	mediaContent, ok := part.Output.(fantasy.ToolResultOutputContentMedia)
+	mediaContent, ok := part.Output.(llm.ToolResultOutputContentMedia)
 	require.True(t, ok, "valid media should remain as media")
 	require.Equal(t, validBase64, mediaContent.Data)
 	require.Equal(t, "image/png", mediaContent.MediaType)
@@ -106,12 +106,12 @@ func TestToAIMessage_ASCIIButInvalidBase64(t *testing.T) {
 	require.Len(t, messages, 1)
 	require.Len(t, messages[0].Content, 1)
 
-	part, ok := messages[0].Content[0].(fantasy.ToolResultPart)
+	part, ok := messages[0].Content[0].(llm.ToolResultPart)
 	require.True(t, ok)
 
 	require.Equal(t, "call_789", part.ToolCallID)
 
-	textContent, ok := part.Output.(fantasy.ToolResultOutputContentText)
+	textContent, ok := part.Output.(llm.ToolResultOutputContentText)
 	require.True(t, ok, "ASCII but invalid base64 should be downgraded to text")
 	require.Equal(t, mediaLoadFailedPlaceholder, textContent.Text)
 }

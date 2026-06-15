@@ -6,8 +6,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ChxisB/spectre-proxy/internal/home"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
+	"github.com/ChxisB/talon/internal/home"
+	"github.com/ChxisB/talon/internal/pubsub"
 )
 
 // Manager owns per-workspace skill discovery state: the latest discovery

@@ -8,22 +8,22 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	"github.com/ChxisB/spectre-proxy/internal/agent/tools/mcp"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/csync"
-	"github.com/ChxisB/spectre-proxy/internal/lsp"
-	"github.com/ChxisB/spectre-proxy/internal/skills"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	"github.com/ChxisB/talon/internal/agent/tools/mcp"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/csync"
+	"github.com/ChxisB/talon/internal/lsp"
+	"github.com/ChxisB/talon/internal/skills"
 	"github.com/stretchr/testify/require"
 )
 
-func TestSpectreInfo_MinimalConfig(t *testing.T) {
+func TesttalonInfo_MinimalConfig(t *testing.T) {
 	t.Parallel()
 
 	cfg := config.NewTestStore(&config.Config{
 		Providers: csync.NewMap[string, config.ProviderConfig](),
 	})
-	output := buildSpectreInfo(cfg, nil, nil, nil, nil)
+	output := buildtalonInfo(cfg, nil, nil, nil, nil)
 	require.NotContains(t, output, "[providers]")
 	require.NotContains(t, output, "[lsp]")
 	require.NotContains(t, output, "[mcp]")
@@ -31,21 +31,21 @@ func TestSpectreInfo_MinimalConfig(t *testing.T) {
 	require.NotContains(t, output, "[tools]")
 }
 
-func TestSpectreInfo_ConfigFiles(t *testing.T) {
+func TesttalonInfo_ConfigFiles(t *testing.T) {
 	t.Parallel()
 
 	cfg := config.NewTestStore(
 		&config.Config{Providers: csync.NewMap[string, config.ProviderConfig]()},
-		"/home/user/.config/spectre/spectre.json",
-		"/project/.spectre/spectre.json",
+		"/home/user/.config/talon/talon.json",
+		"/project/.talon/talon.json",
 	)
-	output := buildSpectreInfo(cfg, nil, nil, nil, nil)
+	output := buildtalonInfo(cfg, nil, nil, nil, nil)
 	require.Contains(t, output, "[config_files]")
-	require.Contains(t, output, "/home/user/.config/spectre/spectre.json")
-	require.Contains(t, output, "/project/.spectre/spectre.json")
+	require.Contains(t, output, "/home/user/.config/talon/talon.json")
+	require.Contains(t, output, "/project/.talon/talon.json")
 }
 
-func TestSpectreInfo_Models(t *testing.T) {
+func TesttalonInfo_Models(t *testing.T) {
 	t.Parallel()
 
 	cfg := config.NewTestStore(&config.Config{
@@ -55,13 +55,13 @@ func TestSpectreInfo_Models(t *testing.T) {
 		},
 		Providers: csync.NewMap[string, config.ProviderConfig](),
 	})
-	output := buildSpectreInfo(cfg, nil, nil, nil, nil)
+	output := buildtalonInfo(cfg, nil, nil, nil, nil)
 	require.Contains(t, output, "[model]")
 	require.Contains(t, output, "large = claude-sonnet-4-20250514 (anthropic)")
 	require.Contains(t, output, "small = claude-haiku-3-20250307 (anthropic)")
 }
 
-func TestSpectreInfo_Providers(t *testing.T) {
+func TesttalonInfo_Providers(t *testing.T) {
 	t.Parallel()
 
 	providers := csync.NewMap[string, config.ProviderConfig]()
@@ -69,7 +69,7 @@ func TestSpectreInfo_Providers(t *testing.T) {
 	providers.Set("anthropic", config.ProviderConfig{Models: make([]catwalk.Model, 12)})
 
 	cfg := config.NewTestStore(&config.Config{Providers: providers})
-	output := buildSpectreInfo(cfg, nil, nil, nil, nil)
+	output := buildtalonInfo(cfg, nil, nil, nil, nil)
 	require.Contains(t, output, "[providers]")
 	anthropicIdx := strings.Index(output, "anthropic = enabled")
 	openaiIdx := strings.Index(output, "openai = enabled")
@@ -80,7 +80,7 @@ func TestSpectreInfo_Providers(t *testing.T) {
 	require.Contains(t, output, "openai = enabled (8 models)")
 }
 
-func TestSpectreInfo_DisabledProvidersOmitted(t *testing.T) {
+func TesttalonInfo_DisabledProvidersOmitted(t *testing.T) {
 	t.Parallel()
 
 	providers := csync.NewMap[string, config.ProviderConfig]()
@@ -88,12 +88,12 @@ func TestSpectreInfo_DisabledProvidersOmitted(t *testing.T) {
 	providers.Set("anthropic", config.ProviderConfig{Models: make([]catwalk.Model, 12)})
 
 	cfg := config.NewTestStore(&config.Config{Providers: providers})
-	output := buildSpectreInfo(cfg, nil, nil, nil, nil)
+	output := buildtalonInfo(cfg, nil, nil, nil, nil)
 	require.Contains(t, output, "anthropic = enabled")
 	require.NotContains(t, output, "openai")
 }
 
-func TestSpectreInfo_LSPStates(t *testing.T) {
+func TesttalonInfo_LSPStates(t *testing.T) {
 	t.Parallel()
 
 	mgr := lsp.NewManager(config.NewTestStore(&config.Config{
@@ -108,7 +108,7 @@ func TestSpectreInfo_LSPStates(t *testing.T) {
 	mgr.Clients().Set("pyright", errorClient)
 
 	cfg := config.NewTestStore(&config.Config{Providers: csync.NewMap[string, config.ProviderConfig]()})
-	output := buildSpectreInfo(cfg, mgr, nil, nil, nil)
+	output := buildtalonInfo(cfg, mgr, nil, nil, nil)
 	require.Contains(t, output, "[lsp]")
 	require.Contains(t, output, "gopls = ready")
 	require.Contains(t, output, "pyright = error")
@@ -117,7 +117,7 @@ func TestSpectreInfo_LSPStates(t *testing.T) {
 	require.Less(t, goplsIdx, pyrightIdx, "gopls should appear before pyright")
 }
 
-func TestSpectreInfo_MCPStates(t *testing.T) {
+func TesttalonInfo_MCPStates(t *testing.T) {
 	t.Parallel()
 
 	connectedAt := time.Date(2025, 1, 15, 15, 4, 5, 0, time.UTC)
@@ -150,7 +150,7 @@ func TestSpectreInfo_MCPStates(t *testing.T) {
 	require.Less(t, filesystemIdx, githubIdx, "filesystem should appear before github")
 }
 
-func TestSpectreInfo_YoloMode(t *testing.T) {
+func TesttalonInfo_YoloMode(t *testing.T) {
 	t.Parallel()
 
 	cfg := config.NewTestStore(&config.Config{
@@ -159,12 +159,12 @@ func TestSpectreInfo_YoloMode(t *testing.T) {
 	})
 	cfg.Overrides().SkipPermissionRequests = true
 
-	output := buildSpectreInfo(cfg, nil, nil, nil, nil)
+	output := buildtalonInfo(cfg, nil, nil, nil, nil)
 	require.Contains(t, output, "[permissions]")
 	require.Contains(t, output, "mode = yolo")
 }
 
-func TestSpectreInfo_AllowedTools(t *testing.T) {
+func TesttalonInfo_AllowedTools(t *testing.T) {
 	t.Parallel()
 
 	cfg := config.NewTestStore(&config.Config{
@@ -172,12 +172,12 @@ func TestSpectreInfo_AllowedTools(t *testing.T) {
 		Permissions: &config.Permissions{AllowedTools: []string{"edit:write", "bash"}},
 	})
 
-	output := buildSpectreInfo(cfg, nil, nil, nil, nil)
+	output := buildtalonInfo(cfg, nil, nil, nil, nil)
 	require.Contains(t, output, "[permissions]")
 	require.Contains(t, output, "allowed_tools = bash, edit:write")
 }
 
-func TestSpectreInfo_DisabledTools(t *testing.T) {
+func TesttalonInfo_DisabledTools(t *testing.T) {
 	t.Parallel()
 
 	cfg := config.NewTestStore(&config.Config{
@@ -185,50 +185,50 @@ func TestSpectreInfo_DisabledTools(t *testing.T) {
 		Options:   &config.Options{DisabledTools: []string{"sourcegraph", "agentic_fetch"}},
 	})
 
-	output := buildSpectreInfo(cfg, nil, nil, nil, nil)
+	output := buildtalonInfo(cfg, nil, nil, nil, nil)
 	require.Contains(t, output, "[tools]")
 	require.Contains(t, output, "disabled = agentic_fetch, sourcegraph")
 }
 
-func TestSpectreInfo_Options(t *testing.T) {
+func TesttalonInfo_Options(t *testing.T) {
 	t.Parallel()
 
 	cfg := config.NewTestStore(&config.Config{
 		Providers: csync.NewMap[string, config.ProviderConfig](),
 		Options: &config.Options{
-			DataDirectory:        "/Users/user/project/.spectre",
+			DataDirectory:        "/Users/user/project/.talon",
 			Debug:                true,
 			DisableAutoSummarize: true,
 		},
 	})
 
-	output := buildSpectreInfo(cfg, nil, nil, nil, nil)
+	output := buildtalonInfo(cfg, nil, nil, nil, nil)
 	require.Contains(t, output, "[options]")
 	require.Contains(t, output, "auto_lsp = true")
 	require.Contains(t, output, "auto_summarize = false")
-	require.Contains(t, output, "data_directory = /Users/user/project/.spectre")
+	require.Contains(t, output, "data_directory = /Users/user/project/.talon")
 	require.Contains(t, output, "debug = true")
 }
 
-func TestSpectreInfo_AutoSummarizeInversion(t *testing.T) {
+func TesttalonInfo_AutoSummarizeInversion(t *testing.T) {
 	t.Parallel()
 
 	cfgFalse := config.NewTestStore(&config.Config{
 		Providers: csync.NewMap[string, config.ProviderConfig](),
 		Options:   &config.Options{DisableAutoSummarize: true},
 	})
-	outputFalse := buildSpectreInfo(cfgFalse, nil, nil, nil, nil)
+	outputFalse := buildtalonInfo(cfgFalse, nil, nil, nil, nil)
 	require.Contains(t, outputFalse, "auto_summarize = false")
 
 	cfgTrue := config.NewTestStore(&config.Config{
 		Providers: csync.NewMap[string, config.ProviderConfig](),
 		Options:   &config.Options{DisableAutoSummarize: false},
 	})
-	outputTrue := buildSpectreInfo(cfgTrue, nil, nil, nil, nil)
+	outputTrue := buildtalonInfo(cfgTrue, nil, nil, nil, nil)
 	require.Contains(t, outputTrue, "auto_summarize = true")
 }
 
-func TestSpectreInfo_NoSecrets(t *testing.T) {
+func TesttalonInfo_NoSecrets(t *testing.T) {
 	t.Parallel()
 
 	providers := csync.NewMap[string, config.ProviderConfig]()
@@ -238,13 +238,13 @@ func TestSpectreInfo_NoSecrets(t *testing.T) {
 	})
 
 	cfg := config.NewTestStore(&config.Config{Providers: providers})
-	output := buildSpectreInfo(cfg, nil, nil, nil, nil)
+	output := buildtalonInfo(cfg, nil, nil, nil, nil)
 	require.NotContains(t, output, "sk-super-secret-key-12345")
 	require.NotContains(t, output, "secret")
 	require.Contains(t, output, "openai = enabled (8 models)")
 }
 
-func TestSpectreInfo_DeterministicOrdering(t *testing.T) {
+func TesttalonInfo_DeterministicOrdering(t *testing.T) {
 	t.Parallel()
 
 	providers := csync.NewMap[string, config.ProviderConfig]()
@@ -274,7 +274,7 @@ func TestSpectreInfo_DeterministicOrdering(t *testing.T) {
 	zMcpIdx := strings.Index(mcpOutput, "z-mcp = connected")
 	require.Less(t, aMcpIdx, zMcpIdx)
 
-	output := buildSpectreInfo(cfg, nil, nil, nil, nil)
+	output := buildtalonInfo(cfg, nil, nil, nil, nil)
 
 	alphaIdx := strings.Index(output, "alpha = enabled")
 	middleIdx := strings.Index(output, "middle = enabled")
@@ -286,7 +286,7 @@ func TestSpectreInfo_DeterministicOrdering(t *testing.T) {
 	require.Contains(t, output, "allowed_tools = a-perm, z-perm")
 }
 
-func TestSpectreInfo_EmptySectionsOmitted(t *testing.T) {
+func TesttalonInfo_EmptySectionsOmitted(t *testing.T) {
 	t.Parallel()
 
 	cfg := config.NewTestStore(&config.Config{
@@ -295,7 +295,7 @@ func TestSpectreInfo_EmptySectionsOmitted(t *testing.T) {
 		Options:     &config.Options{},
 	})
 
-	output := buildSpectreInfo(cfg, nil, nil, nil, nil)
+	output := buildtalonInfo(cfg, nil, nil, nil, nil)
 	require.NotContains(t, output, "[tools]")
 	require.NotContains(t, output, "[permissions]")
 	require.NotContains(t, output, "[lsp]")
@@ -303,11 +303,11 @@ func TestSpectreInfo_EmptySectionsOmitted(t *testing.T) {
 	require.NotContains(t, output, "[skills]")
 }
 
-func TestSpectreInfo_ConfigStaleness_Clean(t *testing.T) {
+func TesttalonInfo_ConfigStaleness_Clean(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	configPath := filepath.Join(dir, "spectre.json")
+	configPath := filepath.Join(dir, "talon.json")
 	require.NoError(t, os.WriteFile(configPath, []byte(`{}`), 0o600))
 
 	store := config.NewTestStore(&config.Config{
@@ -317,18 +317,18 @@ func TestSpectreInfo_ConfigStaleness_Clean(t *testing.T) {
 	// Capture snapshot (normally done in Load)
 	store.CaptureStalenessSnapshot([]string{configPath})
 
-	output := buildSpectreInfo(store, nil, nil, nil, nil)
+	output := buildtalonInfo(store, nil, nil, nil, nil)
 	require.Contains(t, output, "[config]")
 	require.Contains(t, output, "dirty = false")
 	require.NotContains(t, output, "changed_paths")
 	require.NotContains(t, output, "missing_paths")
 }
 
-func TestSpectreInfo_ConfigStaleness_Dirty(t *testing.T) {
+func TesttalonInfo_ConfigStaleness_Dirty(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	configPath := filepath.Join(dir, "spectre.json")
+	configPath := filepath.Join(dir, "talon.json")
 	require.NoError(t, os.WriteFile(configPath, []byte(`{"debug": false}`), 0o600))
 
 	store := config.NewTestStore(&config.Config{
@@ -342,18 +342,18 @@ func TestSpectreInfo_ConfigStaleness_Dirty(t *testing.T) {
 	time.Sleep(10 * time.Millisecond)
 	require.NoError(t, os.WriteFile(configPath, []byte(`{"debug": true}`), 0o600))
 
-	output := buildSpectreInfo(store, nil, nil, nil, nil)
+	output := buildtalonInfo(store, nil, nil, nil, nil)
 	require.Contains(t, output, "[config]")
 	require.Contains(t, output, "dirty = true")
 	require.Contains(t, output, "changed_paths")
 	require.Contains(t, output, configPath)
 }
 
-func TestSpectreInfo_ConfigStaleness_MissingPath(t *testing.T) {
+func TesttalonInfo_ConfigStaleness_MissingPath(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
-	configPath := filepath.Join(dir, "spectre.json")
+	configPath := filepath.Join(dir, "talon.json")
 	require.NoError(t, os.WriteFile(configPath, []byte(`{}`), 0o600))
 
 	store := config.NewTestStore(&config.Config{
@@ -366,58 +366,58 @@ func TestSpectreInfo_ConfigStaleness_MissingPath(t *testing.T) {
 	// Delete file to trigger missing state
 	require.NoError(t, os.Remove(configPath))
 
-	output := buildSpectreInfo(store, nil, nil, nil, nil)
+	output := buildtalonInfo(store, nil, nil, nil, nil)
 	require.Contains(t, output, "[config]")
 	require.Contains(t, output, "dirty = true")
 	require.Contains(t, output, "missing_paths")
 	require.Contains(t, output, configPath)
 }
 
-func TestSpectreInfo_Skills_NoSkills(t *testing.T) {
+func TesttalonInfo_Skills_NoSkills(t *testing.T) {
 	t.Parallel()
 
 	cfg := config.NewTestStore(&config.Config{
 		Providers: csync.NewMap[string, config.ProviderConfig](),
 	})
-	output := buildSpectreInfo(cfg, nil, nil, nil, nil)
+	output := buildtalonInfo(cfg, nil, nil, nil, nil)
 	require.NotContains(t, output, "[skills]")
 }
 
-func TestSpectreInfo_Skills_MixedLoadedUnloaded(t *testing.T) {
+func TesttalonInfo_Skills_MixedLoadedUnloaded(t *testing.T) {
 	t.Parallel()
 
 	allSkills := []*skills.Skill{
 		{Name: "go-doc", Builtin: false},
 		{Name: "bash", Builtin: false},
-		{Name: "spectre-config", Builtin: true},
+		{Name: "talon-config", Builtin: true},
 	}
 	activeSkills := allSkills
 
 	tracker := skills.NewTracker(activeSkills)
 	tracker.MarkLoaded("bash")
-	tracker.MarkLoaded("spectre-config")
+	tracker.MarkLoaded("talon-config")
 
 	cfg := config.NewTestStore(&config.Config{
 		Providers: csync.NewMap[string, config.ProviderConfig](),
 	})
-	output := buildSpectreInfo(cfg, nil, allSkills, activeSkills, tracker)
+	output := buildtalonInfo(cfg, nil, allSkills, activeSkills, tracker)
 	require.Contains(t, output, "[skills]")
 	require.Contains(t, output, "bash = user, loaded")
-	require.Contains(t, output, "spectre-config = builtin, loaded")
+	require.Contains(t, output, "talon-config = builtin, loaded")
 	require.Contains(t, output, "go-doc = user, unloaded")
 }
 
-func TestSpectreInfo_Skills_DisabledSkills(t *testing.T) {
+func TesttalonInfo_Skills_DisabledSkills(t *testing.T) {
 	t.Parallel()
 
 	allSkills := []*skills.Skill{
 		{Name: "bash", Builtin: false},
-		{Name: "spectre-config", Builtin: true},
+		{Name: "talon-config", Builtin: true},
 		{Name: "image-convert", Builtin: false},
 	}
 	activeSkills := []*skills.Skill{
 		{Name: "bash", Builtin: false},
-		{Name: "spectre-config", Builtin: true},
+		{Name: "talon-config", Builtin: true},
 	}
 
 	tracker := skills.NewTracker(activeSkills)
@@ -426,14 +426,14 @@ func TestSpectreInfo_Skills_DisabledSkills(t *testing.T) {
 		Providers: csync.NewMap[string, config.ProviderConfig](),
 		Options:   &config.Options{DisabledSkills: []string{"image-convert"}},
 	})
-	output := buildSpectreInfo(cfg, nil, allSkills, activeSkills, tracker)
+	output := buildtalonInfo(cfg, nil, allSkills, activeSkills, tracker)
 	require.Contains(t, output, "[skills]")
 	require.Contains(t, output, "bash = user, unloaded")
-	require.Contains(t, output, "spectre-config = builtin, unloaded")
+	require.Contains(t, output, "talon-config = builtin, unloaded")
 	require.Contains(t, output, "image-convert = user, disabled")
 }
 
-func TestSpectreInfo_Skills_Ordering(t *testing.T) {
+func TesttalonInfo_Skills_Ordering(t *testing.T) {
 	t.Parallel()
 
 	allSkills := []*skills.Skill{
@@ -447,7 +447,7 @@ func TestSpectreInfo_Skills_Ordering(t *testing.T) {
 	cfg := config.NewTestStore(&config.Config{
 		Providers: csync.NewMap[string, config.ProviderConfig](),
 	})
-	output := buildSpectreInfo(cfg, nil, allSkills, activeSkills, tracker)
+	output := buildtalonInfo(cfg, nil, allSkills, activeSkills, tracker)
 
 	aIdx := strings.Index(output, "a-skill")
 	mIdx := strings.Index(output, "m-skill")
@@ -456,11 +456,11 @@ func TestSpectreInfo_Skills_Ordering(t *testing.T) {
 	require.Less(t, mIdx, zIdx)
 }
 
-func TestSpectreInfo_Skills_BuiltinOrigin(t *testing.T) {
+func TesttalonInfo_Skills_BuiltinOrigin(t *testing.T) {
 	t.Parallel()
 
 	allSkills := []*skills.Skill{
-		{Name: "spectre-config", Builtin: true},
+		{Name: "talon-config", Builtin: true},
 		{Name: "my-skill", Builtin: false},
 	}
 	activeSkills := allSkills
@@ -469,12 +469,12 @@ func TestSpectreInfo_Skills_BuiltinOrigin(t *testing.T) {
 	cfg := config.NewTestStore(&config.Config{
 		Providers: csync.NewMap[string, config.ProviderConfig](),
 	})
-	output := buildSpectreInfo(cfg, nil, allSkills, activeSkills, tracker)
-	require.Contains(t, output, "spectre-config = builtin, unloaded")
+	output := buildtalonInfo(cfg, nil, allSkills, activeSkills, tracker)
+	require.Contains(t, output, "talon-config = builtin, unloaded")
 	require.Contains(t, output, "my-skill = user, unloaded")
 }
 
-func TestSpectreInfo_Hooks(t *testing.T) {
+func TesttalonInfo_Hooks(t *testing.T) {
 	t.Parallel()
 
 	cfg := config.NewTestStore(&config.Config{
@@ -487,19 +487,19 @@ func TestSpectreInfo_Hooks(t *testing.T) {
 		},
 	})
 
-	output := buildSpectreInfo(cfg, nil, nil, nil, nil)
+	output := buildtalonInfo(cfg, nil, nil, nil, nil)
 	require.Contains(t, output, "[hooks]")
 	require.Contains(t, output, "PreToolUse (matcher: edit|write) = check-privates.sh")
 	require.Contains(t, output, "PreToolUse = audit.sh")
 }
 
-func TestSpectreInfo_Hooks_NoHooks(t *testing.T) {
+func TesttalonInfo_Hooks_NoHooks(t *testing.T) {
 	t.Parallel()
 
 	cfg := config.NewTestStore(&config.Config{
 		Providers: csync.NewMap[string, config.ProviderConfig](),
 	})
 
-	output := buildSpectreInfo(cfg, nil, nil, nil, nil)
+	output := buildtalonInfo(cfg, nil, nil, nil, nil)
 	require.NotContains(t, output, "[hooks]")
 }

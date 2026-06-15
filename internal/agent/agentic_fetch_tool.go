@@ -9,11 +9,11 @@ import (
 	"os"
 	"time"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
+	llm "github.com/ChxisB/talon/deps/llm"
 
-	"github.com/ChxisB/spectre-proxy/internal/agent/prompt"
-	"github.com/ChxisB/spectre-proxy/internal/agent/tools"
-	"github.com/ChxisB/spectre-proxy/internal/permission"
+	"github.com/ChxisB/talon/internal/agent/prompt"
+	"github.com/ChxisB/talon/internal/agent/tools"
+	"github.com/ChxisB/talon/internal/permission"
 )
 
 //go:embed templates/agentic_fetch.md
@@ -50,7 +50,7 @@ func validateAgenticFetchParams(ctx context.Context, params tools.AgenticFetchPa
 //go:embed templates/agentic_fetch_prompt.md.tpl
 var agenticFetchPromptTmpl []byte
 
-func (c *coordinator) agenticFetchTool(_ context.Context, client *http.Client) (fantasy.AgentTool, error) {
+func (c *coordinator) agenticFetchTool(_ context.Context, client *http.Client) (llm.AgentTool, error) {
 	if client == nil {
 		transport := http.DefaultTransport.(*http.Transport).Clone()
 		transport.MaxIdleConns = 100
@@ -63,13 +63,13 @@ func (c *coordinator) agenticFetchTool(_ context.Context, client *http.Client) (
 		}
 	}
 
-	return fantasy.NewParallelAgentTool(
+	return llm.NewParallelAgentTool(
 		tools.AgenticFetchToolName,
 		agenticFetchToolDescription,
-		func(ctx context.Context, params tools.AgenticFetchParams, call fantasy.ToolCall) (fantasy.ToolResponse, error) {
+		func(ctx context.Context, params tools.AgenticFetchParams, call llm.ToolCall) (llm.ToolResponse, error) {
 			validationResult, err := validateAgenticFetchParams(ctx, params)
 			if err != nil {
-				return fantasy.NewTextErrorResponse(err.Error()), nil
+				return llm.NewTextErrorResponse(err.Error()), nil
 			}
 
 			// Determine description based on mode.
@@ -93,15 +93,15 @@ func (c *coordinator) agenticFetchTool(_ context.Context, client *http.Client) (
 				},
 			)
 			if err != nil {
-				return fantasy.ToolResponse{}, err
+				return llm.ToolResponse{}, err
 			}
 			if !p {
 				return tools.NewPermissionDeniedResponse(), nil
 			}
 
-			tmpDir, err := os.MkdirTemp(c.cfg.Config().Options.DataDirectory, "spectre-fetch-*")
+			tmpDir, err := os.MkdirTemp(c.cfg.Config().Options.DataDirectory, "talon-fetch-*")
 			if err != nil {
-				return fantasy.NewTextErrorResponse(fmt.Sprintf("Failed to create temporary directory: %s", err)), nil
+				return llm.NewTextErrorResponse(fmt.Sprintf("Failed to create temporary directory: %s", err)), nil
 			}
 			defer os.RemoveAll(tmpDir)
 
@@ -111,7 +111,7 @@ func (c *coordinator) agenticFetchTool(_ context.Context, client *http.Client) (
 				// URL mode: fetch the URL content first.
 				content, err := tools.FetchURLAndConvert(ctx, client, params.URL)
 				if err != nil {
-					return fantasy.NewTextErrorResponse(fmt.Sprintf("Failed to fetch URL: %s", err)), nil
+					return llm.NewTextErrorResponse(fmt.Sprintf("Failed to fetch URL: %s", err)), nil
 				}
 
 				hasLargeContent := len(content) > tools.LargeContentThreshold
@@ -119,13 +119,13 @@ func (c *coordinator) agenticFetchTool(_ context.Context, client *http.Client) (
 				if hasLargeContent {
 					tempFile, err := os.CreateTemp(tmpDir, "page-*.md")
 					if err != nil {
-						return fantasy.NewTextErrorResponse(fmt.Sprintf("Failed to create temporary file: %s", err)), nil
+						return llm.NewTextErrorResponse(fmt.Sprintf("Failed to create temporary file: %s", err)), nil
 					}
 					tempFilePath := tempFile.Name()
 
 					if _, err := tempFile.WriteString(content); err != nil {
 						tempFile.Close()
-						return fantasy.NewTextErrorResponse(fmt.Sprintf("Failed to write content to file: %s", err)), nil
+						return llm.NewTextErrorResponse(fmt.Sprintf("Failed to write content to file: %s", err)), nil
 					}
 					tempFile.Close()
 
@@ -144,27 +144,27 @@ func (c *coordinator) agenticFetchTool(_ context.Context, client *http.Client) (
 
 			promptTemplate, err := prompt.NewPrompt("agentic_fetch", string(agenticFetchPromptTmpl), promptOpts...)
 			if err != nil {
-				return fantasy.ToolResponse{}, fmt.Errorf("error creating prompt: %s", err)
+				return llm.ToolResponse{}, fmt.Errorf("error creating prompt: %s", err)
 			}
 
 			_, small, err := c.buildAgentModels(ctx, true)
 			if err != nil {
-				return fantasy.ToolResponse{}, fmt.Errorf("error building models: %s", err)
+				return llm.ToolResponse{}, fmt.Errorf("error building models: %s", err)
 			}
 
 			systemPrompt, err := promptTemplate.Build(ctx, small.Model.Provider(), small.Model.Model(), c.cfg)
 			if err != nil {
-				return fantasy.ToolResponse{}, fmt.Errorf("error building system prompt: %s", err)
+				return llm.ToolResponse{}, fmt.Errorf("error building system prompt: %s", err)
 			}
 
 			smallProviderCfg, ok := c.cfg.Config().Providers.Get(small.ModelCfg.Provider)
 			if !ok {
-				return fantasy.ToolResponse{}, errors.New("small model provider not configured")
+				return llm.ToolResponse{}, errors.New("small model provider not configured")
 			}
 
 			webFetchTool := tools.NewWebFetchTool(tmpDir, client)
 			webSearchTool := tools.NewWebSearchTool(client)
-			fetchTools := []fantasy.AgentTool{
+			fetchTools := []llm.AgentTool{
 				webFetchTool,
 				webSearchTool,
 				tools.NewGlobTool(tmpDir),

@@ -14,9 +14,9 @@ import (
 	"sort"
 	"strings"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/deps/util/powernap/pkg/lsp/protocol"
-	"github.com/ChxisB/spectre-proxy/internal/lsp"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/deps/util/powernap/pkg/lsp/protocol"
+	"github.com/ChxisB/talon/internal/lsp"
 )
 
 type ReferencesParams struct {
@@ -33,28 +33,28 @@ const ReferencesToolName = "lsp_references"
 //go:embed references.md
 var referencesDescription string
 
-func NewReferencesTool(lspManager *lsp.Manager) fantasy.AgentTool {
-	return fantasy.NewAgentTool(
+func NewReferencesTool(lspManager *lsp.Manager) llm.AgentTool {
+	return llm.NewAgentTool(
 		ReferencesToolName,
 		referencesDescription,
-		func(ctx context.Context, params ReferencesParams, call fantasy.ToolCall) (fantasy.ToolResponse, error) {
+		func(ctx context.Context, params ReferencesParams, call llm.ToolCall) (llm.ToolResponse, error) {
 			if params.Symbol == "" {
-				return fantasy.NewTextErrorResponse("symbol is required"), nil
+				return llm.NewTextErrorResponse("symbol is required"), nil
 			}
 
 			if lspManager.Clients().Len() == 0 {
-				return fantasy.NewTextErrorResponse("no LSP clients available"), nil
+				return llm.NewTextErrorResponse("no LSP clients available"), nil
 			}
 
 			workingDir := cmp.Or(params.Path, ".")
 
 			matches, _, err := searchFiles(ctx, regexp.QuoteMeta(params.Symbol), workingDir, "", 100)
 			if err != nil {
-				return fantasy.NewTextErrorResponse(fmt.Sprintf("failed to search for symbol: %s", err)), nil
+				return llm.NewTextErrorResponse(fmt.Sprintf("failed to search for symbol: %s", err)), nil
 			}
 
 			if len(matches) == 0 {
-				return fantasy.NewTextResponse(fmt.Sprintf("Symbol '%s' not found", params.Symbol)), nil
+				return llm.NewTextResponse(fmt.Sprintf("Symbol '%s' not found", params.Symbol)), nil
 			}
 
 			var allLocations []protocol.Location
@@ -80,13 +80,13 @@ func NewReferencesTool(lspManager *lsp.Manager) fantasy.AgentTool {
 
 			if len(allLocations) > 0 {
 				output := formatReferences(cleanupLocations(allLocations))
-				return fantasy.NewTextResponse(output), nil
+				return llm.NewTextResponse(output), nil
 			}
 
 			if allErrs != nil {
-				return fantasy.NewTextErrorResponse(allErrs.Error()), nil
+				return llm.NewTextErrorResponse(allErrs.Error()), nil
 			}
-			return fantasy.NewTextResponse(fmt.Sprintf("No references found for symbol '%s'", params.Symbol)), nil
+			return llm.NewTextResponse(fmt.Sprintf("No references found for symbol '%s'", params.Symbol)), nil
 		},
 	)
 }

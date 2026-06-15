@@ -8,16 +8,16 @@ import (
 	"slices"
 	"strings"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	tea "github.com/ChxisB/spectre-proxy/deps/ui/terminal/v2"
-	"github.com/ChxisB/spectre-proxy/deps/util/ansi"
-	"github.com/ChxisB/spectre-proxy/internal/diff"
-	"github.com/ChxisB/spectre-proxy/internal/fsext"
-	"github.com/ChxisB/spectre-proxy/internal/history"
-	"github.com/ChxisB/spectre-proxy/internal/session"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/ui/styles"
-	"github.com/ChxisB/spectre-proxy/internal/ui/util"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	bubble "github.com/ChxisB/talon/deps/ui/terminal/v2"
+	"github.com/ChxisB/talon/deps/util/ansi"
+	"github.com/ChxisB/talon/internal/diff"
+	"github.com/ChxisB/talon/internal/fsext"
+	"github.com/ChxisB/talon/internal/history"
+	"github.com/ChxisB/talon/internal/session"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/ui/styles"
+	"github.com/ChxisB/talon/internal/ui/util"
 )
 
 // loadSessionMsg is a message indicating that a session and its files have
@@ -62,15 +62,15 @@ type SessionFile struct {
 
 // loadSession loads the session along with its associated files and computes
 // the diff statistics (additions and deletions) for each file in the session.
-// It returns a tea.Cmd that, when executed, fetches the session data and
+// It returns a bubble.Cmd that, when executed, fetches the session data and
 // returns a sessionFilesLoadedMsg containing the processed session files.
 //
 // The returned batch also reports the new current-session selection to
 // the workspace so the server can update its per-client presence map.
 // That report is fire-and-forget: errors are logged at debug and the
 // UI never blocks on the call.
-func (m *UI) loadSession(sessionID string) tea.Cmd {
-	load := func() tea.Msg {
+func (m *UI) loadSession(sessionID string) bubble.Cmd {
+	load := func() bubble.Msg {
 		session, err := m.com.Workspace.GetSession(context.Background(), sessionID)
 		if err != nil {
 			return util.ReportError(err)
@@ -92,16 +92,16 @@ func (m *UI) loadSession(sessionID string) tea.Cmd {
 			readFiles: readFiles,
 		}
 	}
-	return tea.Batch(load, m.reportCurrentSession(sessionID))
+	return bubble.Batch(load, m.reportCurrentSession(sessionID))
 }
 
-// reportCurrentSession returns a fire-and-forget tea.Cmd that
+// reportCurrentSession returns a fire-and-forget bubble.Cmd that
 // informs the workspace which session this client is currently
 // viewing. Errors are logged at debug only; the call is a hint
 // for server-side presence tracking, not correctness-critical
 // state.
-func (m *UI) reportCurrentSession(sessionID string) tea.Cmd {
-	return func() tea.Msg {
+func (m *UI) reportCurrentSession(sessionID string) bubble.Cmd {
+	return func() bubble.Msg {
 		if err := m.com.Workspace.SetCurrentSession(context.Background(), sessionID); err != nil {
 			slog.Debug("Failed to report current session", "session_id", sessionID, "error", err)
 		}
@@ -160,12 +160,12 @@ func (m *UI) loadSessionFiles(sessionID string) ([]SessionFile, error) {
 
 // handleFileEvent processes file change events and updates the session file
 // list with new or updated file information.
-func (m *UI) handleFileEvent(file history.File) tea.Cmd {
+func (m *UI) handleFileEvent(file history.File) bubble.Cmd {
 	if m.session == nil || file.SessionID != m.session.ID {
 		return nil
 	}
 
-	return func() tea.Msg {
+	return func() bubble.Msg {
 		sessionFiles, err := m.loadSessionFiles(m.session.ID)
 		// could not load session files
 		if err != nil {
@@ -187,7 +187,6 @@ func (m *UI) filesInfo(cwd string, width, maxItems int, isSection bool) string {
 	if isSection {
 		title = common.Section(t, "Modified Files", width)
 	}
-	list := t.Files.EmptyMessage.Render("None")
 	var filesWithChanges []SessionFile
 	for _, f := range m.sessionFiles {
 		if f.Additions == 0 && f.Deletions == 0 {
@@ -195,11 +194,13 @@ func (m *UI) filesInfo(cwd string, width, maxItems int, isSection bool) string {
 		}
 		filesWithChanges = append(filesWithChanges, f)
 	}
-	if len(filesWithChanges) > 0 {
-		list = fileList(t, cwd, filesWithChanges, width, maxItems)
+	if len(filesWithChanges) == 0 {
+		return ""
 	}
 
-	return lipgloss.NewStyle().Width(width).Render(fmt.Sprintf("%s\n\n%s", title, list))
+	list := fileList(t, cwd, filesWithChanges, width, maxItems)
+
+	return style.NewStyle().Width(width).Render(fmt.Sprintf("%s\n\n%s", title, list))
 }
 
 // fileList renders a list of files with their diff statistics, truncating to
@@ -237,7 +238,7 @@ func fileList(t *styles.Styles, cwd string, filesWithChanges []SessionFile, widt
 		if extraContent != "" {
 			suffix = " " + extraContent
 		}
-		maxPathWidth := max(width-lipgloss.Width(suffix), 0)
+		maxPathWidth := max(width-style.Width(suffix), 0)
 		filePath = ansi.Truncate(filePath, maxPathWidth, "…")
 
 		line := t.Files.Path.Render(filePath)
@@ -254,16 +255,16 @@ func fileList(t *styles.Styles, cwd string, filesWithChanges []SessionFile, widt
 		renderedFiles = append(renderedFiles, t.Files.TruncationHint.Render(fmt.Sprintf("…and %d more", remaining)))
 	}
 
-	return lipgloss.JoinVertical(lipgloss.Left, renderedFiles...)
+	return style.JoinVertical(style.Left, renderedFiles...)
 }
 
 // startLSPs starts LSP servers for the given file paths.
-func (m *UI) startLSPs(paths []string) tea.Cmd {
+func (m *UI) startLSPs(paths []string) bubble.Cmd {
 	if len(paths) == 0 {
 		return nil
 	}
 
-	return func() tea.Msg {
+	return func() bubble.Msg {
 		ctx := context.Background()
 		for _, path := range paths {
 			m.com.Workspace.LSPStart(ctx, path)

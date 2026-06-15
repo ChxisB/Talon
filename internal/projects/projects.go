@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ChxisB/spectre-proxy/internal/config"
+	"github.com/ChxisB/talon/internal/config"
 )
 
 const projectsFileName = "projects.json"

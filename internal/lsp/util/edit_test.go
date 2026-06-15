@@ -3,8 +3,8 @@ package util
 import (
 	"testing"
 
-	powernap "github.com/ChxisB/spectre-proxy/deps/util/powernap/pkg/lsp"
-	"github.com/ChxisB/spectre-proxy/deps/util/powernap/pkg/lsp/protocol"
+	powernap "github.com/ChxisB/talon/deps/util/powernap/pkg/lsp"
+	"github.com/ChxisB/talon/deps/util/powernap/pkg/lsp/protocol"
 	"github.com/stretchr/testify/require"
 )
 

@@ -11,8 +11,8 @@ import (
 	"time"
 	"unicode/utf8"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/internal/permission"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/internal/permission"
 	md "github.com/JohannesKaufmann/html-to-markdown"
 	"github.com/PuerkitoBio/goquery"
 )
@@ -42,7 +42,7 @@ func fetchDescription() string {
 	})
 }
 
-func NewFetchTool(permissions permission.Service, workingDir string, client *http.Client) fantasy.AgentTool {
+func NewFetchTool(permissions permission.Service, workingDir string, client *http.Client) llm.AgentTool {
 	if client == nil {
 		transport := http.DefaultTransport.(*http.Transport).Clone()
 		transport.MaxIdleConns = 100
@@ -55,26 +55,26 @@ func NewFetchTool(permissions permission.Service, workingDir string, client *htt
 		}
 	}
 
-	return fantasy.NewParallelAgentTool(
+	return llm.NewParallelAgentTool(
 		FetchToolName,
 		fetchDescription(),
-		func(ctx context.Context, params FetchParams, call fantasy.ToolCall) (fantasy.ToolResponse, error) {
+		func(ctx context.Context, params FetchParams, call llm.ToolCall) (llm.ToolResponse, error) {
 			if params.URL == "" {
-				return fantasy.NewTextErrorResponse("URL parameter is required"), nil
+				return llm.NewTextErrorResponse("URL parameter is required"), nil
 			}
 
 			format := strings.ToLower(params.Format)
 			if format != "text" && format != "markdown" && format != "html" {
-				return fantasy.NewTextErrorResponse("Format must be one of: text, markdown, html"), nil
+				return llm.NewTextErrorResponse("Format must be one of: text, markdown, html"), nil
 			}
 
 			if !strings.HasPrefix(params.URL, "http://") && !strings.HasPrefix(params.URL, "https://") {
-				return fantasy.NewTextErrorResponse("URL must start with http:// or https://"), nil
+				return llm.NewTextErrorResponse("URL must start with http:// or https://"), nil
 			}
 
 			sessionID := GetSessionFromContext(ctx)
 			if sessionID == "" {
-				return fantasy.ToolResponse{}, fmt.Errorf("session ID is required for creating a new file")
+				return llm.ToolResponse{}, fmt.Errorf("session ID is required for creating a new file")
 			}
 
 			p, err := permissions.Request(
@@ -90,7 +90,7 @@ func NewFetchTool(permissions permission.Service, workingDir string, client *htt
 				},
 			)
 			if err != nil {
-				return fantasy.ToolResponse{}, err
+				return llm.ToolResponse{}, err
 			}
 			if !p {
 				return NewPermissionDeniedResponse(), nil
@@ -112,31 +112,31 @@ func NewFetchTool(permissions permission.Service, workingDir string, client *htt
 
 			req, err := http.NewRequestWithContext(requestCtx, "GET", params.URL, nil)
 			if err != nil {
-				return fantasy.ToolResponse{}, fmt.Errorf("failed to create request: %w", err)
+				return llm.ToolResponse{}, fmt.Errorf("failed to create request: %w", err)
 			}
 
-			req.Header.Set("User-Agent", "spectre/1.0")
+			req.Header.Set("User-Agent", "talon/1.0")
 
 			resp, err := client.Do(req)
 			if err != nil {
-				return fantasy.ToolResponse{}, fmt.Errorf("failed to fetch URL: %w", err)
+				return llm.ToolResponse{}, fmt.Errorf("failed to fetch URL: %w", err)
 			}
 			defer resp.Body.Close()
 
 			if resp.StatusCode != http.StatusOK {
-				return fantasy.NewTextErrorResponse(fmt.Sprintf("Request failed with status code: %d", resp.StatusCode)), nil
+				return llm.NewTextErrorResponse(fmt.Sprintf("Request failed with status code: %d", resp.StatusCode)), nil
 			}
 
 			body, err := io.ReadAll(io.LimitReader(resp.Body, MaxFetchSize))
 			if err != nil {
-				return fantasy.NewTextErrorResponse("Failed to read response body: " + err.Error()), nil
+				return llm.NewTextErrorResponse("Failed to read response body: " + err.Error()), nil
 			}
 
 			content := string(body)
 
 			validUTF8 := utf8.ValidString(content)
 			if !validUTF8 {
-				return fantasy.NewTextErrorResponse("Response content is not valid UTF-8"), nil
+				return llm.NewTextErrorResponse("Response content is not valid UTF-8"), nil
 			}
 			contentType := resp.Header.Get("Content-Type")
 
@@ -145,7 +145,7 @@ func NewFetchTool(permissions permission.Service, workingDir string, client *htt
 				if strings.Contains(contentType, "text/html") {
 					text, err := extractTextFromHTML(content)
 					if err != nil {
-						return fantasy.NewTextErrorResponse("Failed to extract text from HTML: " + err.Error()), nil
+						return llm.NewTextErrorResponse("Failed to extract text from HTML: " + err.Error()), nil
 					}
 					content = text
 				}
@@ -154,7 +154,7 @@ func NewFetchTool(permissions permission.Service, workingDir string, client *htt
 				if strings.Contains(contentType, "text/html") {
 					markdown, err := convertHTMLToMarkdown(content)
 					if err != nil {
-						return fantasy.NewTextErrorResponse("Failed to convert HTML to Markdown: " + err.Error()), nil
+						return llm.NewTextErrorResponse("Failed to convert HTML to Markdown: " + err.Error()), nil
 					}
 					content = markdown
 				}
@@ -166,14 +166,14 @@ func NewFetchTool(permissions permission.Service, workingDir string, client *htt
 				if strings.Contains(contentType, "text/html") {
 					doc, err := goquery.NewDocumentFromReader(strings.NewReader(content))
 					if err != nil {
-						return fantasy.NewTextErrorResponse("Failed to parse HTML: " + err.Error()), nil
+						return llm.NewTextErrorResponse("Failed to parse HTML: " + err.Error()), nil
 					}
 					body, err := doc.Find("body").Html()
 					if err != nil {
-						return fantasy.NewTextErrorResponse("Failed to extract body from HTML: " + err.Error()), nil
+						return llm.NewTextErrorResponse("Failed to extract body from HTML: " + err.Error()), nil
 					}
 					if body == "" {
-						return fantasy.NewTextErrorResponse("No body content found in HTML"), nil
+						return llm.NewTextErrorResponse("No body content found in HTML"), nil
 					}
 					content = "<html>\n<body>\n" + body + "\n</body>\n</html>"
 				}
@@ -184,7 +184,7 @@ func NewFetchTool(permissions permission.Service, workingDir string, client *htt
 				content += fmt.Sprintf("\n\n[Content truncated to %d bytes]", MaxFetchSize)
 			}
 
-			return fantasy.NewTextResponse(content), nil
+			return llm.NewTextResponse(content), nil
 		},
 	)
 }

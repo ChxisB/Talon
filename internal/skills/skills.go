@@ -14,7 +14,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
+	"github.com/ChxisB/talon/internal/pubsub"
 	"github.com/charlievieth/fastwalk"
 	"gopkg.in/yaml.v3"
 )

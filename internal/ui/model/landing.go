@@ -2,11 +2,12 @@ package model
 
 import (
 	"image"
+	"strings"
 
-	lipgloss "github.com/ChxisB/spectre-proxy/deps/style/v2"
-	"github.com/ChxisB/spectre-proxy/deps/terminal/layout"
-	"github.com/ChxisB/spectre-proxy/internal/ui/common"
-	"github.com/ChxisB/spectre-proxy/internal/workspace"
+	style "github.com/ChxisB/talon/deps/style/v2"
+	"github.com/ChxisB/talon/deps/terminal/layout"
+	"github.com/ChxisB/talon/internal/ui/common"
+	"github.com/ChxisB/talon/internal/workspace"
 )
 
 // selectedLargeModel returns the currently selected large language model from
@@ -31,11 +32,11 @@ func (m *UI) landingView() string {
 	}
 
 	parts = append(parts, "", m.modelInfo(width))
-	infoSection := lipgloss.JoinVertical(lipgloss.Left, parts...)
+	infoSection := style.JoinVertical(style.Left, parts...)
 
 	var remainingHeightArea image.Rectangle
 	layout.Vertical(
-		layout.Len(lipgloss.Height(infoSection)+1),
+		layout.Len(style.Height(infoSection)+1),
 		layout.Fill(1),
 	).Split(m.layout.main).Assign(new(image.Rectangle), &remainingHeightArea)
 
@@ -45,13 +46,22 @@ func (m *UI) landingView() string {
 	mcpSection := m.mcpInfo(mcpLspSectionWidth, max(1, remainingHeightArea.Dy()), false)
 	skillsSection := m.skillsInfo(mcpLspSectionWidth, max(1, remainingHeightArea.Dy()), false)
 
-	content := lipgloss.JoinHorizontal(lipgloss.Left, lspSection, " ", mcpSection, " ", skillsSection)
+	var sectionParts []string
+	for _, s := range []string{lspSection, mcpSection, skillsSection} {
+		if s != "" {
+			sectionParts = append(sectionParts, s)
+		}
+	}
+	content := strings.Join(sectionParts, "  ")
+	if content == "" {
+		content = " "
+	}
 
-	return lipgloss.NewStyle().
+	return style.NewStyle().
 		Width(width).
 		Height(m.layout.main.Dy() - 1).
 		PaddingTop(1).
 		Render(
-			lipgloss.JoinVertical(lipgloss.Left, infoSection, "", content),
+			style.JoinVertical(style.Left, infoSection, "", content),
 		)
 }

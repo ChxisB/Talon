@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 
-export type AgentKey = "spectre" | "claude" | "fcc";
+export type AgentKey = "talon" | "claude" | "fcc";
 
 interface Props {
   agent: AgentKey;
@@ -17,11 +17,11 @@ const STYLE: Record<AgentKey, {
   label: string;
   glyph: (size: number) => React.ReactNode;
 }> = {
-  spectre: {
+  talon: {
     accent: "#14b8a6",
     bg: "rgba(20,184,166,0.18)",
     gradient: "linear-gradient(135deg, #2dd4bf 0%, #14b8a6 60%, #0d9488 100%)",
-    label: "Spectre",
+    label: "Talon",
     glyph: (s) => (
       <svg width={s * 0.55} height={s * 0.55} viewBox="0 0 24 24" fill="none">
         <path
@@ -67,7 +67,7 @@ const STYLE: Record<AgentKey, {
 };
 
 export default function AgentAvatar({ agent, size = 36, pulse = false }: Props) {
-  const s = STYLE[agent] ?? STYLE.spectre;
+  const s = STYLE[agent] ?? STYLE.talon;
   return (
     <motion.span
       initial={{ scale: 0.85, opacity: 0 }}
@@ -105,8 +105,8 @@ export default function AgentAvatar({ agent, size = 36, pulse = false }: Props) 
 }
 
 export function agentColor(agent: AgentKey): string {
-  return STYLE[agent]?.accent ?? STYLE.spectre.accent;
+  return STYLE[agent]?.accent ?? STYLE.talon.accent;
 }
 export function agentLabel(agent: AgentKey): string {
-  return STYLE[agent]?.label ?? STYLE.spectre.label;
+  return STYLE[agent]?.label ?? STYLE.talon.label;
 }

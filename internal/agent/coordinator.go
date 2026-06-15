@@ -16,35 +16,36 @@ import (
 	"slices"
 	"strings"
 
-	fantasy "github.com/ChxisB/spectre-proxy/deps/llm"
-	"github.com/ChxisB/spectre-proxy/deps/testing/pkg/catwalk"
-	"github.com/ChxisB/spectre-proxy/internal/agent/hyper"
-	"github.com/ChxisB/spectre-proxy/internal/agent/notify"
-	"github.com/ChxisB/spectre-proxy/internal/agent/prompt"
-	"github.com/ChxisB/spectre-proxy/internal/agent/tools"
-	"github.com/ChxisB/spectre-proxy/internal/config"
-	"github.com/ChxisB/spectre-proxy/internal/event"
-	"github.com/ChxisB/spectre-proxy/internal/filetracker"
-	"github.com/ChxisB/spectre-proxy/internal/history"
-	"github.com/ChxisB/spectre-proxy/internal/hooks"
-	"github.com/ChxisB/spectre-proxy/internal/log"
-	"github.com/ChxisB/spectre-proxy/internal/lsp"
-	"github.com/ChxisB/spectre-proxy/internal/message"
-	"github.com/ChxisB/spectre-proxy/internal/oauth/copilot"
-	"github.com/ChxisB/spectre-proxy/internal/permission"
-	"github.com/ChxisB/spectre-proxy/internal/pubsub"
-	"github.com/ChxisB/spectre-proxy/internal/session"
-	"github.com/ChxisB/spectre-proxy/internal/skills"
+	llm "github.com/ChxisB/talon/deps/llm"
+	"github.com/ChxisB/talon/deps/testing/pkg/catwalk"
+	"github.com/ChxisB/talon/internal/agent/hyper"
+	"github.com/ChxisB/talon/internal/agent/notify"
+	"github.com/ChxisB/talon/internal/agent/prompt"
+	"github.com/ChxisB/talon/internal/agent/tools"
+	"github.com/ChxisB/talon/internal/config"
+	"github.com/ChxisB/talon/internal/event"
+	"github.com/ChxisB/talon/internal/filetracker"
+	"github.com/ChxisB/talon/internal/history"
+	"github.com/ChxisB/talon/internal/hooks"
+	"github.com/ChxisB/talon/internal/log"
+	"github.com/ChxisB/talon/internal/lsp"
+	"github.com/ChxisB/talon/internal/message"
+	"github.com/ChxisB/talon/internal/oauth/copilot"
+	"github.com/ChxisB/talon/internal/permission"
+	"github.com/ChxisB/talon/internal/pubsub"
+	"github.com/ChxisB/talon/internal/session"
+	"github.com/ChxisB/talon/internal/skills"
+	toolscfg "github.com/ChxisB/talon/internal/tools"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/ChxisB/spectre-proxy/deps/llm/providers/anthropic"
-	"github.com/ChxisB/spectre-proxy/deps/llm/providers/azure"
-	"github.com/ChxisB/spectre-proxy/deps/llm/providers/bedrock"
-	"github.com/ChxisB/spectre-proxy/deps/llm/providers/google"
-	"github.com/ChxisB/spectre-proxy/deps/llm/providers/openai"
-	"github.com/ChxisB/spectre-proxy/deps/llm/providers/openaicompat"
-	"github.com/ChxisB/spectre-proxy/deps/llm/providers/openrouter"
-	"github.com/ChxisB/spectre-proxy/deps/llm/providers/vercel"
+	"github.com/ChxisB/talon/deps/llm/providers/anthropic"
+	"github.com/ChxisB/talon/deps/llm/providers/azure"
+	"github.com/ChxisB/talon/deps/llm/providers/bedrock"
+	"github.com/ChxisB/talon/deps/llm/providers/google"
+	"github.com/ChxisB/talon/deps/llm/providers/openai"
+	"github.com/ChxisB/talon/deps/llm/providers/openaicompat"
+	"github.com/ChxisB/talon/deps/llm/providers/openrouter"
+	"github.com/ChxisB/talon/deps/llm/providers/vercel"
 	openaisdk "github.com/openai/openai-go/v3/option"
 	"github.com/qjebbs/go-jsons"
 )
@@ -80,7 +81,7 @@ var opencodeMessagesModels = map[string]bool{
 type Coordinator interface {
 	// INFO: (kujtim) this is not used yet we will use this when we have multiple agents
 	// SetMainAgent(string)
-	Run(ctx context.Context, sessionID, prompt string, attachments ...message.Attachment) (*fantasy.AgentResult, error)
+	Run(ctx context.Context, sessionID, prompt string, attachments ...message.Attachment) (*llm.AgentResult, error)
 	// RunAccepted runs a call that was already accepted via
 	// BeginAccepted on the fire-and-forget dispatch path. The handle is
 	// the only carrier of accept-state across the backend.runAgent /
@@ -88,7 +89,7 @@ type Coordinator interface {
 	// sessionAgent.Run as SessionAgentCall.Accepted, where it is
 	// consumed under dispatchMu once the accepted -> (cancel-on-entry |
 	// queued | active) transition is chosen.
-	RunAccepted(ctx context.Context, accept *AcceptedRun, sessionID, prompt string, attachments ...message.Attachment) (*fantasy.AgentResult, error)
+	RunAccepted(ctx context.Context, accept *AcceptedRun, sessionID, prompt string, attachments ...message.Attachment) (*llm.AgentResult, error)
 	BeginAccepted(sessionID string) *AcceptedRun
 	Cancel(sessionID string)
 	CancelAll()
@@ -187,12 +188,12 @@ func NewCoordinator(
 }
 
 // Run implements Coordinator.
-func (c *coordinator) Run(ctx context.Context, sessionID string, prompt string, attachments ...message.Attachment) (*fantasy.AgentResult, error) {
+func (c *coordinator) Run(ctx context.Context, sessionID string, prompt string, attachments ...message.Attachment) (*llm.AgentResult, error) {
 	return c.run(ctx, nil, sessionID, prompt, attachments...)
 }
 
 // RunAccepted implements Coordinator.
-func (c *coordinator) RunAccepted(ctx context.Context, accept *AcceptedRun, sessionID string, prompt string, attachments ...message.Attachment) (*fantasy.AgentResult, error) {
+func (c *coordinator) RunAccepted(ctx context.Context, accept *AcceptedRun, sessionID string, prompt string, attachments ...message.Attachment) (*llm.AgentResult, error) {
 	return c.run(ctx, accept, sessionID, prompt, attachments...)
 }
 
@@ -201,7 +202,7 @@ func (c *coordinator) RunAccepted(ctx context.Context, accept *AcceptedRun, sess
 // Accepted so sessionAgent.Run can consume the accept reservation under
 // dispatchMu; when nil (the in-process/local path) no accept tracking
 // applies.
-func (c *coordinator) run(ctx context.Context, accept *AcceptedRun, sessionID string, prompt string, attachments ...message.Attachment) (*fantasy.AgentResult, error) {
+func (c *coordinator) run(ctx context.Context, accept *AcceptedRun, sessionID string, prompt string, attachments ...message.Attachment) (*llm.AgentResult, error) {
 	if err := c.readyWg.Wait(); err != nil {
 		return nil, err
 	}
@@ -244,7 +245,7 @@ func (c *coordinator) run(ctx context.Context, accept *AcceptedRun, sessionID st
 	// Coalesce per-attempt RunComplete payloads so only the final
 	// outcome reaches subscribers. Without this, the first attempt's
 	// failed RunComplete (unauthorized) would race ahead of the
-	// retry's success, and `spectre run` would exit on the stale error
+	// retry's success, and `talon run` would exit on the stale error
 	// before ever seeing the retry result. Each attempt's
 	// SessionAgentCall.OnComplete hook overwrites latest; we publish
 	// exactly once after retries resolve, via PublishMustDeliver, so
@@ -265,7 +266,7 @@ func (c *coordinator) run(ctx context.Context, accept *AcceptedRun, sessionID st
 	// the coalesce closure publishes the final outcome under that
 	// same correlator.
 	runID := RunIDFromContext(ctx)
-	run := func() (*fantasy.AgentResult, error) {
+	run := func() (*llm.AgentResult, error) {
 		return c.currentAgent.Run(ctx, SessionAgentCall{
 			SessionID:        sessionID,
 			RunID:            runID,
@@ -283,7 +284,7 @@ func (c *coordinator) run(ctx context.Context, accept *AcceptedRun, sessionID st
 		})
 	}
 	beforeLoaded := c.skillTracker.LoadedNames()
-	var result *fantasy.AgentResult
+	var result *llm.AgentResult
 	originalErr := c.runWithUnauthorizedRetry(ctx, providerCfg, func() error {
 		var err error
 		result, err = run()
@@ -311,8 +312,8 @@ func (c *coordinator) run(ctx context.Context, accept *AcceptedRun, sessionID st
 	return result, originalErr
 }
 
-func getProviderOptions(model Model, providerCfg config.ProviderConfig) fantasy.ProviderOptions {
-	options := fantasy.ProviderOptions{}
+func getProviderOptions(model Model, providerCfg config.ProviderConfig) llm.ProviderOptions {
+	options := llm.ProviderOptions{}
 
 	cfgOpts := []byte("{}")
 	providerCfgOpts := []byte("{}")
@@ -516,7 +517,7 @@ func getProviderOptions(model Model, providerCfg config.ProviderConfig) fantasy.
 	return options
 }
 
-func mergeCallOptions(model Model, cfg config.ProviderConfig) (fantasy.ProviderOptions, *float64, *float64, *int64, *float64, *float64) {
+func mergeCallOptions(model Model, cfg config.ProviderConfig) (llm.ProviderOptions, *float64, *float64, *int64, *float64, *float64) {
 	modelOptions := getProviderOptions(model, cfg)
 	temp := cmp.Or(model.ModelCfg.Temperature, model.CatwalkCfg.Options.Temperature)
 	topP := cmp.Or(model.ModelCfg.TopP, model.CatwalkCfg.Options.TopP)
@@ -546,6 +547,7 @@ func (c *coordinator) buildAgent(ctx context.Context, prompt *prompt.Prompt, age
 		Tools:                nil,
 		Notify:               c.notify,
 		RunComplete:          c.runComplete,
+		ToolsOrchestrator:    toolscfg.NewOrchestrator(toolscfg.Load()),
 	})
 
 	c.readyWg.Go(func() error {
@@ -553,6 +555,14 @@ func (c *coordinator) buildAgent(ctx context.Context, prompt *prompt.Prompt, age
 		if err != nil {
 			return err
 		}
+
+		// Apply token-reduction tools to the system prompt.
+		// This is always called when the reducer is enabled — it compresses
+		// the prompt text and optionally injects coding principles.
+		toolCfg := toolscfg.Load()
+		orch := toolscfg.NewOrchestrator(toolCfg)
+		systemPrompt = orch.ProcessPrompt(systemPrompt)
+
 		result.SetSystemPrompt(systemPrompt)
 		return nil
 	})
@@ -569,8 +579,8 @@ func (c *coordinator) buildAgent(ctx context.Context, prompt *prompt.Prompt, age
 	return result, nil
 }
 
-func (c *coordinator) buildTools(ctx context.Context, agent config.Agent, isSubAgent bool) ([]fantasy.AgentTool, error) {
-	var allTools []fantasy.AgentTool
+func (c *coordinator) buildTools(ctx context.Context, agent config.Agent, isSubAgent bool) ([]llm.AgentTool, error) {
+	var allTools []llm.AgentTool
 	if slices.Contains(agent.AllowedTools, AgentToolName) {
 		agentTool, err := c.agentTool(ctx)
 		if err != nil {
@@ -595,7 +605,7 @@ func (c *coordinator) buildTools(ctx context.Context, agent config.Agent, isSubA
 		}
 	}
 
-	logFile := filepath.Join(c.cfg.Config().Options.DataDirectory, "logs", "spectre.log")
+	logFile := filepath.Join(c.cfg.Config().Options.DataDirectory, "logs", "talon.log")
 
 	// Build hook runner if PreToolUse hooks are configured.
 	var hookRunner *hooks.Runner
@@ -605,9 +615,12 @@ func (c *coordinator) buildTools(ctx context.Context, agent config.Agent, isSubA
 
 	allTools = append(
 		allTools,
-		tools.NewBashTool(c.permissions, c.cfg.WorkingDir(), c.cfg.Config().Options.Attribution, modelID),
-		tools.NewSpectreInfoTool(c.cfg, c.lspManager, c.allSkills, c.activeSkills, c.skillTracker),
-		tools.NewSpectreLogsTool(logFile),
+		tools.NewBashTool(c.permissions, c.cfg.WorkingDir(), c.cfg.Config().Options.Attribution, modelID, func(cmdName string, cmdArgs []string, output string) string {
+			orch := toolscfg.NewOrchestrator(toolscfg.Load())
+			return orch.FilterOutput(cmdName, cmdArgs, output)
+		}),
+		tools.NewTalonInfoTool(c.cfg, c.lspManager, c.allSkills, c.activeSkills, c.skillTracker),
+		tools.NewTalonLogsTool(logFile),
 		tools.NewJobOutputTool(),
 		tools.NewJobKillTool(),
 		tools.NewDownloadTool(c.permissions, c.cfg.WorkingDir(), nil),
@@ -644,7 +657,7 @@ func (c *coordinator) buildTools(ctx context.Context, agent config.Agent, isSubA
 		)
 	}
 
-	var filteredTools []fantasy.AgentTool
+	var filteredTools []llm.AgentTool
 	for _, tool := range allTools {
 		if slices.Contains(agent.AllowedTools, tool.Info().Name) {
 			filteredTools = append(filteredTools, tool)
@@ -674,7 +687,7 @@ func (c *coordinator) buildTools(ctx context.Context, agent config.Agent, isSubA
 			slog.Debug("MCP not allowed", "tool", tool.Name(), "agent", agent.Name)
 		}
 	}
-	slices.SortFunc(filteredTools, func(a, b fantasy.AgentTool) int {
+	slices.SortFunc(filteredTools, func(a, b llm.AgentTool) int {
 		return strings.Compare(a.Info().Name, b.Info().Name)
 	})
 
@@ -774,7 +787,7 @@ func (c *coordinator) buildAgentModels(ctx context.Context, isSubAgent bool) (Mo
 		}, nil
 }
 
-func (c *coordinator) buildAnthropicProvider(baseURL, apiKey string, headers map[string]string, providerID string) (fantasy.Provider, error) {
+func (c *coordinator) buildAnthropicProvider(baseURL, apiKey string, headers map[string]string, providerID string) (llm.Provider, error) {
 	var opts []anthropic.Option
 
 	switch {
@@ -806,7 +819,7 @@ func (c *coordinator) buildAnthropicProvider(baseURL, apiKey string, headers map
 	return anthropic.New(opts...)
 }
 
-func (c *coordinator) buildOpenaiProvider(baseURL, apiKey string, headers map[string]string) (fantasy.Provider, error) {
+func (c *coordinator) buildOpenaiProvider(baseURL, apiKey string, headers map[string]string) (llm.Provider, error) {
 	opts := []openai.Option{
 		openai.WithAPIKey(apiKey),
 		openai.WithUseResponsesAPI(),
@@ -824,7 +837,7 @@ func (c *coordinator) buildOpenaiProvider(baseURL, apiKey string, headers map[st
 	return openai.New(opts...)
 }
 
-func (c *coordinator) buildOpenrouterProvider(_, apiKey string, headers map[string]string) (fantasy.Provider, error) {
+func (c *coordinator) buildOpenrouterProvider(_, apiKey string, headers map[string]string) (llm.Provider, error) {
 	opts := []openrouter.Option{
 		openrouter.WithAPIKey(apiKey),
 	}
@@ -838,7 +851,7 @@ func (c *coordinator) buildOpenrouterProvider(_, apiKey string, headers map[stri
 	return openrouter.New(opts...)
 }
 
-func (c *coordinator) buildVercelProvider(_, apiKey string, headers map[string]string) (fantasy.Provider, error) {
+func (c *coordinator) buildVercelProvider(_, apiKey string, headers map[string]string) (llm.Provider, error) {
 	opts := []vercel.Option{
 		vercel.WithAPIKey(apiKey),
 	}
@@ -852,7 +865,7 @@ func (c *coordinator) buildVercelProvider(_, apiKey string, headers map[string]s
 	return vercel.New(opts...)
 }
 
-func (c *coordinator) buildOpenaiCompatProvider(baseURL, apiKey string, headers map[string]string, extraBody map[string]any, providerID string, isSubAgent bool) (fantasy.Provider, error) {
+func (c *coordinator) buildOpenaiCompatProvider(baseURL, apiKey string, headers map[string]string, extraBody map[string]any, providerID string, isSubAgent bool) (llm.Provider, error) {
 	opts := []openaicompat.Option{
 		openaicompat.WithBaseURL(baseURL),
 		openaicompat.WithAPIKey(apiKey),
@@ -889,7 +902,7 @@ func (c *coordinator) buildOpenaiCompatProvider(baseURL, apiKey string, headers 
 	return openaicompat.New(opts...)
 }
 
-func (c *coordinator) buildAzureProvider(baseURL, apiKey string, headers map[string]string, options map[string]string) (fantasy.Provider, error) {
+func (c *coordinator) buildAzureProvider(baseURL, apiKey string, headers map[string]string, options map[string]string) (llm.Provider, error) {
 	opts := []azure.Option{
 		azure.WithBaseURL(baseURL),
 		azure.WithAPIKey(apiKey),
@@ -912,7 +925,7 @@ func (c *coordinator) buildAzureProvider(baseURL, apiKey string, headers map[str
 	return azure.New(opts...)
 }
 
-func (c *coordinator) buildBedrockProvider(apiKey string, headers map[string]string, providerID string) (fantasy.Provider, error) {
+func (c *coordinator) buildBedrockProvider(apiKey string, headers map[string]string, providerID string) (llm.Provider, error) {
 	var opts []bedrock.Option
 	if c.cfg.Config().Options.Debug {
 		httpClient := log.NewHTTPClient()
@@ -941,7 +954,7 @@ func (c *coordinator) buildBedrockProvider(apiKey string, headers map[string]str
 	return bedrock.New(opts...)
 }
 
-func (c *coordinator) buildGoogleProvider(baseURL, apiKey string, headers map[string]string) (fantasy.Provider, error) {
+func (c *coordinator) buildGoogleProvider(baseURL, apiKey string, headers map[string]string) (llm.Provider, error) {
 	opts := []google.Option{
 		google.WithBaseURL(baseURL),
 		google.WithGeminiAPIKey(apiKey),
@@ -956,7 +969,7 @@ func (c *coordinator) buildGoogleProvider(baseURL, apiKey string, headers map[st
 	return google.New(opts...)
 }
 
-func (c *coordinator) buildGoogleVertexProvider(headers map[string]string, options map[string]string) (fantasy.Provider, error) {
+func (c *coordinator) buildGoogleVertexProvider(headers map[string]string, options map[string]string) (llm.Provider, error) {
 	opts := []google.Option{}
 	if c.cfg.Config().Options.Debug {
 		httpClient := log.NewHTTPClient()
@@ -982,7 +995,7 @@ func (c *coordinator) isAnthropicThinking(model config.SelectedModel) bool {
 	return err == nil && opts.Thinking != nil
 }
 
-func (c *coordinator) buildProvider(providerCfg config.ProviderConfig, model config.SelectedModel, isSubAgent bool) (fantasy.Provider, error) {
+func (c *coordinator) buildProvider(providerCfg config.ProviderConfig, model config.SelectedModel, isSubAgent bool) (llm.Provider, error) {
 	headers := maps.Clone(providerCfg.ExtraHeaders)
 	if headers == nil {
 		headers = make(map[string]string)
@@ -1029,7 +1042,7 @@ func (c *coordinator) buildProvider(providerCfg config.ProviderConfig, model con
 		switch providerCfg.ID {
 		case hyper.Name:
 			baseURL = hyper.BaseURL() + "/v1"
-			headers["x-spectre-id"] = event.GetID()
+			headers["x-talon-id"] = event.GetID()
 		case string(catwalk.InferenceProviderZAI):
 			if providerCfg.ExtraBody == nil {
 				providerCfg.ExtraBody = map[string]any{}
@@ -1172,7 +1185,7 @@ func (c *coordinator) retryAfterUnauthorized(ctx context.Context, providerCfg co
 }
 
 func (c *coordinator) isUnauthorized(err error) bool {
-	var providerErr *fantasy.ProviderError
+	var providerErr *llm.ProviderError
 	return errors.As(err, &providerErr) && providerErr.StatusCode == http.StatusUnauthorized
 }
 
@@ -1219,12 +1232,12 @@ type subAgentParams struct {
 // runSubAgent runs a sub-agent and handles session management and cost accumulation.
 // It creates a sub-session, runs the agent with the given prompt, and propagates
 // the cost to the parent session.
-func (c *coordinator) runSubAgent(ctx context.Context, params subAgentParams) (fantasy.ToolResponse, error) {
+func (c *coordinator) runSubAgent(ctx context.Context, params subAgentParams) (llm.ToolResponse, error) {
 	// Create sub-session
 	agentToolSessionID := c.sessions.CreateAgentToolSessionID(params.AgentMessageID, params.ToolCallID)
 	session, err := c.sessions.CreateTaskSession(ctx, agentToolSessionID, params.SessionID, params.SessionTitle)
 	if err != nil {
-		return fantasy.ToolResponse{}, fmt.Errorf("create session: %w", err)
+		return llm.ToolResponse{}, fmt.Errorf("create session: %w", err)
 	}
 
 	// Call session setup function if provided
@@ -1241,11 +1254,11 @@ func (c *coordinator) runSubAgent(ctx context.Context, params subAgentParams) (f
 
 	providerCfg, ok := c.cfg.Config().Providers.Get(model.ModelCfg.Provider)
 	if !ok {
-		return fantasy.ToolResponse{}, errModelProviderNotConfigured
+		return llm.ToolResponse{}, errModelProviderNotConfigured
 	}
 
 	// Run the agent
-	run := func() (*fantasy.AgentResult, error) {
+	run := func() (*llm.AgentResult, error) {
 		return params.Agent.Run(ctx, SessionAgentCall{
 			SessionID:        session.ID,
 			Prompt:           params.Prompt,
@@ -1259,7 +1272,7 @@ func (c *coordinator) runSubAgent(ctx context.Context, params subAgentParams) (f
 			NonInteractive:   true,
 		})
 	}
-	var result *fantasy.AgentResult
+	var result *llm.AgentResult
 	err = c.runWithUnauthorizedRetry(ctx, providerCfg, func() error {
 		var runErr error
 		result, runErr = run()
@@ -1273,15 +1286,15 @@ func (c *coordinator) runSubAgent(ctx context.Context, params subAgentParams) (f
 		})
 	}
 	if err != nil {
-		return fantasy.NewTextErrorResponse(fmt.Sprintf("Failed to generate response: %s", err)), nil
+		return llm.NewTextErrorResponse(fmt.Sprintf("Failed to generate response: %s", err)), nil
 	}
 
 	// Update parent session cost
 	if err := c.updateParentSessionCost(ctx, session.ID, params.SessionID); err != nil {
-		return fantasy.ToolResponse{}, err
+		return llm.ToolResponse{}, err
 	}
 
-	return fantasy.NewTextResponse(result.Response.Content.Text()), nil
+	return llm.NewTextResponse(result.Response.Content.Text()), nil
 }
 
 // updateParentSessionCost accumulates the cost from a child session to its parent session.
