@@ -537,12 +537,6 @@ func (m *UI) loadCustomCommands() bubble.Cmd {
 		if err != nil {
 			slog.Error("Failed to load custom commands", "error", err)
 		}
-		// Append user-invocable skills as commands.
-		skillEntries, err := m.com.Workspace.ListSkills(context.Background())
-		if err != nil {
-			slog.Error("Failed to load skill commands", "error", err)
-		}
-		customCommands = append(customCommands, commands.FromSkillCatalog(skillEntries)...)
 		return userCommandsLoadedMsg{Commands: customCommands}
 	}
 }
@@ -3887,10 +3881,9 @@ func (m *UI) drawSessionDetails(scr term.Screen, area term.Rectangle) {
 
 	lspSection := m.lspInfo(sectionWidth, maxItemsPerSection, false)
 	mcpSection := m.mcpInfo(sectionWidth, maxItemsPerSection, false)
-	skillsSection := m.skillsInfo(sectionWidth, maxItemsPerSection, false)
 	filesSection := m.filesInfo(m.com.Workspace.WorkingDir(), sectionWidth, maxItemsPerSection, false)
 	var sectionParts []string
-	for _, s := range []string{filesSection, lspSection, mcpSection, skillsSection} {
+	for _, s := range []string{filesSection, lspSection, mcpSection} {
 		if s != "" {
 			sectionParts = append(sectionParts, s)
 		}

@@ -44,10 +44,9 @@ func (m *UI) landingView() string {
 
 	lspSection := m.lspInfo(mcpLspSectionWidth, max(1, remainingHeightArea.Dy()), false)
 	mcpSection := m.mcpInfo(mcpLspSectionWidth, max(1, remainingHeightArea.Dy()), false)
-	skillsSection := m.skillsInfo(mcpLspSectionWidth, max(1, remainingHeightArea.Dy()), false)
 
 	var sectionParts []string
-	for _, s := range []string{lspSection, mcpSection, skillsSection} {
+	for _, s := range []string{lspSection, mcpSection} {
 		if s != "" {
 			sectionParts = append(sectionParts, s)
 		}
