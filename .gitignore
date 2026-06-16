@@ -56,3 +56,9 @@ manpages/
 completions/
 .prettierignore
 .task
+
+# Personal agent configs
+.agents/
+
+# Build cache
+cache/
