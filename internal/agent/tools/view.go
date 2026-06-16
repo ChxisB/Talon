@@ -73,6 +73,7 @@ type ViewResponseMetadata struct {
 
 const (
 	ViewToolName     = "view"
+	ReadToolName     = "read"
 	MaxViewSize      = 200 * 1024 // 200KB
 	DefaultReadLimit = 200
 	MaxLineLength    = 2000
@@ -95,8 +96,31 @@ func NewViewTool(
 	workingDir string,
 	skillsPaths ...string,
 ) llm.AgentTool {
+	return newViewTool(ViewToolName, lspManager, permissions, filetracker, skillTracker, workingDir, skillsPaths...)
+}
+
+func NewReadTool(
+	lspManager *lsp.Manager,
+	permissions permission.Service,
+	filetracker filetracker.Service,
+	skillTracker *skills.Tracker,
+	workingDir string,
+	skillsPaths ...string,
+) llm.AgentTool {
+	return newViewTool(ReadToolName, lspManager, permissions, filetracker, skillTracker, workingDir, skillsPaths...)
+}
+
+func newViewTool(
+	toolName string,
+	lspManager *lsp.Manager,
+	permissions permission.Service,
+	filetracker filetracker.Service,
+	skillTracker *skills.Tracker,
+	workingDir string,
+	skillsPaths ...string,
+) llm.AgentTool {
 	return llm.NewAgentTool(
-		ViewToolName,
+		toolName,
 		viewDescription(),
 		func(ctx context.Context, params ViewParams, call llm.ToolCall) (llm.ToolResponse, error) {
 			if params.FilePath == "" {
@@ -140,7 +164,7 @@ func NewViewTool(
 						SessionID:   sessionID,
 						Path:        absFilePath,
 						ToolCallID:  call.ID,
-						ToolName:    ViewToolName,
+						ToolName:    toolName,
 						Action:      "read",
 						Description: fmt.Sprintf("Read file outside working directory: %s", absFilePath),
 						Params:      ViewPermissionsParams(params),

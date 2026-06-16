@@ -194,23 +194,21 @@ func (m *UI) drawSidebar(scr term.Screen, area term.Rectangle) {
 		}
 	}
 
-	skillsCount := len(m.skillStatusItems())
 	todosCount := 0
 	if m.session != nil {
 		todosCount = len(m.session.Todos)
 	}
 
-	maxFiles, maxLSPs, maxMCPs, maxSkills, maxTodos := getDynamicHeightLimits(remainingHeight, filesCount, lspsCount, mcpsCount, skillsCount, todosCount)
+	maxFiles, maxLSPs, maxMCPs, _, maxTodos := getDynamicHeightLimits(remainingHeight, filesCount, lspsCount, mcpsCount, 0, todosCount)
 
 	lspSection := m.lspInfo(width, maxLSPs, true)
 	mcpSection := m.mcpInfo(width, maxMCPs, true)
-	skillsSection := m.skillsInfo(width, maxSkills, true)
 	filesSection := m.filesInfo(m.com.Workspace.WorkingDir(), width, maxFiles, true)
 	todosSection := m.todosInfo(width, maxTodos, true)
 
 	// Collect only non-empty sections
 	var sectionParts []string
-	for _, s := range []string{filesSection, todosSection, lspSection, mcpSection, skillsSection} {
+	for _, s := range []string{filesSection, todosSection, lspSection, mcpSection} {
 		if s != "" {
 			sectionParts = append(sectionParts, "", s)
 		}
