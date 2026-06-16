@@ -1,6 +1,6 @@
 module github.com/ChxisB/talon
 
-go 1.26.3
+go 1.26.4
 
 require (
 	github.com/ChxisB/talon/deps/color v0.4.3
@@ -86,6 +86,7 @@ require (
 	git.sr.ht/~jackmordaunt/go-toast v1.1.2 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.17.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.10.0 // indirect
+	github.com/ChxisB/talon/deps/cache v0.0.0-00010101000000-000000000000 // indirect
 	github.com/ChxisB/talon/deps/util/json v0.2.0 // indirect
 	github.com/ChxisB/talon/deps/util/termios v0.1.1 // indirect
 	github.com/ChxisB/talon/deps/util/windows v0.2.2 // indirect
@@ -221,6 +222,7 @@ require (
 )
 
 replace (
+	github.com/ChxisB/talon/deps/cache => ./deps/cache
 	github.com/ChxisB/talon/deps/color => ./deps/color
 	github.com/ChxisB/talon/deps/config/v2 => ./deps/config
 	github.com/ChxisB/talon/deps/llm => ./deps/llm

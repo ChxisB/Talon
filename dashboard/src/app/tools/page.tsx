@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import TalonConfig from "@/components/TalonConfig";
 import Modal from "@/components/Modal";
-import { Clock, Puzzle, Workflow, Sparkles, Cog, Power, Bot, Brain, Layout, Filter, BarChart2, Share2, Minimize2, Database, Zap, GitBranch, Archive } from "lucide-react";
+import { Clock, Puzzle, Workflow, Sparkles, Cog, Power, Bot, Brain, Layout, Filter, BarChart2, Share2, Minimize2, Database, Zap, GitBranch, Archive, Search, RotateCcw } from "lucide-react";
 
 // ─── Curated Plugins ──────────────────────────────────────────────────
 
@@ -549,6 +549,173 @@ function BuiltInToolsSection() {
   );
 }
 
+// ─── Skills Management ────────────────────────────────────────────────
+
+interface SkillDef {
+  id: string;
+  name: string;
+  description: string;
+  source: string;
+  builtin: boolean;
+  enabled: boolean;
+}
+
+function SkillsSection() {
+  const [skills, setSkills] = useState<SkillDef[]>([]);
+  const [filter, setFilter] = useState("");
+  const [saving, setSaving] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
+
+  const load = async () => {
+    try {
+      const res = await fetch("/api/talon/skills");
+      const data = await res.json();
+      setSkills(data.skills || []);
+    } catch { /* noop */ }
+    setLoaded(true);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const toggle = async (id: string, enabled: boolean) => {
+    setSaving(id);
+    try {
+      const res = await fetch("/api/talon/skills", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, enabled }),
+      });
+      if (res.ok) {
+        setSkills(prev => prev.map(s => s.id === id ? { ...s, enabled } : s));
+      }
+    } catch {}
+    setSaving(null);
+  };
+
+  const resetAll = async () => {
+    try {
+      await fetch("/api/talon/skills", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "reset" }),
+      });
+      load();
+    } catch {}
+  };
+
+  const filtered = skills.filter(s =>
+    s.name.toLowerCase().includes(filter.toLowerCase()) ||
+    s.description.toLowerCase().includes(filter.toLowerCase())
+  );
+
+  const userSkills = filtered.filter(s => !s.builtin);
+  const builtinSkills = filtered.filter(s => s.builtin);
+  const enabledCount = skills.filter(s => s.enabled).length;
+
+  return (
+    <div className="rounded-xl bg-base-200 border border-base-content/10 p-5 shadow-sm">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+        <div className="flex items-center gap-3">
+          <Brain size={18} className="text-primary" />
+          <h3 className="font-bold text-sm">Skills</h3>
+          {loaded && (
+            <span className="text-xs text-base-content/70 bg-base-300 px-2 py-0.5 rounded-full">
+              {enabledCount}/{skills.length} enabled
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="input input-bordered input-sm flex items-center gap-2 bg-base-300 border-base-content/20">
+            <Search size={14} className="text-base-content/60" />
+            <input
+              type="text"
+              className="grow w-32 sm:w-48"
+              placeholder="Filter skills..."
+              value={filter}
+              onChange={e => setFilter(e.target.value)}
+            />
+          </label>
+          <button className="btn btn-ghost btn-xs" onClick={resetAll}>
+            <RotateCcw size={14} /> Reset
+          </button>
+        </div>
+      </div>
+
+      {!loaded && (
+        <div className="text-center py-8 text-sm text-base-content/60">Loading skills...</div>
+      )}
+
+      {loaded && userSkills.length === 0 && builtinSkills.length === 0 && (
+        <div className="text-center py-8 text-sm text-base-content/60">No skills match your filter.</div>
+      )}
+
+      {loaded && userSkills.length > 0 && (
+        <div className="mb-4">
+          <div className="text-xs font-semibold uppercase tracking-wider text-base-content/50 mb-2 px-1">
+            User Skills
+          </div>
+          <div className="flex flex-col gap-1">
+            {userSkills.map(s => (
+              <SkillRow key={s.id} skill={s} onToggle={toggle} saving={saving} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {loaded && builtinSkills.length > 0 && (
+        <div>
+          <div className="text-xs font-semibold uppercase tracking-wider text-base-content/50 mb-2 px-1">
+            Built-in Skills
+          </div>
+          <div className="flex flex-col gap-1">
+            {builtinSkills.map(s => (
+              <SkillRow key={s.id} skill={s} onToggle={toggle} saving={saving} />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SkillRow({
+  skill,
+  onToggle,
+  saving,
+}: {
+  skill: SkillDef;
+  onToggle: (id: string, enabled: boolean) => void;
+  saving: string | null;
+}) {
+  return (
+    <div className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-base-300 border border-base-content/5 hover:border-base-content/20 transition-colors">
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <span className={`text-sm font-medium ${skill.enabled ? "text-base-content/90" : "text-base-content/50"}`}>
+            {skill.name}
+          </span>
+          <span className={`badge badge-xs ${skill.source === "builtin" ? "badge-ghost" : "badge-primary"}`}>
+            {skill.source}
+          </span>
+        </div>
+        <div className={`text-xs mt-0.5 ${skill.enabled ? "text-base-content/70" : "text-base-content/50"}`}>
+          {skill.description}
+        </div>
+      </div>
+      <label className={`relative inline-flex items-center cursor-pointer shrink-0 ml-3 ${saving === skill.id ? "opacity-50" : ""}`}>
+        <input
+          type="checkbox"
+          className="sr-only peer"
+          checked={skill.enabled}
+          onChange={() => onToggle(skill.id, !skill.enabled)}
+          disabled={saving === skill.id}
+        />
+        <div className="w-9 h-5 bg-base-200 rounded-full peer peer-checked:bg-primary peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all border border-base-content/20" />
+      </label>
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────
 
 export default function ToolsPage() {
@@ -565,6 +732,12 @@ export default function ToolsPage() {
       <section>
         <SectionHeader icon={<Cog size={20} />} title="Built-in Tools" subtitle="Auto-run tools for prompt injection, output compression, and more" />
         <BuiltInToolsSection />
+      </section>
+
+      {/* ─── Skills ───────────────────────────────────────────────── */}
+      <section>
+        <SectionHeader icon={<Brain size={20} />} title="Skills" subtitle="Enable/disable built-in and user skills" />
+        <SkillsSection />
       </section>
 
       {/* ─── Automation ───────────────────────────────────────────── */}

@@ -4,10 +4,13 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
+	"github.com/ChxisB/talon/deps/cache"
 	"github.com/ChxisB/talon/deps/compress"
 	"github.com/ChxisB/talon/deps/condense"
 	"github.com/ChxisB/talon/deps/filter"
+	"github.com/ChxisB/talon/deps/frugal"
 	"github.com/ChxisB/talon/deps/graph"
 	"github.com/ChxisB/talon/deps/promptcache"
 	"github.com/ChxisB/talon/deps/synth"
@@ -20,6 +23,7 @@ import (
 type Orchestrator struct {
 	config *Config
 	cache  *promptcache.Cache
+	rCache *cache.Cache
 
 	// inputSavings tracks the estimated input token savings %
 	// from memory-tree (glade) and token-optimizer (frugal).
@@ -36,19 +40,41 @@ func NewOrchestrator(config *Config) *Orchestrator {
 func (o *Orchestrator) initCache() *promptcache.Cache {
 	if o.cache == nil && o.config.IsEnabled(ToolPromptCache) {
 		cfg := promptcache.DefaultConfig()
-		if l := o.config.GetLevel(ToolPromptCache); l != "" {
+		if l := o.config.GetLevel(ToolReducer); l != "" {
 			switch l {
-			case "low":
-				cfg.HighThreshold = 0.85
+			case "ultimate":
+				cfg.HighThreshold = 0.90
 			case "medium":
 				cfg.HighThreshold = 0.92
-			case "high":
-				cfg.HighThreshold = 0.97
+			case "lite":
+				cfg.HighThreshold = 0.95
+			default:
+				cfg.HighThreshold = 0.92
 			}
 		}
 		o.cache = promptcache.New(cfg, nil)
 	}
 	return o.cache
+}
+
+// initResponseCache lazily creates the SQLite response cache if enabled.
+func (o *Orchestrator) initResponseCache(cacheDir string) *cache.Cache {
+	if o.rCache == nil && o.config.IsEnabled(ToolResponseCache) {
+		dsn := cacheDir
+		if dsn == "" {
+			dsn = "talon-cache.db"
+		}
+		c, err := cache.New(dsn)
+		if err == nil {
+			o.rCache = c
+		}
+	}
+	return o.rCache
+}
+
+// SetCacheDir configures and initializes the response cache directory.
+func (o *Orchestrator) SetCacheDir(cacheDir string) {
+	o.initResponseCache(cacheDir)
 }
 
 // DefaultOrchestrator creates an orchestrator with default config.
@@ -77,17 +103,17 @@ func (o *Orchestrator) ProcessPrompt(prompt string) string {
 	if o.config.IsEnabled(ToolReducer) && len(result) > 500 {
 		cfg := condense.DefaultConfig()
 		level := o.config.GetLevel(ToolReducer)
+		if level == "" {
+			level = "medium"
+		}
 		applyCondenseLevel(&cfg, level)
-		originalLen := len(result)
+		originalTokens := frugal.EstimateTokens(result)
 		compressed, wasModified, _ := condense.CompressContent(result, cfg)
 		if wasModified {
 			result = compressed
-			compressedLen := len(result)
-			if originalLen > 0 {
-				// Weight: system prompt is ~1/Nth of input savings but
-				// update the rolling estimate so the sidebar sees real data.
-				savings := float64(originalLen-compressedLen) / float64(originalLen) * 100
-				// Blend with existing estimate (update rolling avg)
+			compressedTokens := frugal.EstimateTokens(compressed)
+			if originalTokens > 0 {
+				savings := float64(originalTokens-compressedTokens) / float64(originalTokens) * 100
 				if o.inputSavings == 0 {
 					o.inputSavings = savings
 				} else {
@@ -117,8 +143,15 @@ func (o *Orchestrator) ProcessResponse(response string) CompressResult {
 	// Apply compression if enabled
 	if o.config.IsEnabled(ToolCompress) {
 		level := compress.LevelFull
-		if l := o.config.GetLevel(ToolCompress); l != "" {
-			level = compress.ParseLevel(l)
+		if l := o.config.GetLevel(ToolReducer); l != "" {
+			switch l {
+			case "ultimate":
+				level = compress.LevelUltra
+			case "lite":
+				level = compress.LevelLite
+			default:
+				level = compress.LevelFull
+			}
 		}
 		compressed := compress.Compress(result.Text, level)
 		stats := compress.EstimateStats(result.Text, compressed)
@@ -136,18 +169,14 @@ func (o *Orchestrator) ProcessResponse(response string) CompressResult {
 
 // TokenReducer runs all enabled token-reduction tools on message history
 // before it is sent to the LLM. This is the single entry point for input-side
-// token reduction — it coordinates condense, synth, filter, memory-tree,
-// token-optimizer, and output compression based on the configured level.
+// token reduction — it coordinates condense, synth, filter, delta compression
+// (frugal), and output compression based on the configured level.
 //
 // Level determines how aggressively tokens are reduced:
 //
-//   - "recommended": balanced savings (default). JSON arrays sampled to 20 items,
-//     output compression at full, synth + filter + caching enabled.
-//   - "light": minimal reduction. Only obvious waste trimmed, 30 items kept,
-//     lite output compression.
-//   - "moderate": good savings. 15 items kept, full output compression.
-//   - "aggressive": maximum savings. 10 items kept, ultra output compression,
-//     system prompts compressed, aggressive token optimization.
+//   - "lite": minimal reduction. Light condense, no delta, filter only.
+//   - "medium": balanced savings (default). Moderate condense + delta + filter.
+//   - "ultimate": maximum savings. Aggressive condense + delta + filter + pruning.
 func (o *Orchestrator) TokenReducer(msgs []message.Message) ([]message.Message, int) {
 	if !o.config.IsEnabled(ToolReducer) {
 		return msgs, 0
@@ -155,15 +184,13 @@ func (o *Orchestrator) TokenReducer(msgs []message.Message) ([]message.Message, 
 
 	level := o.config.GetLevel(ToolReducer)
 	if level == "" {
-		level = "recommended"
+		level = "medium"
 	}
 
 	totalCompressed := 0
+	var originalTokens, compressedTokens int
 
-	// Track total characters before compression for savings measurement
-	var originalTotalChars, compressedTotalChars int
-
-	// 1. Compress all message content (system, user, tool) using condense
+	// 1. Compress all message content using condense
 	if o.config.IsEnabled(ToolCondense) {
 		cfg := condense.DefaultConfig()
 		applyCondenseLevel(&cfg, level)
@@ -174,9 +201,8 @@ func (o *Orchestrator) TokenReducer(msgs []message.Message) ([]message.Message, 
 
 		for i := range result {
 			for j := range result[i].Parts {
-				// Compress text content in any message role
 				if tc, ok := result[i].Parts[j].(message.TextContent); ok {
-					originalTotalChars += len(tc.Text)
+					originalTokens += frugal.EstimateTokens(tc.Text)
 					if len(tc.Text) >= cfg.MinContentLength {
 						compressedContent, wasModified, _ := condense.CompressContent(tc.Text, cfg)
 						if wasModified {
@@ -185,11 +211,10 @@ func (o *Orchestrator) TokenReducer(msgs []message.Message) ([]message.Message, 
 							compressed++
 						}
 					}
-					compressedTotalChars += len(tc.Text)
+					compressedTokens += frugal.EstimateTokens(tc.Text)
 				}
-				// Compress tool result content
 				if tr, ok := result[i].Parts[j].(message.ToolResult); ok {
-					originalTotalChars += len(tr.Content)
+					originalTokens += frugal.EstimateTokens(tr.Content)
 					if len(tr.Content) >= cfg.MinContentLength {
 						compressedContent, wasModified, _ := condense.CompressContent(tr.Content, cfg)
 						if wasModified {
@@ -198,7 +223,7 @@ func (o *Orchestrator) TokenReducer(msgs []message.Message) ([]message.Message, 
 							compressed++
 						}
 					}
-					compressedTotalChars += len(tr.Content)
+					compressedTokens += frugal.EstimateTokens(tr.Content)
 				}
 			}
 		}
@@ -208,43 +233,93 @@ func (o *Orchestrator) TokenReducer(msgs []message.Message) ([]message.Message, 
 		}
 	}
 
-	// Update rolling input savings estimate from actual condense results
-	if originalTotalChars > 0 && compressedTotalChars > 0 && originalTotalChars > compressedTotalChars {
-		actualSavings := float64(originalTotalChars-compressedTotalChars) / float64(originalTotalChars) * 100
+	// 2. Delta compression for messages that share repeated patterns
+	// (e.g. repeated view/edit results for the same file).
+	if o.config.IsEnabled(ToolTokenOptimizer) && level != "lite" {
+		msgs = o.applyDeltaCompression(msgs, level)
+		totalCompressed++
+	}
+
+	// Update rolling input savings estimate using frugal token estimation
+	if originalTokens > 0 && compressedTokens > 0 && originalTokens > compressedTokens {
+		actualSavings := float64(originalTokens-compressedTokens) / float64(originalTokens) * 100
 		if o.inputSavings == 0 {
 			o.inputSavings = actualSavings
 		} else {
-			// Blend: 70% existing + 30% new to smooth over variance
 			o.inputSavings = o.inputSavings*0.7 + actualSavings*0.3
 		}
 	}
 
-	// 2. Future: memory-tree integration
-	// if o.config.IsEnabled(ToolMemoryTree) { ... }
-
-	// 3. Future: token-optimizer integration
-	// if o.config.IsEnabled(ToolTokenOptimizer) { ... }
-
 	return msgs, totalCompressed
+}
+
+// applyDeltaCompression compresses repeated patterns in tool results using
+// frugal's delta computation. Adjacent tool results that share significant
+// content similarity are delta-encoded to reduce token count.
+func (o *Orchestrator) applyDeltaCompression(msgs []message.Message, level string) []message.Message {
+	cfg := condense.DefaultConfig()
+	applyCondenseLevel(&cfg, level)
+
+	result := make([]message.Message, len(msgs))
+	copy(result, msgs)
+
+	// Track last few tool results to detect repeated content
+	type toolStamp struct {
+		name    string
+		content string
+	}
+	var recent []toolStamp
+	maxRecent := 3
+	if level == "ultimate" {
+		maxRecent = 5
+	}
+
+	for i := range result {
+		for j := range result[i].Parts {
+			tr, ok := result[i].Parts[j].(message.ToolResult)
+			if !ok || len(tr.Content) < cfg.MinContentLength {
+				continue
+			}
+
+			// Check for near-duplicate content in recent history
+			for _, prev := range recent {
+				delta, stats, viable := frugal.ComputeDelta(prev.content, tr.Content, prev.name)
+				if viable && stats != nil && stats.ChangedLines > 0 {
+					// Delta is smaller — use it
+					if len(delta) < len(tr.Content) {
+						tr.Content = delta
+						result[i].Parts[j] = tr
+					}
+					break
+				}
+			}
+
+			recent = append(recent, toolStamp{name: tr.Name, content: tr.Content})
+			if len(recent) > maxRecent {
+				recent = recent[1:]
+			}
+		}
+	}
+	return result
 }
 
 // applyCondenseLevel maps the reducer level to condense configuration.
 // Lower thresholds = more compression, especially for the initial large system prompt.
 func applyCondenseLevel(cfg *condense.Config, level string) {
 	switch level {
-	case "aggressive":
+	case "ultimate":
 		cfg.Crusher.MaxItemsAfterCrush = 10
 		cfg.Crusher.MinTokensToCrush = 50
 		cfg.MinContentLength = 50
-	case "moderate":
+	case "medium":
 		cfg.Crusher.MaxItemsAfterCrush = 15
 		cfg.Crusher.MinTokensToCrush = 100
 		cfg.MinContentLength = 100
-	case "light":
+	case "lite":
 		cfg.Crusher.MaxItemsAfterCrush = 30
 		cfg.Crusher.MinTokensToCrush = 300
 		cfg.MinContentLength = 200
-	default: // "recommended"
+	default:
 		cfg.Crusher.MaxItemsAfterCrush = 20
 		cfg.Crusher.MinTokensToCrush = 150
 		cfg.MinContentLength = 100
@@ -405,10 +480,23 @@ func (o *Orchestrator) SaveConfig() error {
 
 // CheckCache looks for a cached response matching the prompt.
 // Returns the cached entry and true if found.
-// Checks both the local semantic cache (promptcache) and the
-// SQLite response cache (if available and enabled).
+// Checks both the SQLite exact-match cache first, then the local
+// semantic prompt cache for fuzzy matches.
 func (o *Orchestrator) CheckCache(ctx context.Context, prompt string) (*promptcache.Entry, bool) {
-	// Check local semantic prompt cache first
+	// Check SQLite exact-match cache first (fast path)
+	if o.config.IsEnabled(ToolResponseCache) && o.rCache != nil {
+		key := hashKey(prompt)
+		if val, ok := o.rCache.Get(key); ok {
+			return &promptcache.Entry{
+				Response:  val,
+				Prompt:    prompt,
+				MatchedBy: "exact",
+				Hash:      key,
+			}, true
+		}
+	}
+
+	// Check local semantic prompt cache for fuzzy matches
 	if o.config.IsEnabled(ToolPromptCache) {
 		c := o.initCache()
 		if c != nil {
@@ -422,15 +510,31 @@ func (o *Orchestrator) CheckCache(ctx context.Context, prompt string) (*promptca
 }
 
 // StoreCache caches a prompt-response pair for future lookup.
+// Stores in both the SQLite response cache and the semantic prompt cache.
 func (o *Orchestrator) StoreCache(ctx context.Context, prompt, response string) error {
-	if o.config.IsEnabled(ToolPromptCache) {
-		c := o.initCache()
-		if c != nil {
-			return c.Store(ctx, prompt, response)
+	var lastErr error
+
+	// Store in SQLite exact-match cache
+	if o.config.IsEnabled(ToolResponseCache) && o.rCache != nil {
+		level := o.config.GetLevel(ToolReducer)
+		ttl := defaultCacheTTL(level)
+		key := hashKey(prompt)
+		if err := o.rCache.Set(key, response, ttl); err != nil {
+			lastErr = err
 		}
 	}
 
-	return nil
+	// Store in semantic prompt cache
+	if o.config.IsEnabled(ToolPromptCache) {
+		c := o.initCache()
+		if c != nil {
+			if err := c.Store(ctx, prompt, response); err != nil {
+				lastErr = err
+			}
+		}
+	}
+
+	return lastErr
 }
 
 // FlushCache flushes the prompt cache to disk.
@@ -462,4 +566,24 @@ func (o *Orchestrator) ClearPromptCache() error {
 		return nil
 	}
 	return o.cache.Clear()
+}
+
+// hashKey creates a deterministic cache key from a prompt string.
+func hashKey(prompt string) string {
+	h := fmt.Sprintf("%x", frugal.ContentHash(prompt))
+	return "resp:" + h
+}
+
+// defaultCacheTTL returns the TTL for cached responses based on the reducer level.
+func defaultCacheTTL(level string) time.Duration {
+	switch level {
+	case "ultimate":
+		return 1 * time.Hour
+	case "medium":
+		return 6 * time.Hour
+	case "lite":
+		return 24 * time.Hour
+	default:
+		return 6 * time.Hour
+	}
 }
