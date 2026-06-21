@@ -202,25 +202,8 @@ if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
 fi
 
 # Try the compiled binary first (fastest)
-if [ -f "$TALON_HOME/bin/talon-ai" ]; then
-  # Run with args — CLI commands work great in compiled mode
-  if [ $# -gt 0 ]; then
-    exec "$TALON_HOME/bin/talon-ai" "$@"
-  fi
-  
-  # No args — try compiled TUI, fall back to source if it fails
-  set +e
-  output=$("$TALON_HOME/bin/talon-ai" 2>&1)
-  exit_code=$?
-  set -e
-  
-  if [ $exit_code -eq 0 ]; then
-    echo "$output"
-    exit 0
-  fi
-  
-  # Compiled TUI failed — try running from source
-  echo "⚠️  Compiled TUI unavailable, starting from source..." >&2
+if [ -f "\$TALON_HOME/bin/talon-ai" ]; then
+  exec "\$TALON_HOME/bin/talon-ai" "\$@"
 fi
 
 # Run from source (always works)
