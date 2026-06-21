@@ -149,18 +149,18 @@ else
   # Pre-install native addon so bun compile embeds the dylib.
   # NOTE: bun install creates a symlink for workspace:* packages, but bun compile
   # needs a real directory to embed the .dylib file, so we replace the symlink.
-  (cd "$TALON_ROOT/ai/packages/opencode" && bun install "@tui/core-darwin-arm64@workspace:*" 2>&1 | tail -1)
-  CORE_DARWIN_PKG="$TALON_ROOT/ai/packages/opencode/node_modules/@tui/core-darwin-arm64"
+  (cd "$TALON_ROOT/ai/packages/talon" && bun install "@tui/core-darwin-arm64@workspace:*" 2>&1 | tail -1)
+  CORE_DARWIN_PKG="$TALON_ROOT/ai/packages/talon/node_modules/@tui/core-darwin-arm64"
   if [ -L "$CORE_DARWIN_PKG" ]; then
     rm "$CORE_DARWIN_PKG"
     cp -R "$TALON_ROOT/tui/packages/core-darwin-arm64" "$CORE_DARWIN_PKG"
   fi
-  (cd "$TALON_ROOT/ai/packages/opencode" && bun run build --single 2>&1 | tail -5)
+  (cd "$TALON_ROOT/ai/packages/talon" && bun run build --single 2>&1 | tail -5)
   
-  # Find the built binary (dist/opencode-{os}-{arch}/bin/opencode)
-  BUILT_BINARY=$(find "$TALON_ROOT/ai/packages/opencode/dist" -name "opencode" -type f 2>/dev/null | head -1)
+  # Find the built binary (dist/talon-{os}-{arch}/bin/opencode)
+  BUILT_BINARY=$(find "$TALON_ROOT/ai/packages/talon/dist" -name "talon" -type f 2>/dev/null | head -1)
   if [ -z "$BUILT_BINARY" ]; then
-    BUILT_BINARY=$(find "$TALON_ROOT/ai/packages/opencode/dist" -name "talon" -type f 2>/dev/null | head -1)
+    BUILT_BINARY=$(find "$TALON_ROOT/ai/packages/talon/dist" -name "talon" -type f 2>/dev/null | head -1)
   fi
   
   if [ -f "$BUILT_BINARY" ]; then

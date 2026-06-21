@@ -1,0 +1,4 @@
+preload = ["@tui/solid/preload"]
+
+[test]
+preload = ["@tui/solid/preload"]

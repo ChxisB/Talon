@@ -1,0 +1,25 @@
+{
+  "$schema": "https://v2-8-13.turborepo.dev/schema.json",
+  "globalEnv": ["CI", "TALON_DISABLE_SHARE"],
+  "globalPassThroughEnv": ["CI", "TALON_DISABLE_SHARE"],
+  "tasks": {
+    "typecheck": {},
+    "build": {
+      "dependsOn": [],
+      "outputs": ["dist/**"]
+    },
+    "talon#test": {
+      "dependsOn": ["^build"],
+      "outputs": [],
+      "passThroughEnv": ["*"]
+    },
+    "@talon-ai/app#test": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "@talon-ai/ui#test": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    }
+  }
+}

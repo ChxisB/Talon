@@ -170,7 +170,7 @@ No configuration needed for natively vision-capable models (Claude, GPT-4o, Gemi
 | **AWS Bedrock** | AWS credentials |
 | **Ollama** (local) | None (runs locally) |
 | **llama.cpp / LM Studio** | None (runs locally) |
-| **OpenCode** | `OPENCODE_API_KEY` |
+| **Talon** | `OPENCODE_API_KEY` |
 | **Fireworks AI** | `FIREWORKS_API_KEY` |
 | **Cerebras** | `CEREBRAS_API_KEY` |
 | **NVIDIA NIM** | `NVIDIA_NIM_API_KEY` |

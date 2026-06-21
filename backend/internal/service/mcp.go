@@ -111,10 +111,10 @@ func LoadMCPConfig(path string) (*MCPConfig, error) {
 }
 
 func FindMCPConfig(startDir string) *MCPConfig {
-	// Search for talon.json or opencode.json in parent directories
+	// Search for talon.json or talon.jsonc in parent directories
 	dir := startDir
 	for i := 0; i < 10; i++ {
-		for _, name := range []string{"talon.json", "talon.jsonc", "opencode.json", "opencode.jsonc"} {
+		for _, name := range []string{"talon.json", "talon.jsonc"} {
 			path := filepath.Join(dir, name)
 			config, err := LoadMCPConfig(path)
 			if err == nil && len(config.Servers) > 0 {

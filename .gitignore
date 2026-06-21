@@ -1,0 +1,13 @@
+node_modules
+dist
+.turbo
+.sst
+.env
+.env.local
+.idea
+.vscode
+.DS_Store
+logs/
+*.bun-build
+tsconfig.tsbuildinfo
+tmp

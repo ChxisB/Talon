@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@talon-ai/plugin",
+  "version": "1.17.8",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "typecheck": "tsgo --noEmit",
+    "build": "tsc"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./tool": "./src/tool.ts",
+    "./tui": "./src/tui.ts"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@talon-ai/sdk": "workspace:*",
+    "effect": "catalog:",
+    "zod": "catalog:"
+  },
+  "peerDependencies": {
+    "@tui/core": ">=0.4.1",
+    "@tui/keymap": ">=0.4.1",
+    "@tui/solid": ">=0.4.1"
+  },
+  "peerDependenciesMeta": {
+    "@tui/core": {
+      "optional": true
+    },
+    "@tui/keymap": {
+      "optional": true
+    },
+    "@tui/solid": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@tui/core": "workspace:*",
+    "@tui/keymap": "workspace:*",
+    "@tui/solid": "workspace:*",
+    "@tsconfig/node22": "catalog:",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "@typescript/native-preview": "catalog:"
+  }
+}

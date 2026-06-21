@@ -1,0 +1,19 @@
+.{
+    .name = .opentui,
+    .version = "0.1.11",
+    .fingerprint = 0x5445027dba48a07e,
+    .minimum_zig_version = "0.16.0",
+    .dependencies = .{
+        .uucode = .{
+            .url = "https://github.com/jacobsandlund/uucode/archive/2826a37a4562284fdacd8fa029d49509cc9bffcd.tar.gz",
+            .hash = "uucode-0.2.0-ZZjBPlK5VADj7fdoq7G8LIHzD5o6FSkcBXXrRWr4jnrA",
+        },
+        .yoga = .{
+            .url = "git+https://github.com/facebook/yoga#v3.2.1",
+            .hash = "N-V-__8AAOYl0gAU76B1VRPFD9AWvy2VkOef2jN0B3sISTeO",
+        },
+    },
+    .paths = .{
+        ".",
+    },
+}

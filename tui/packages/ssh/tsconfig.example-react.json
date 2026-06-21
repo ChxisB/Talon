@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "jsxImportSource": "@tui/react",
+    "baseUrl": ".",
+    "paths": {
+      "@tui/core": ["../core/dist"],
+      "@tui/core/*": ["../core/dist/*"],
+      "@tui/react": ["../react/dist"],
+      "@tui/react/*": ["../react/dist/*"]
+    }
+  },
+  "include": ["examples/react.tsx", "src/**/*.ts"],
+  "exclude": ["dist", "src/tests", "examples/solid.tsx", "examples/solid-app.tsx"]
+}

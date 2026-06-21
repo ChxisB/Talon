@@ -1,0 +1,1 @@
+dist/parser.worker.js
