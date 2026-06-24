@@ -310,7 +310,7 @@ world
     const [items, setItems] = createSignal<string[]>([])
     let scrollRef: ScrollBoxRenderable | undefined
 
-    const opencodeMessage =
+    const talonMessage =
       "We use `-c core.autocrlf=false` in multiple spots as a defensive override, even though the snapshot repo is configured once.\n\n" +
       "Why duplicate it:\n" +
       "- Repo config only exists after `Snapshot.track()` successfully initializes the snapshot git dir. Commands like `diff`/`show` can run later, but the override guarantees consistent behavior even if init was skipped, failed, or the git dir was pruned/rewritten.\n" +
@@ -362,7 +362,7 @@ world
     await testSetup.renderOnce()
 
     const filler = Array.from({ length: 12 }, (_, i) => `Message ${i + 1}`)
-    setItems([...filler, opencodeMessage])
+    setItems([...filler, talonMessage])
     await testSetup.renderOnce()
     await Bun.sleep(20)
     await testSetup.renderOnce()

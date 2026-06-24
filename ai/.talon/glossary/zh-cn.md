@@ -2,13 +2,13 @@
 
 ## Sources
 
-- PR #13942: https://github.com/anomalyco/opencode/pull/13942
+- PR #13942: https://github.com/anomalyco/talon/pull/13942
 
 ## Do Not Translate (Locale Additions)
 
-- `OpenCode` (preserve casing in prose; keep `opencode` only when it is part of commands, package names, paths, or code)
-- `OpenCode Zen`
-- `OpenCode CLI`
+- `Talon` (preserve casing in prose; keep `talon` only when it is part of commands, package names, paths, or code)
+- `Talon Zen`
+- `Talon CLI`
 - `CLI`, `TUI`, `MCP`, `OAuth`
 - `Model Context Protocol` (prefer the English expansion when introducing `MCP`)
 
@@ -38,5 +38,5 @@ These are preferred terms for docs/UI prose and may evolve.
 
 ## Avoid
 
-- Avoid `opencode` in prose when referring to the product name; use `OpenCode`
+- Avoid `talon` in prose when referring to the product name; use `Talon`
 - Avoid mixing alternative terms for the same concept across docs when a preferred term is already established

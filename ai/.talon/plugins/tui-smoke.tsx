@@ -3,7 +3,7 @@ import { useTerminalDimensions, type JSX } from "@tui/solid"
 import { useBindings, useKeymapSelector } from "@tui/keymap/solid"
 import { RGBA, VignetteEffect, type KeyEvent, type Renderable } from "@tui/core"
 import { createBindingLookup, type BindingConfig } from "@tui/keymap/extras"
-import type { TuiPlugin, TuiPluginApi, TuiPluginMeta, TuiPluginModule, TuiSlotPlugin } from "@opencode-ai/plugin/tui"
+import type { TuiPlugin, TuiPluginApi, TuiPluginMeta, TuiPluginModule, TuiSlotPlugin } from "@talon-ai/plugin/tui"
 
 const tabs = ["overview", "counter", "help"]
 const command = {

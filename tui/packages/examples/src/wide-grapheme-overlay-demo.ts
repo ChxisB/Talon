@@ -167,7 +167,7 @@ export function run(renderer: CliRenderer): void {
   const background = new GraphemeBackground(renderer, "wg-background", renderer.terminalWidth, bgHeight)
   root.add(background)
 
-  // Full-screen dimming scrim (same as opencode dialog backdrop: RGBA(0,0,0,150))
+  // Full-screen dimming scrim (same as talon dialog backdrop: RGBA(0,0,0,150))
   scrim = new BoxRenderable(renderer, {
     id: "wg-scrim",
     position: "absolute",

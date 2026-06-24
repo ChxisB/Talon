@@ -155,9 +155,9 @@ describe("solid keymap leader behavior", () => {
               },
             },
             {
-              name: "opencode.status",
+              name: "talon.status",
               run() {
-                calls.push("opencode.status")
+                calls.push("talon.status")
               },
             },
             {
@@ -195,7 +195,7 @@ describe("solid keymap leader behavior", () => {
             { key: "ctrl+t", cmd: "variant.cycle", desc: "variant.cycle" },
             { key: "shift+tab", cmd: "agent.cycle.reverse", desc: "agent.cycle.reverse" },
             { key: "<leader>e", cmd: "prompt.editor.shortcut", desc: "prompt.editor.shortcut" },
-            { key: "<leader>s", cmd: "opencode.status", desc: "opencode.status" },
+            { key: "<leader>s", cmd: "talon.status", desc: "talon.status" },
             { key: "<leader>t", cmd: "theme.switch", desc: "theme.switch" },
             { key: "ctrl+d,<leader>q", cmd: "app.exit", desc: "app.exit" },
             { key: "ctrl+z", cmd: "terminal.suspend", desc: "terminal.suspend" },
@@ -265,7 +265,7 @@ describe("solid keymap leader behavior", () => {
 
     expect(getPending()).toBe("<leader>")
     expect(getActive()).toBe(
-      "a=agent.list,e=prompt.editor.shortcut,h=tips.toggle,l=session.list,m=model.list,n=session.new,q=app.exit,s=opencode.status,t=theme.switch",
+      "a=agent.list,e=prompt.editor.shortcut,h=tips.toggle,l=session.list,m=model.list,n=session.new,q=app.exit,s=talon.status,t=theme.switch",
     )
 
     testSetup.mockInput.pressKey("m")

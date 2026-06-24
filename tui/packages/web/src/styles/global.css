@@ -1,7 +1,7 @@
-/* OpenTUI Documentation - Light theme matching opencode.ai */
+/* OpenTUI Documentation - Light theme matching talon-style */
 
 :root {
-  /* Colors - matching opencode.ai exactly */
+  /* Colors - matching talon-style exactly */
   --color-bg: hsl(0, 20%, 99%);
   --color-bg-weak: hsl(0, 8%, 97%);
   --color-bg-weak-hover: hsl(0, 8%, 94%);
@@ -13,7 +13,7 @@
   --color-text-strong: hsl(0, 5%, 12%);
   --color-text-inverted: hsl(0, 20%, 99%);
 
-  /* Border color matching opencode.ai: rgba(15, 0, 0, 0.12) */
+  /* Border color matching talon-style: rgba(15, 0, 0, 0.12) */
   --color-border: rgba(15, 0, 0, 0.12);
   --color-border-weak: rgba(15, 0, 0, 0.12);
 
@@ -24,7 +24,7 @@
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* Sizing - matching opencode.ai container layout */
+  /* Sizing - matching talon-style container layout */
   --container-max-width: 1080px;
   --section-padding-x: 80px;
   --content-width: 720px;
@@ -743,7 +743,7 @@ pre {
   color: #a1a1aa;
 }
 
-/* Landing Footer - opencode.ai style */
+/* Landing Footer - talon-style */
 .landing-footer {
   display: flex;
   border-top: 1px solid var(--color-border);

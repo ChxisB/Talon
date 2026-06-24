@@ -13,10 +13,7 @@ Thanks for your interest in contributing to Talon!
 
 ```bash
 # Build and run
-bash scripts/install.sh --dev
-
-# Run the Go backend
-cd backend && go run ./cmd/server/
+bash scripts/install.sh
 
 # Run the TUI from source
 cd ai/packages/talon && bun run src/index.ts
@@ -32,7 +29,7 @@ cd ai/packages/talon && bun run src/index.ts
 ## Code Style
 
 - **TypeScript**: camelCase variables, PascalCase types, no semicolons
-- **Go**: standard Go formatting (`gofmt`)
+- **Go**: standard Go formatting (`gofmt`) — *(legacy, Go backend has been removed)*
 - **Zig**: existing project conventions
 
 ## Pull Request Process

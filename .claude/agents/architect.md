@@ -4,11 +4,11 @@ Role: Design and review system architecture for Talon.
 
 Owns:
 - Project structure decisions
-- API contracts between TUI and backend
+- HTTP API design (Effect HttpApi via `@talon-ai/server`)
 - Native core FFI interface design
 - Data flow and dependency management
 
 Guidelines:
-- Keep the TUI ↔ backend boundary clean (HTTP/JSON)
 - Ensure naming across Zig → TS → React layers is consistent
-- Avoid tight coupling between Go backend and TUI rendering
+- Keep the API library (`ai/packages/server`) reusable across consumers
+- The application embeds its own HTTP server; no separate backend process

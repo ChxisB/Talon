@@ -8,12 +8,11 @@
 
 **A terminal-based AI coding assistant with multi-provider support, screenshot analysis, and a full-featured TUI.**
 
-[![Go](https://img.shields.io/badge/Go-1.26-00ADD8?style=for-the-badge&logo=go)](https://go.dev/)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=for-the-badge&logo=docker)](https://www.docker.com/)
 
 Run any AI model from your terminal — with tools for file editing, bash, search, fetch, vision analysis, LSP, MCP, and more. Built for developers who want a fast, local AI coding experience.
 
-[Quick Start](#quick-start) · [Features](#features) · [CLI Usage](#cli-usage) · [Configuration](#configuration) · [Dashboard](#dashboard) · [Contributing](#contributing)
+[Quick Start](#quick-start) · [Features](#features) · [CLI Usage](#cli-usage) · [Configuration](#configuration) · [Contributing](#contributing)
 
 </div>
 
@@ -35,8 +34,8 @@ export OPENAI_API_KEY=sk-...
 export OPENROUTER_API_KEY=sk-or-v1-...
 
 # Build and run
-go build -o talon .
-./talon
+bash scripts/install.sh
+talon
 ```
 
 ### Docker
@@ -70,7 +69,6 @@ docker compose up -d
 | **Hooks system** | Gate, approve, or rewrite tool calls before execution |
 | **CVE database** | Built-in CVE vulnerability search and tracking |
 | **Token optimization** | Response caching, token optimization, and context compression |
-| **Dashboard** | Web dashboard with live status, task stats, and configuration |
 | **Docker support** | Containerized deployment with docker-compose |
 
 ---
@@ -120,41 +118,6 @@ Configure in `talon.json`:
 
 No configuration needed for natively vision-capable models (Claude, GPT-4o, Gemini).
 
----
-
-## Screenshots
-
-<div align="center">
-  <table>
-    <tr>
-      <td align="center"><strong>Dashboard</strong></td>
-      <td align="center"><strong>Tasks / Kanban</strong></td>
-    </tr>
-    <tr>
-      <td><img src="dashboard/public/assets/screenshots/dashboard.png" alt="Dashboard" width="380"></td>
-      <td><img src="dashboard/public/assets/screenshots/tasks.png" alt="Task Board" width="380"></td>
-    </tr>
-    <tr>
-      <td align="center"><strong>Memory Vault</strong></td>
-      <td align="center"><strong>Model Selection</strong></td>
-    </tr>
-    <tr>
-      <td><img src="dashboard/public/assets/screenshots/memory.png" alt="Memory Vault" width="380"></td>
-      <td><img src="dashboard/public/assets/screenshots/model-selection.png" alt="Model Selection" width="380"></td>
-    </tr>
-    <tr>
-      <td align="center"><strong>Settings / Configuration</strong></td>
-      <td align="center"><strong>Floating Bottom Bar</strong></td>
-    </tr>
-    <tr>
-      <td><img src="dashboard/public/assets/screenshots/settings.png" alt="Settings" width="380"></td>
-      <td><img src="dashboard/public/assets/screenshots/floating-bottom-bar.png" alt="Floating Bottom Bar" width="380"></td>
-    </tr>
-  </table>
-</div>
-
----
-
 ## Supported Providers
 
 | Provider | API Key |
@@ -191,37 +154,17 @@ OPENROUTER_API_KEY=sk-or-v1-...
 
 ```
 talon/
-├── internal/
-│   ├── agent/             # Agent orchestration, tools, prompts
-│   │   ├── tools/         # Tool implementations (bash, edit, view, etc.)
-│   │   ├── hyper/         # Provider capability definitions
-│   │   └── templates/     # System prompt templates
-│   ├── app/               # Application wiring and lifecycle
-│   ├── backend/           # Transport-agnostic workspace/agent management
-│   ├── client/            # Client for connecting to server
-│   ├── cmd/               # CLI entry points (Cobra)
-│   ├── config/            # Configuration management
-│   ├── db/                # SQLite (sqlc-generated queries)
-│   ├── hooks/             # PreToolUse hook runner
-│   ├── lsp/               # LSP client manager
-│   ├── message/           # Message CRUD (debounced writes)
-│   ├── permissions/       # Permission approval dialogs
-│   ├── pubsub/            # Typed pub/sub event broker
-│   ├── server/            # HTTP/SSE server over Unix socket
-│   ├── session/           # Session CRUD service
-│   ├── shell/             # Cross-platform shell (mvdan/sh)
-│   ├── skills/            # Agent skills discovery
-│   ├── ui/                # Terminal UI (Bubble Tea)
-│   │   ├── chat/          # Chat message rendering
-│   │   ├── dialog/        # Dialog components
-│   │   ├── model/         # UI models (header, sidebar, etc.)
-│   │   └── styles/        # Theming and styles
-│   ├── version/           # Version information
-│   └── workspace/         # Workspace abstraction (local vs client/server)
-├── deps/                  # Forked Charm dependencies
-├── docker/                # Docker configuration
-├── dashboard/             # Next.js web dashboard
-└── dashboard/public/      # Assets, favicon, screenshots
+├── ai/                   # AI application monorepo
+│   └── packages/
+│       ├── talon/        # Main Talon application (TypeScript/Effect)
+│       ├── server/       # HTTP API library
+│       ├── core/         # Core data layer
+│       ├── cli/          # CLI commands
+│       └── ...           # Other packages
+├── tui/                  # OpenTUI terminal rendering framework (fork)
+├── native/               # Zig native rendering core
+├── scripts/              # Build and install scripts
+└── .claude/              # Project configuration
 ```
 
 ---
@@ -233,8 +176,7 @@ Talon is in active development. Contributions are welcome.
 ### Development
 
 ```bash
-go build ./...          # Verify compilation
-go test ./internal/...  # Run tests
+cd ai/packages/talon && bun run src/index.ts  # Run from source
 ```
 
 ### Areas to Help

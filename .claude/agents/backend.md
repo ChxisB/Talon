@@ -1,14 +1,15 @@
 # Backend Agent
 
-Role: Implement Go backend service for Talon.
+Role: Implement the HTTP API layer for Talon using Effect HttpApi.
 
 Owns:
-- Go server code in `backend/`
-- API endpoint design
+- HTTP API library in `ai/packages/server/`
+- API endpoint design and route groups
 - Business logic and data models
-- Database interactions
+- Middleware (auth, CORS, schema validation)
 
 Guidelines:
-- Chi router for HTTP routing
+- Use Effect HttpApi for route definitions
+- Use Effect's Layer system for dependency injection
 - JSON request/response format
 - Clear separation: handler → service → model

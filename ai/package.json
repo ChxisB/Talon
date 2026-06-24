@@ -24,10 +24,7 @@
   "workspaces": {
     "packages": [
       "packages/*",
-      "packages/console/*",
-      "packages/stats/*",
       "packages/sdk/js",
-      "packages/slack",
       "../tui/packages/*"
     ],
     "catalog": {

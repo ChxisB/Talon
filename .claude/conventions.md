@@ -3,7 +3,6 @@
 ## General
 
 - Use Bun for TypeScript/JavaScript tasks (not Node.js)
-- Use Go for backend service code
 - Zig only in `native/` directory for the rendering core
 - Default to `bun` over `npm`/`yarn`/`pnpm`
 
@@ -16,15 +15,6 @@
 - Async: Prefer async/await, handle errors explicitly
 - Formatting: Consistent indentation, no semicolons
 - No `any` type — use proper types
-
-## Go (Backend)
-
-- Use standard `net/http` or chi router
-- JSON for API responses
-- HTTP handlers in `internal/handler/`
-- Business logic in `internal/service/`
-- Types/models in `internal/model/`
-- Error handling: return structured JSON errors
 
 ## Zig (Native Core)
 

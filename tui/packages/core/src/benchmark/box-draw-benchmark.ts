@@ -451,7 +451,7 @@ function createScenarios(): ScenarioDefinition[] {
       },
     },
     {
-      name: "render_opencode_screen_static",
+      name: "render_talon_screen_static",
       description: "Headless render tree matching OpenCode box usage (static frame)",
       kind: "render-tree",
       setup: async (ctx) => {
@@ -469,7 +469,7 @@ function createScenarios(): ScenarioDefinition[] {
       },
     },
     {
-      name: "render_opencode_screen_dynamic",
+      name: "render_talon_screen_dynamic",
       description: "Headless OpenCode-like tree with per-frame border/color updates",
       kind: "render-tree",
       setup: async (ctx) => {
@@ -565,7 +565,7 @@ async function buildOpencodeScreenTree(ctx: BenchmarkContext): Promise<OpencodeS
 
   const root = track(
     new BoxRenderable(ctx.renderer, {
-      id: "bench-opencode-root",
+      id: "bench-talon-root",
       width: "100%",
       height: "100%",
       border: false,
@@ -579,7 +579,7 @@ async function buildOpencodeScreenTree(ctx: BenchmarkContext): Promise<OpencodeS
 
   const feed = track(
     new BoxRenderable(ctx.renderer, {
-      id: "bench-opencode-feed",
+      id: "bench-talon-feed",
       width: "100%",
       flexGrow: 1,
       border: false,

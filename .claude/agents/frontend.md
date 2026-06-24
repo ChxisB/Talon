@@ -1,15 +1,14 @@
 # Frontend Agent
 
-Role: Implement the React TUI application for Talon.
+Role: Implement the TUI application for Talon using OpenTUI.
 
 Owns:
-- React components in `tui/src/`
+- Solid/TUI components in `ai/packages/talon/src/`
 - TUI layout, navigation, and user experience
-- API client in `tui/src/api/`
 - Keyboard handling and terminal interactions
 
 Guidelines:
-- Use `@tui/react` components: `<box>`, `<text>`, `<input>`, `<select>`, etc.
-- Use hooks: `useKeyboard`, `useTerminalDimensions`, `useRenderer`
-- Fetch Go backend via `tui/src/api/client.ts`
-- Run with `bun run tui/src/index.ts`
+- Use `@tui/solid` components: `<box>`, `<text>`, `<input>`, `<select>`, etc.
+- Use hooks and signals from SolidJS
+- The application runs as a single process with built-in API server
+- Run with `bun run --cwd ai/packages/talon src/index.ts`

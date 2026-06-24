@@ -18,7 +18,7 @@ echo ""
 
 # ── 1. Build the Zig native library ────────────────
 
-echo "🔧 [1/4] Building native library (libopentui.dylib)..."
+echo "🔧 [1/3] Building native library (libopentui.dylib)..."
 if command -v zig &>/dev/null; then
   ZIG=zig
 elif [ -f "$ZIG_PATH" ]; then
@@ -38,17 +38,9 @@ else
 fi
 echo ""
 
-# ── 2. Build the Go backend ────────────────────────
+# ── 2. Build the TUI (compiled Bun binary) ─────────
 
-echo "🔧 [2/4] Building Go backend..."
-mkdir -p "$DIST_DIR"
-(cd "$TALON_ROOT/backend" && go build -o "$DIST_DIR/talon-server" ./cmd/server/)
-echo "  ✅ talon-server ($(du -h "$DIST_DIR/talon-server" | cut -f1))"
-echo ""
-
-# ── 3. Build the TUI (compiled Bun binary) ─────────
-
-echo "🔧 [3/4] Compiling TUI (bun build --compile)..."
+echo "🔧 [2/3] Compiling TUI (bun build --compile)..."
 mkdir -p "$DIST_DIR"
 
 # Copy native lib so the binary can find it relative to itself
@@ -73,66 +65,30 @@ else
 fi
 echo ""
 
-# ── 4. Create distribution package ─────────────────
+# ── 3. Create distribution package ─────────────────
 
-echo "📦 [4/4] Creating distribution..."
+echo "📦 [3/3] Creating distribution..."
 DIST_VERSION="$(node -e "console.log(require('$TALON_ROOT/tui/package.json').version)")"
 DIST_NAME="talon-v$DIST_VERSION"
 
 mkdir -p "$DIST_DIR/$DIST_NAME"
 
 # Copy compiled binary into the dist package
-cp "$DIST_DIR/talon" "$DIST_DIR/$DIST_NAME/talon-bin"
-cp "$DIST_DIR/talon-server" "$DIST_DIR/$DIST_NAME/talon-server"
+cp "$DIST_DIR/talon" "$DIST_DIR/$DIST_NAME/talon"
 cp "$DIST_DIR/libopentui.dylib" "$DIST_DIR/$DIST_NAME/libopentui.dylib"
 
-# Create a convenience launcher
-cat > "$DIST_DIR/$DIST_NAME/talon" << 'LAUNCHER'
-#!/usr/bin/env bash
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-export TALON_NATIVE_LIB="$DIR/libopentui.dylib"
-"$DIR/talon-server" &
-BACKEND_PID=$!
-for i in {1..10}; do
-  if curl -s http://localhost:8090/health >/dev/null 2>&1; then break; fi
-  sleep 0.3
-done
-"$DIR/talon-bin" "$@"
-kill $BACKEND_PID 2>/dev/null
-LAUNCHER
-chmod +x "$DIST_DIR/$DIST_NAME/talon"
-
 echo "  ✅ Distribution: $DIST_DIR/$DIST_NAME/"
-echo "     ├── talon         (launcher script)"
-echo "     ├── talon-server   (Go backend)"
-    echo "     ├── libopentui.dylib (Zig native core)"
-    echo "     └── talon-bin      (compiled TUI)"
+echo "     ├── talon         (compiled TUI)"
+echo "     └── libopentui.dylib (Zig native core)"
 echo ""
 
 # ── Install to ~/.local/bin ────────────────────────
 
 echo "🔗 Installing to ~/.local/bin/..."
 mkdir -p "$HOME/.local/bin"
-cp "$DIST_DIR/talon" "$HOME/.local/bin/talon-bin"
-cp "$DIST_DIR/talon-server" "$HOME/.local/bin/talon-server"
+cp "$DIST_DIR/talon" "$HOME/.local/bin/talon"
 cp "$DIST_DIR/libopentui.dylib" "$HOME/.local/bin/libopentui.dylib"
-
-cat > "$HOME/.local/bin/talon" << 'LAUNCHER'
-#!/usr/bin/env bash
-DIR="$HOME/.local/bin"
-export TALON_NATIVE_LIB="$DIR/libopentui.dylib"
-"$DIR/talon-server" &
-BACKEND_PID=$!
-for i in {1..10}; do
-  if curl -s http://localhost:8090/health >/dev/null 2>&1; then break; fi
-  sleep 0.3
-done
-"$DIR/talon-bin" "$@"
-kill $BACKEND_PID 2>/dev/null
-LAUNCHER
 chmod +x "$HOME/.local/bin/talon"
-echo "  ✅ Installed to ~/.local/bin/"
-echo "     Run 'talon' from anywhere!"
 echo "  ✅ Installed to ~/.local/bin/"
 echo "     Run 'talon' from anywhere!"
 echo ""
@@ -144,7 +100,6 @@ echo "  ✅ Talon build complete!"
 echo "═══════════════════════════════════════════════"
 echo ""
 echo "  Binary:  $DIST_DIR/talon"
-echo "  Backend: $DIST_DIR/talon-server"
 echo "  Lib:     $DIST_DIR/libopentui.dylib"
 echo ""
 echo "  Run:     talon"

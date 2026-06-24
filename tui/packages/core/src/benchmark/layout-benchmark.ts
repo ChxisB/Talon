@@ -753,7 +753,7 @@ function renderableIdentityLayoutChecksum(renderables: readonly Renderable[]): n
 function createScenarios(): BenchmarkScenario[] {
   return [
     {
-      name: "static_opencode_full_render",
+      name: "static_talon_full_render",
       description: "No Yoga dirties: full render pass over an OpenCode-like layout tree for update/render baseline",
       setup: async (ctx) => {
         const state = await buildOpencodeLayoutTree(ctx, {
@@ -762,7 +762,7 @@ function createScenarios(): BenchmarkScenario[] {
           includeText: true,
         })
         const probeTargets = [...state.rows.slice(0, 16), ...state.badges.slice(0, 16)]
-        await renderUntilLayoutClean(ctx, "static_opencode_full_render")
+        await renderUntilLayoutClean(ctx, "static_talon_full_render")
         const metrics = createMetricsTracker()
 
         return withMetrics(
@@ -775,12 +775,12 @@ function createScenarios(): BenchmarkScenario[] {
             layoutOnlyBoxesPerIteration: state.stats.layoutOnlyBoxes,
             layoutMutationsPerIteration: 0,
             runIteration: async () => {
-              const passes = await renderMeasuredUntilLayoutClean(ctx, "static_opencode_full_render", metrics)
+              const passes = await renderMeasuredUntilLayoutClean(ctx, "static_talon_full_render", metrics)
               consume(passes)
               return renderableLayoutChecksum(probeTargets)
             },
             validate: () =>
-              validateStaticFullRender(ctx, "static_opencode_full_render", () =>
+              validateStaticFullRender(ctx, "static_talon_full_render", () =>
                 renderableLayoutChecksum(probeTargets),
               ),
             cleanup: () => {
@@ -792,7 +792,7 @@ function createScenarios(): BenchmarkScenario[] {
       },
     },
     {
-      name: "opencode_leaf_width_calculate_only",
+      name: "talon_leaf_width_calculate_only",
       description: "Dirty one deep leaf width and run only root.calculateLayout()",
       setup: async (ctx) => {
         const state = await buildOpencodeLayoutTree(ctx, {
@@ -800,7 +800,7 @@ function createScenarios(): BenchmarkScenario[] {
           includeVisualBoxes: false,
           includeText: false,
         })
-        calculateLayout(ctx, "opencode_leaf_width_calculate_only")
+        calculateLayout(ctx, "talon_leaf_width_calculate_only")
         const metrics = createMetricsTracker()
 
         const badgeWidths = new Array<number>(state.badges.length).fill(0)
@@ -825,12 +825,12 @@ function createScenarios(): BenchmarkScenario[] {
             layoutMutationsPerIteration: 1,
             runIteration(iteration) {
               consume(mutate(iteration))
-              const passes = calculateLayout(ctx, "opencode_leaf_width_calculate_only")
+              const passes = calculateLayout(ctx, "talon_leaf_width_calculate_only")
               metrics.recordSettlePasses(passes)
               return readProbe() + passes
             },
             validate: () =>
-              validateCalculateRecalculation(ctx, "opencode_leaf_width_calculate_only", mutate, readProbe),
+              validateCalculateRecalculation(ctx, "talon_leaf_width_calculate_only", mutate, readProbe),
             cleanup: () => {
               state.root.destroyRecursively()
             },
@@ -840,7 +840,7 @@ function createScenarios(): BenchmarkScenario[] {
       },
     },
     {
-      name: "opencode_leaf_width_full_render",
+      name: "talon_leaf_width_full_render",
       description: "Dirty one deep leaf width and run the full renderer until layout is clean",
       setup: async (ctx) => {
         const state = await buildOpencodeLayoutTree(ctx, {
@@ -848,7 +848,7 @@ function createScenarios(): BenchmarkScenario[] {
           includeVisualBoxes: true,
           includeText: false,
         })
-        await renderUntilLayoutClean(ctx, "opencode_leaf_width_full_render")
+        await renderUntilLayoutClean(ctx, "talon_leaf_width_full_render")
         const metrics = createMetricsTracker()
 
         const badgeWidths = new Array<number>(state.badges.length).fill(0)
@@ -873,10 +873,10 @@ function createScenarios(): BenchmarkScenario[] {
             layoutMutationsPerIteration: 1,
             async runIteration(iteration) {
               consume(mutate(iteration))
-              const passes = await renderMeasuredUntilLayoutClean(ctx, "opencode_leaf_width_full_render", metrics)
+              const passes = await renderMeasuredUntilLayoutClean(ctx, "talon_leaf_width_full_render", metrics)
               return readProbe() + passes
             },
-            validate: () => validateFullRenderRecalculation(ctx, "opencode_leaf_width_full_render", mutate, readProbe),
+            validate: () => validateFullRenderRecalculation(ctx, "talon_leaf_width_full_render", mutate, readProbe),
             cleanup: () => {
               state.root.destroyRecursively()
             },
@@ -886,7 +886,7 @@ function createScenarios(): BenchmarkScenario[] {
       },
     },
     {
-      name: "opencode_many_rows_full_render",
+      name: "talon_many_rows_full_render",
       description: "Dirty a stripe of row heights and badge widths before a full settled render",
       setup: async (ctx) => {
         const state = await buildOpencodeLayoutTree(ctx, {
@@ -894,7 +894,7 @@ function createScenarios(): BenchmarkScenario[] {
           includeVisualBoxes: true,
           includeText: false,
         })
-        await renderUntilLayoutClean(ctx, "opencode_many_rows_full_render")
+        await renderUntilLayoutClean(ctx, "talon_many_rows_full_render")
         const metrics = createMetricsTracker()
 
         const mutationsPerIteration = Math.min(16, state.rows.length)
@@ -930,10 +930,10 @@ function createScenarios(): BenchmarkScenario[] {
             layoutMutationsPerIteration: mutationsPerIteration * 2,
             async runIteration(iteration) {
               consume(mutate(iteration))
-              const passes = await renderMeasuredUntilLayoutClean(ctx, "opencode_many_rows_full_render", metrics)
+              const passes = await renderMeasuredUntilLayoutClean(ctx, "talon_many_rows_full_render", metrics)
               return readProbe() + passes
             },
-            validate: () => validateFullRenderRecalculation(ctx, "opencode_many_rows_full_render", mutate, readProbe),
+            validate: () => validateFullRenderRecalculation(ctx, "talon_many_rows_full_render", mutate, readProbe),
             cleanup: () => {
               state.root.destroyRecursively()
             },
@@ -1059,7 +1059,7 @@ function createScenarios(): BenchmarkScenario[] {
       },
     },
     {
-      name: "opencode_many_rows_layout_update_only",
+      name: "talon_many_rows_layout_update_only",
       description: "Dirty many rows, calculate Yoga, then only run updateLayout/render-command collection",
       setup: async (ctx) => {
         const state = await buildOpencodeLayoutTree(ctx, {
@@ -1067,7 +1067,7 @@ function createScenarios(): BenchmarkScenario[] {
           includeVisualBoxes: false,
           includeText: false,
         })
-        calculateAndUpdateLayout(ctx, "opencode_many_rows_layout_update_only", createMetricsTracker())
+        calculateAndUpdateLayout(ctx, "talon_many_rows_layout_update_only", createMetricsTracker())
         const metrics = createMetricsTracker()
 
         const mutationsPerIteration = Math.min(16, state.rows.length)
@@ -1103,11 +1103,11 @@ function createScenarios(): BenchmarkScenario[] {
             layoutMutationsPerIteration: mutationsPerIteration * 2,
             runIteration(iteration) {
               consume(mutate(iteration))
-              const commands = calculateAndUpdateLayout(ctx, "opencode_many_rows_layout_update_only", metrics)
+              const commands = calculateAndUpdateLayout(ctx, "talon_many_rows_layout_update_only", metrics)
               return readProbe() + commands
             },
             validate: () =>
-              validateCalculateUpdateRecalculation(ctx, "opencode_many_rows_layout_update_only", mutate, readProbe),
+              validateCalculateUpdateRecalculation(ctx, "talon_many_rows_layout_update_only", mutate, readProbe),
             cleanup: () => {
               state.root.destroyRecursively()
             },

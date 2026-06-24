@@ -226,7 +226,7 @@ if (jsonPath) {
 function createScenarios(): ScenarioDefinition[] {
   return [
     {
-      name: "layout_only_opencode_wrappers",
+      name: "layout_only_talon_wrappers",
       description: "OpenCode-like nested layout boxes with no visible box output",
       setup: async (ctx) => {
         const state = await buildOpencodeLayoutTree(ctx, {
@@ -248,7 +248,7 @@ function createScenarios(): ScenarioDefinition[] {
       },
     },
     {
-      name: "mixed_opencode_wrappers",
+      name: "mixed_talon_wrappers",
       description: "OpenCode-like layout tree with sparse visible panels and text leaves",
       setup: async (ctx) => {
         const state = await buildOpencodeLayoutTree(ctx, {

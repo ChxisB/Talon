@@ -1391,7 +1391,7 @@ function renderLogoOverlay(): void {
   }
 }
 
-function closeLogoOverlay(renderer: CliRenderer, message = "Closed opencode overlay"): void {
+function closeLogoOverlay(renderer: CliRenderer, message = "Closed talon overlay"): void {
   if (!logoOverlayVisible) {
     return
   }
@@ -1418,7 +1418,7 @@ function toggleLogoOverlay(renderer: CliRenderer): void {
   }
 
   renderLogoOverlay()
-  setStatus(renderer, logoOverlayVisible ? "Opened opencode overlay" : "Closed opencode overlay")
+  setStatus(renderer, logoOverlayVisible ? "Opened talon overlay" : "Closed talon overlay")
 }
 
 function closeCommandPrompt(renderer: CliRenderer, message: string): void {
@@ -1614,7 +1614,7 @@ function buildHelpContent(): StyledText {
       bold(fg(P.key)(":")),
       fg(P.textDim)(" opens the ex prompt."),
     ]),
-    styledLine([bold(fg(P.key)("ctrl+o")), fg(P.textDim)(": toggle the opencode logo overlay")]),
+    styledLine([bold(fg(P.key)("ctrl+o")), fg(P.textDim)(": toggle the talon logo overlay")]),
     styledLine([
       fg(P.textDim)("Editors use "),
       bold(fg(P.key)("g")),
@@ -1902,8 +1902,8 @@ function registerCommandLayers(renderer: CliRenderer, keymapInstance: Keymap<Ren
         },
         {
           name: "toggle-logo-overlay",
-          title: "Toggle opencode overlay",
-          desc: "Toggle opencode overlay",
+          title: "Toggle talon overlay",
+          desc: "Toggle talon overlay",
           category: "View",
           run() {
             toggleLogoOverlay(renderer)
@@ -1911,8 +1911,8 @@ function registerCommandLayers(renderer: CliRenderer, keymapInstance: Keymap<Ren
         },
         {
           name: "close-logo-overlay",
-          title: "Close opencode overlay",
-          desc: "Close opencode overlay",
+          title: "Close talon overlay",
+          desc: "Close talon overlay",
           category: "View",
           run() {
             closeLogoOverlay(renderer)
@@ -2109,7 +2109,7 @@ function registerCommandLayers(renderer: CliRenderer, keymapInstance: Keymap<Ren
         { key: "tab", cmd: "focus-next", desc: "Next target" },
         { key: "shift+tab", cmd: "focus-prev", desc: "Previous target" },
         { key: "?", cmd: "toggle-help", desc: "Toggle help" },
-        { key: "ctrl+o", cmd: "toggle-logo-overlay", desc: "Toggle opencode overlay" },
+        { key: "ctrl+o", cmd: "toggle-logo-overlay", desc: "Toggle talon overlay" },
         { key: "ctrl+r", cmd: ":reset", desc: "Reset counters" },
         { key: "<leader>", group: "Leader" },
         { key: "<leader>s", cmd: ":w session.log", desc: "Write session log", group: "Leader" },
@@ -2130,8 +2130,8 @@ function registerCommandLayers(renderer: CliRenderer, keymapInstance: Keymap<Ren
       priority: 10_000,
       enabled: () => logoOverlayVisible,
       bindings: [
-        { key: "escape", cmd: "close-logo-overlay", desc: "Close opencode overlay" },
-        { key: "ctrl+o", cmd: "toggle-logo-overlay", desc: "Toggle opencode overlay" },
+        { key: "escape", cmd: "close-logo-overlay", desc: "Close talon overlay" },
+        { key: "ctrl+o", cmd: "toggle-logo-overlay", desc: "Toggle talon overlay" },
         { key: "up", cmd: "logo-bpm-up", desc: "Increase logo BPM" },
         { key: "down", cmd: "logo-bpm-down", desc: "Decrease logo BPM" },
         { key: "r", cmd: "logo-bpm-reset", desc: "Reset logo BPM" },
@@ -2720,7 +2720,7 @@ export function run(renderer: CliRenderer): void {
     alignItems: "center",
     justifyContent: "center",
     gap: 1,
-    title: " opencode ",
+    title: " talon ",
     titleAlignment: "center",
   })
   logoOverlayShell.add(logoCard)
@@ -2747,7 +2747,7 @@ export function run(renderer: CliRenderer): void {
   addLog(`${LEADER_TRIGGER_LABEL} arms the leader extension.`)
   addLog("Editors use g/gg/shift+g for Vim-style navigation.")
   addLog(": opens the centered ex prompt.")
-  addLog("Ctrl+O toggles the opencode overlay.")
+  addLog("Ctrl+O toggles the talon overlay.")
   addLog("Runtime Graph shows active layers, reachable bindings, and dispatch pulses.")
   renderAll(renderer)
   alphaPanel.focus()

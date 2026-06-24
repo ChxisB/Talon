@@ -90,19 +90,19 @@ ARCH=$(uname -m)
 [ "$PLATFORM" = "darwin" ] && true
 [ "$PLATFORM" = "linux" ] && true
 
-BUILT_BINARY="$TALON_SRC/packages/talon/dist/talon-${PLATFORM}-${ARCH}/bin/opencode"
+BUILT_BINARY="$TALON_SRC/packages/talon/dist/talon-${PLATFORM}-${ARCH}/bin/talon"
 
 if [ ! -f "$BUILT_BINARY" ]; then
   BUILT_BINARY=$(find "$TALON_SRC/packages/talon/dist" -name "talon" -type f -executable 2>/dev/null | head -1)
 fi
 
 if [ -f "$BUILT_BINARY" ]; then
-  if [ -f "$TALON_DIR/bin/opencode" ]; then
-    cp "$TALON_DIR/bin/opencode" "$TALON_DIR/bin/opencode.bak.$(date +%Y%m%d%H%M%S)"
+  if [ -f "$TALON_DIR/bin/talon" ]; then
+    cp "$TALON_DIR/bin/talon" "$TALON_DIR/bin/talon.bak.$(date +%Y%m%d%H%M%S)"
   fi
-  cp "$BUILT_BINARY" "$TALON_DIR/bin/opencode"
-  chmod +x "$TALON_DIR/bin/opencode"
-  ok "Installed to $TALON_DIR/bin/opencode"
+  cp "$BUILT_BINARY" "$TALON_DIR/bin/talon"
+  chmod +x "$TALON_DIR/bin/talon"
+  ok "Installed to $TALON_DIR/bin/talon"
 else
   err "Build failed - binary not found in dist/"
   info "Try running manually:"

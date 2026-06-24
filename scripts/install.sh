@@ -39,13 +39,6 @@ else
   exit 1
 fi
 
-if command -v go &>/dev/null; then
-  echo "  ✅ Go: $(go version | sed 's/go version //')"
-else
-  echo "  ❌ Go not found. Install: https://go.dev/dl/"
-  exit 1
-fi
-
 ZIG_CMD=""
 if ! $QUICK; then
   if command -v zig &>/dev/null; then
@@ -72,11 +65,8 @@ if $FORCE || $QUICK; then
   echo "📦 JavaScript dependencies already installed"
 else
   echo "📦 Installing JavaScript dependencies..."
-  cd "$TALON_ROOT/tui"
-  bun install 2>&1 | tail -1
-  cd "$TALON_ROOT/ai"
-  bun install 2>&1 | tail -1
-  cd "$TALON_ROOT"
+  (cd "$TALON_ROOT/tui" && bun install 2>&1 | tail -1)
+  (cd "$TALON_ROOT/ai" && bun install 2>&1 | tail -1)
   echo ""
 fi
 
@@ -90,6 +80,8 @@ elif [ -n "$ZIG_CMD" ]; then
   LIB_SRC="$TALON_ROOT/tui/packages/core/src/zig/lib/aarch64-macos/libopentui.dylib"
   if [ -f "$LIB_SRC" ]; then
     cp "$LIB_SRC" "$TALON_HOME/bin/libopentui.dylib"
+    # Remove any stale dylib from the rebranding
+    rm -f "$TALON_HOME/bin/libtalon.dylib"
     echo "  ✅ libopentui.dylib ($(du -h "$LIB_SRC" | cut -f1))"
   fi
 else
@@ -115,27 +107,12 @@ else
   echo "  ✅ @tui/core built"
   
   # Symlink parser.worker.js into core root for workspace consumers
-  if [ ! -L "$TALON_ROOT/tui/packages/core/parser.worker.js" ]; then
-    ln -sfn dist/parser.worker.js "$TALON_ROOT/tui/packages/core/parser.worker.js"
-    echo "  ✅ parser.worker.js symlink"
-  fi
+  ln -sfn dist/parser.worker.js "$TALON_ROOT/tui/packages/core/parser.worker.js"
+  echo "  ✅ parser.worker.js symlink"
   
   echo "🏗️  Building @tui/keymap..."
   (cd "$TALON_ROOT/tui/packages/keymap" && bun run build 2>&1 | tail -1)
   echo "  ✅ @tui/keymap built"
-fi
-echo ""
-
-# ── Build Go backend ────────────────────────────────
-
-if $QUICK && [ -f "$TALON_HOME/bin/talon-server" ]; then
-  echo "⏭️  Skipping Go backend (--quick)"
-elif $FORCE || $QUICK || [ ! -f "$TALON_HOME/bin/talon-server" ]; then
-  echo "🏗️  Building Go backend..."
-  (cd "$TALON_ROOT/backend" && go build -o "$TALON_HOME/bin/talon-server" ./cmd/server/)
-  echo "  ✅ talon-server ($(du -h "$TALON_HOME/bin/talon-server" | cut -f1))"
-else
-  echo "⏭️  Go backend already built (use --force to rebuild)"
 fi
 echo ""
 
@@ -155,16 +132,15 @@ else
     rm "$CORE_DARWIN_PKG"
     cp -R "$TALON_ROOT/tui/packages/core-darwin-arm64" "$CORE_DARWIN_PKG"
   fi
-  (cd "$TALON_ROOT/ai/packages/talon" && bun run build --single 2>&1 | tail -5)
+  (cd "$TALON_ROOT/ai/packages/talon" && bun run build --single --skip-embed-web-ui 2>&1 | tail -5)
   
-  # Find the built binary (dist/talon-{os}-{arch}/bin/opencode)
+  # Find the built binary (dist/talon-{os}-{arch}/bin/talon)
   BUILT_BINARY=$(find "$TALON_ROOT/ai/packages/talon/dist" -name "talon" -type f 2>/dev/null | head -1)
-  if [ -z "$BUILT_BINARY" ]; then
-    BUILT_BINARY=$(find "$TALON_ROOT/ai/packages/talon/dist" -name "talon" -type f 2>/dev/null | head -1)
-  fi
   
   if [ -f "$BUILT_BINARY" ]; then
     cp "$BUILT_BINARY" "$TALON_HOME/bin/talon-ai"
+    # Re-sign to avoid macOS "Code Signature Invalid" SIGKILL on ad-hoc signed binaries
+    codesign -f -s - "$TALON_HOME/bin/talon-ai" 2>/dev/null || true
     echo "  ✅ talon-ai ($(du -h "$TALON_HOME/bin/talon-ai" | cut -f1))"
   else
     echo "  ⚠️  AI CLI build output not found"
@@ -176,39 +152,23 @@ echo ""
 
 echo "🔗 Installing 'talon' command..."
 
-cat > "$TALON_HOME/bin/talon" << 'TALON_SCRIPT'
-#!/usr/bin/env bash
-TALON_HOME="$HOME/.talon"
-TALON_ROOT="$HOME/development/projects/talon"
+# Remove existing symlink first, if any, so the cat > below creates a regular file
+# (otherwise it would follow the symlink and overwrite the git-tracked scripts/talon)
+rm -f "$TALON_HOME/bin/talon"
 
-if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
-  echo "Talon — AI-powered development tool"
-  echo ""
-  echo "Usage:"
-  echo "  talon                   Open the AI assistant"
-  echo "  talon run <message..>   Run with a prompt"
-  echo "  talon --help            Show this help"
-  echo ""
-  echo "Commands:"
-  echo "  talon models       List available models"
-  echo "  talon providers    Manage providers"
-  echo "  talon session      Manage sessions"
-  echo "  talon mcp          Manage MCP servers"
-  echo ""
-  echo "Services:"
-  echo "  launchctl kickstart gui/$(id -u)/com.talon.backend   # Start Go backend"
-  echo "  curl http://localhost:8090/health                    # Check server"
-  exit 0
-fi
+cat > "$TALON_HOME/bin/talon" << TALON_SCRIPT
+#!/usr/bin/env bash
+TALON_HOME="\$HOME/.talon"
+TALON_ROOT="$TALON_ROOT"
 
 # Try the compiled binary first (fastest)
 if [ -f "\$TALON_HOME/bin/talon-ai" ]; then
   exec "\$TALON_HOME/bin/talon-ai" "\$@"
 fi
 
-# Run from source (always works)
-cd "$TALON_ROOT/ai/packages/talon"
-exec bun run src/index.ts "$@"
+# Run from source (works even without a compiled binary)
+cd "\$TALON_ROOT/ai/packages/talon"
+exec bun run src/index.ts "\$@"
 TALON_SCRIPT
 
 chmod +x "$TALON_HOME/bin/talon"
@@ -228,39 +188,10 @@ echo ""
 if [ ! -f "$TALON_HOME/config.json" ]; then
   cat > "$TALON_HOME/config.json" << 'CONFIG'
 {
-  "server": { "port": 8090 },
   "mcp": { "servers": {} }
 }
 CONFIG
   echo "  ✅ Default config created"
-fi
-echo ""
-
-# ── Set up launchd service ──────────────────────────
-
-echo "⚙️  Setting up backend service..."
-PLIST_SRC="$TALON_ROOT/scripts/com.talon.backend.plist"
-PLIST_DST="$HOME/Library/LaunchAgents/com.talon.backend.plist"
-
-sed -e "s|__TALON_BIN_DIR__|$TALON_HOME/bin|g" \
-    -e "s|__TALON_HOME__|$TALON_HOME|g" \
-    "$PLIST_SRC" > "$PLIST_DST"
-
-launchctl bootout "gui/$(id -u)/com.talon.backend" 2>/dev/null || true
-sleep 1
-launchctl bootstrap "gui/$(id -u)" "$PLIST_DST"
-echo "  ✅ Service running on http://localhost:8090"
-echo ""
-
-# ── Verify ───────────────────────────────────────────
-
-echo "⏳ Verifying..."
-sleep 2
-if curl -s http://localhost:8090/api/health >/dev/null 2>&1; then
-  echo "  ✅ Backend health: OK"
-  curl -s http://localhost:8090/api/health | python3 -m json.tool 2>/dev/null || true
-else
-  echo "  ⚠️  Backend not responding. Check: cat $TALON_HOME/log/talon-server.log"
 fi
 echo ""
 
@@ -276,5 +207,6 @@ echo "  talon --help        # Show commands"
 echo ""
 echo "  Set API keys in ~/.talon/.env:"
 echo "    ANTHROPIC_API_KEY=sk-ant-..."
+echo "    OPENAI_API_KEY=sk-..."
 echo "    OPENAI_API_KEY=sk-..."
 echo ""

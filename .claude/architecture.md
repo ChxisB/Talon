@@ -3,37 +3,40 @@
 ## System Topology
 
 ```
-┌──────────────────────────────────────────────────────┐
-│  Terminal                                              │
-│  ┌─────────────────────┐    ┌──────────────────────┐  │
-│  │  TUI (Bun runtime)   │    │  Go Backend          │  │
-│  │                      │    │                       │  │
-│  │  React App           │    │  HTTP/WS Server       │  │
-│  │    │                 │    │  Port 8090            │  │
-│  │  @tui/react      │    │                       │  │
-│  │    │                 │◄──►│  /health              │  │
-│  │  @tui/core (TS)    │    │  /api/v1/...          │  │
-│  │    │                 │    │                       │  │
-│  │  libtalon.dylib (Zig)│    │  Go routines          │  │
-│  └─────────────────────┘    └──────────────────────┘  │
-└──────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────┐
+│  Terminal                                │
+│  ┌────────────────────────────────────┐  │
+│  │  Talon Application (Bun runtime)    │  │
+│  │  ┌────────────────────────────┐    │  │
+│  │  │  ai/packages/talon          │    │  │
+│  │  │  ┌──────────────────────┐  │    │  │
+│  │  │  │  Effect HttpApi       │──│───│──│── HTTP API
+│  │  │  │  (built-in server)    │  │    │  │
+│  │  │  ├──────────────────────┤  │    │  │
+│  │  │  │  Solid/TUI components │  │    │  │
+│  │  │  │  (@tui/solid)         │  │    │  │
+│  │  │  ├──────────────────────┤  │    │  │
+│  │  │  │  @tui/core (TS)      │  │    │  │
+│  │  │  ├──────────────────────┤  │    │  │
+│  │  │  │  libopentui.dylib    │  │    │  │
+│  │  │  │  (Zig renderer)      │  │    │  │
+│  │  │  └──────────────────────┘  │    │  │
+│  │  └────────────────────────────┘    │  │
+│  └────────────────────────────────────┘  │
+└──────────────────────────────────────────┘
 ```
 
 ## Data Flow
 
-1. TUI starts → Bun runs React app → `@tui/react` reconciler renders components
-2. React components call into `@tui/core` TypeScript API
-3. `@tui/core` loads `libtalon.dylib` (Zig) via FFI for terminal rendering + input
-4. TUI fetches data from Go backend via HTTP at `localhost:8090`
-5. Go backend processes requests, returns JSON
-6. React components re-render with new data
+1. Talon starts via `ai/packages/talon/src/index.ts`
+2. Application renders TUI via OpenTUI (`@tui/react`/`@tui/core`) which loads `libopentui.dylib` (Zig) via FFI
+3. Built-in HTTP server (Effect HttpApi via `@talon-ai/server`) handles API requests
+4. LLM providers, sessions, tools, filesystem access all handled within the application process
 
 ## Directory Layout
 
-- `tui/src/index.ts` — TUI entry point, creates renderer and root
-- `tui/src/App.tsx` — Main application component
-- `tui/src/api/client.ts` — HTTP client for Go backend
-- `backend/cmd/server/main.go` — Go server entry point
-- `backend/internal/handler/` — HTTP handlers
-- `native/src/lib.zig` — Zig FFI exports (rebranded)
-- `packages/core/src/ffi.ts` — TypeScript FFI bindings to libtalon
+- `ai/packages/talon/src/index.ts` — Application entry point
+- `ai/packages/server/` — HTTP API library (reusable handlers/routes)
+- `ai/packages/core/` — Core data models and database layer
+- `tui/packages/core/src/zig/lib.zig` — Zig FFI exports (rendering core)
+- `tui/packages/core/src/ffi.ts` — TypeScript FFI bindings to libopentui
