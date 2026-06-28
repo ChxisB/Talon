@@ -9,12 +9,12 @@ A terminal-based AI coding assistant with multi-provider support. TypeScript mon
 | `bun install` | Install all dependencies (workspace root) |
 | `bun run dev` | Start in development mode |
 | `cd ai/packages/talon && bun run src/index.ts` | Run from source |
-| `bun run build` | Build binary via Turborepo |
-| `bun test` | Run tests across packages |
-| `bun run typecheck` | TypeScript type checking |
+| `bun run build` | Full build via Turborepo |
+| `cd ai/packages/talon && bun test` | Run tests (talon package) |
+| `bun run typecheck` | TypeScript type checking across all packages |
 | `turbo run build` | Build all packages |
-| `turbo run lint` | Lint all packages (oxlint) |
-| `bun run --single` | Compile standalone binary |
+| `bun run lint` | Lint all packages (oxlint) |
+| `cd ai/packages/talon && bun run build -- --single` | Compile standalone binary |
 | `bash scripts/install.sh` | Full install (build + setup) |
 | `bash scripts/install.sh --quick` | Just copy binaries |
 | `bash scripts/install.sh --force` | Full rebuild everything |
@@ -141,11 +141,13 @@ talon/
 ## Important Notes
 
 ### Cross-Workspace References
-- `ai/` references `tui/` packages via `workspace:*` protocol in its root `package.json`:
+- `ai/packages/talon/` and `ai/packages/tui/` reference `tui/` packages via `workspace:*` protocol:
   ```
   "@tui/core": "workspace:*",
+  "@tui/core-darwin-arm64": "workspace:*",
   "@tui/keymap": "workspace:*",
-  "@tui/solid": "workspace:*"
+  "@tui/solid": "workspace:*",
+  "@tui/spinner": "workspace:*"
   ```
 - When building the standalone binary, Bun needs real directories (not symlinks) for native `.dylib` embedding — `scripts/install.sh` handles this
 
@@ -161,6 +163,6 @@ talon/
 
 ### Gotchas
 - **SST config**: `sst.config.ts` at `ai/` root for Serverless Stack deployment
-- **Husky**: Git hooks via `.husky/` directory
+- **Husky**: Git hooks via `ai/.husky/` directory
 - **Nix flake**: `flake.nix` + `flake.lock` at `ai/` for reproducible dev environments
 - **Platform detection**: Conditional imports (`#sqlite`, `#pty`, `#fff`) in `package.json` for Bun vs Node.js compatibility
