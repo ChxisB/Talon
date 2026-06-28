@@ -28,7 +28,7 @@
     "test": "bun run --filter '@tui/core' --filter '@tui/qrcode' --filter '@tui/three' --filter '@tui/solid' --filter '@tui/react' --filter '@tui/keymap' --filter '@tui/ssh' --if-present test"
   },
   "devDependencies": {
-    "oxfmt": "0.41.0",
-    "oxlint": "1.56.0"
+    "oxfmt": "0.56.0",
+    "oxlint": "1.71.0"
   }
 }
