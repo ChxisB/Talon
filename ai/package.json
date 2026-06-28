@@ -88,21 +88,21 @@
     }
   },
   "devDependencies": {
-    "@actions/artifact": "5.0.1",
+    "@actions/artifact": "6.2.1",
     "@tsconfig/bun": "catalog:",
     "@types/mime-types": "3.0.1",
     "@typescript/native-preview": "catalog:",
-    "glob": "13.0.5",
+    "glob": "13.0.6",
     "husky": "9.1.7",
-    "oxlint": "1.60.0",
-    "oxlint-tsgolint": "0.21.0",
-    "prettier": "3.6.2",
+    "oxlint": "1.71.0",
+    "oxlint-tsgolint": "0.23.0",
+    "prettier": "3.9.1",
     "semver": "^7.6.0",
     "sst": "catalog:",
-    "turbo": "2.8.13"
+    "turbo": "2.10.0"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "3.933.0",
+    "@aws-sdk/client-s3": "3.1075.0",
     "@talon-ai/plugin": "workspace:*",
     "@talon-ai/script": "workspace:*",
     "@talon-ai/sdk": "workspace:*",
