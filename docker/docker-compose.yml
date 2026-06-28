@@ -1,0 +1,107 @@
+services:
+  # ─── Agent (Go proxy server) ────────────────────────────────
+  agent:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.agent
+    ports:
+      - "${AGENT_PORT:-8082}:8082"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8082
+      - MODEL=${MODEL:-claude-sonnet-4-20250514}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - OPENCODE_API_KEY=${OPENCODE_API_KEY:-}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - CACHE_URL=http://cache:8083
+      - TALON_DATA_DIR=/data
+    volumes:
+      - talon-data:/data
+      - talon-vault:/vault
+      - ${HOME:-~}/.talon:/root/.talon
+    depends_on:
+      - cache
+    restart: unless-stopped
+
+  # ─── Dashboard (Next.js) ────────────────────────────────────
+  dashboard:
+    build:
+      context: ../dashboard
+      dockerfile: ../docker/Dockerfile.dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      - AGENT_INTERNAL_URL=http://agent:8082
+      - VAULT_PATH=/vault
+      - TALON_DATA_DIR=/data
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - OPENCODE_API_KEY=${OPENCODE_API_KEY:-}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - CACHE_URL=http://cache:8083
+    volumes:
+      - talon-data:/data
+      - talon-vault:/vault
+      - ${HOME:-~}/.talon:/root/.talon
+    depends_on:
+      - agent
+      - cache
+    restart: unless-stopped
+
+  # ─── TUI (interactive terminal) ─────────────────────────────
+  tui:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.agent
+    entrypoint: ["/usr/local/bin/talon-server"]
+    stdin_open: true
+    tty: true
+    environment:
+      - TALON_DATA_DIR=/data
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - OPENCODE_API_KEY=${OPENCODE_API_KEY:-}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - CACHE_URL=http://cache:8083
+    volumes:
+      - talon-data:/data
+      - talon-vault:/vault
+      - ${HOME:-~}/.talon:/root/.talon
+      - ${PWD:-.}:/workspace
+    working_dir: /workspace
+    depends_on:
+      - cache
+    profiles:
+      - tui
+
+  # ─── Cache (SQLite-backed cache service) ────────────────────
+  cache:
+    build:
+      context: ../deps/cache
+      dockerfile: Dockerfile
+    ports:
+      - "${CACHE_PORT:-8083}:8083"
+    environment:
+      - CACHE_DSN=/data/cache.db
+      - CACHE_PORT=8083
+    volumes:
+      - cache-data:/data
+    restart: unless-stopped
+
+volumes:
+  talon-data:
+  talon-vault:
+  cache-data:

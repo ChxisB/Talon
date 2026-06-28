@@ -1,0 +1,60 @@
+# ─── Dependencies ──────────────────────────────────────────────────
+node_modules/
+.next/
+.turbo/
+
+# ─── Environment & Secrets ─────────────────────────────────────────
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ─── Build Output ──────────────────────────────────────────────────
+dist/
+.next/
+out/
+*.exe
+*.out
+
+# ─── Go ────────────────────────────────────────────────────────────
+agent/talon
+agent/talon-server
+agent/*.exe
+
+# ─── TypeScript ────────────────────────────────────────────────────
+tsconfig.tsbuildinfo
+next-env.d.ts
+
+# ─── Logs ──────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ─── OS ────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# ─── IDE ───────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ─── IDE Extensions (install from source, not committed) ──────────
+ide/vscode/node_modules/
+ide/vscode/dist/
+ide/vscode/*.vsix
+
+# ─── Docker (not needed in git) ────────────────────────────────────
+docker-compose.override.yml
+
+# ─── Config (user-specific, regenerable) ───────────────────────────
+.talon/
+
+# ─── Binary Files (not needed in git) ─────────────────────────────────
+*.bin
+talon-test
