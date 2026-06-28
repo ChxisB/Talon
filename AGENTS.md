@@ -1,182 +1,166 @@
 # Talon — Agent Guide
 
-A terminal-based AI coding assistant with multi-provider support. Go binary (`talon`), with a Next.js dashboard, vendored TUI stack, SQLite persistence, and client/server modes.
+A terminal-based AI coding assistant with multi-provider support. TypeScript monorepo (`ai/`) with an OpenTUI framework (`tui/`), Effect-TS architecture, Bun runtime, and Turborepo orchestration.
 
 ## Quick Reference
 
 | Command | Description |
 |---------|-------------|
-| `task build` | Build binary into `./talon |
-| `task run` | Build + run with optional `-- CLI_ARGS` |
-| `task test` | `go test -race -failfast ./...` |
-| `task lint` | `golangci-lint` with `.golangci.yml` |
-| `task fmt` | `gofumpt -w .` (all Go) |
-| `task fmt:html` | `prettier` on HTML/CSS/JS |
-| `go run .` | Quick dev (sets `CGO_ENABLED=0`; use `env CGO_ENABLED=0 go run .` from outside task) |
-| `./talon | Launch TUI |
-| `echo "prompt" \| ./talon | Non-interactive mode |
-| `./talonrun "prompt"` | Non-interactive (alias) |
-| `./talon--session <id>` | Continue a session |
-| `./talon--continue` | Continue most recent session |
-| `./talon--yolo` | Auto-accept all permission prompts |
-| `./talon--cwd /path` | Set working directory |
-| Dashboard | `cd dashboard && npm run dev` (port 3000) |
-| Docker | `cd docker && docker compose up -d` (agent + dashboard + cache) |
+| `bun install` | Install all dependencies (workspace root) |
+| `bun run dev` | Start in development mode |
+| `cd ai/packages/talon && bun run src/index.ts` | Run from source |
+| `bun run build` | Build binary via Turborepo |
+| `bun test` | Run tests across packages |
+| `bun run typecheck` | TypeScript type checking |
+| `turbo run build` | Build all packages |
+| `turbo run lint` | Lint all packages (oxlint) |
+| `bun run --single` | Compile standalone binary |
+| `bash scripts/install.sh` | Full install (build + setup) |
+| `bash scripts/install.sh --quick` | Just copy binaries |
+| `bash scripts/install.sh --force` | Full rebuild everything |
 
 ## Architecture
 
 ```
-main.go
-  └─ internal/cmd/           # Cobra CLI entry points
-       ├── root.go           # TUI mode (default), flags, workspace setup
-       ├── server.go         # Server mode (HTTP/SSE on Unix socket)
-       ├── run.go            # Non-interactive prompt mode
-       ├── login.go          # OAuth flows
-       ├── session.go        # Session management
-       └── ...
-  └─ internal/
-       ├── app/              # Wires services, lifecycle, provider setup
-       ├── agent/            # Core agent orchestration
-       │    ├── coordinator.go   # Coordinator interface (Run, Cancel, Queue)
-       │    ├── agent.go         # SessionAgent — per-session agent loop
-       │    ├── prompts.go       # System prompts (coder, task, init)
-       │    ├── tools/           # Tool implementations (bash, edit, view, etc.)
-       │    │    ├── tools.go    # Context helpers, permission responses
-       │    │    ├── bash.go     # "bash" — shell execution (mvdan/sh)
-       │    │    ├── edit.go     # "edit" — find-replace edits
-       │    │    ├── view.go     # "view" — read file with line numbers
-       │    │    ├── multiedit.go # "multiedit" — batch find-replace
-       │    │    ├── write.go    # "write" — create/overwrite files
-       │    │    └── ...         # glob, grep, ls, fetch, screenshot, etc.
-       │    ├── templates/       # Embedded system prompt templates (.tpl)
-       │    └── hyper/           # Provider capability definitions
-       ├── backend/          # Transport-agnostic workspace/agent management
-       ├── server/           # HTTP/SSE server over Unix socket
-       ├── client/           # Client for connecting to server
-       ├── config/           # ~/.talon/talon.json config
-       ├── db/               # SQLite (sqlc-generated queries)
-       ├── session/          # Session CRUD service
-       ├── message/          # Message CRUD (debounced writes to SQLite)
-       ├── pubsub/           # Typed pub/sub event broker
-       ├── hooks/            # PreToolUse hook runner (shell commands gate tool calls)
-       ├── skills/           # Agent Skills open standard discovery
-       ├── shell/            # Cross-platform shell (mvdan/sh interpreter)
-       ├── lsp/              # LSP client manager (diagnostics, references)
-       ├── lsp/              # LSP client manager
-       ├── ui/               # Bubble Tea TUI
-       │    ├── model/           # Application models (chat, sidebar, header, etc.)
-       │    ├── chat/            # Chat message rendering
-       │    ├── dialog/          # Dialog components
-       │    ├── styles/          # Theme and style definitions
-       │    └── ...
-       ├── workspace/        # Workspace abstraction (local vs client/server)
-       ├── permissions/      # Permission requests (user approval dialogs)
-       ├── event/            # Telemetry events (PostHog)
-       └── ...
-  └─ dashboard/              # Next.js web dashboard
-  └─ deps/                   # Vendored Charm ecosystem + tools & skills
-       ├── glade/                # Memory tree indexing skill (SKILL.md + scripts)
-       ├── frugal/               # Token/context optimization (Go: detectors, delta, estimation)
-       ├── cache/                # SQLite-backed cache server (Go, Docker)
-       ├── cvefree/              # CVE vulnerability database (download + search)
-  └─ docker/                 # Dockerfiles and docker-compose.yml
+talon/
+├── ai/                        # Main application (Bun monorepo, 14 packages)
+│   ├── packages/
+│   │   ├── talon/             # Main entry point — the CLI binary
+│   │   ├── core/              # Core layer (AI SDKs, DB, PTY, session loop)
+│   │   ├── cli/               # CLI command definitions
+│   │   ├── server/            # HTTP/SSE server library
+│   │   ├── tui/               # TUI application (Solid.js + OpenTUI)
+│   │   ├── ui/                # Shared UI components and utilities
+│   │   ├── llm/               # LLM utilities and provider abstractions
+│   │   ├── plugin/            # Plugin system with auth hooks
+│   │   ├── sdk/               # OpenAPI-based SDK (JS + generated)
+│   │   ├── script/            # Scripting support
+│   │   ├── team-core/         # Team collaboration core
+│   │   ├── effect-drizzle-sqlite/  # Drizzle ORM for Effect-TS
+│   │   ├── effect-sqlite-node/     # SQLite Node.js bindings
+│   │   └── http-recorder/     # HTTP traffic recording
+│   ├── specs/                 # Technical specifications
+│   ├── script/                # Build and dev scripts
+│   ├── .talon/                # Talon local config (agents, skills, context)
+│   ├── turbo.json             # Turborepo task config
+│   └── package.json           # Workspace root (name: "talon")
+│
+├── tui/                       # OpenTUI rendering framework (11 packages)
+│   ├── packages/
+│   │   ├── core/              # Core TUI engine (Zig native + TypeScript)
+│   │   ├── core-darwin-arm64/ # Prebuilt native binary (libopentui.dylib)
+│   │   ├── solid/             # Solid.js renderer for TUI
+│   │   ├── react/             # React renderer for TUI
+│   │   ├── keymap/            # Keymap system
+│   │   ├── web/               # Web renderer
+│   │   ├── ssh/               # SSH TUI server
+│   │   ├── three/             # Three.js WebGPU renderer
+│   │   ├── qrcode/            # QR code renderable
+│   │   ├── spinner/           # Spinner component
+│   │   └── examples/          # Example applications
+│   └── package.json           # Workspace root (name: "@tui")
+│
+├── scripts/                   # Build, install, and dev helper scripts
+│   ├── install.sh             # End-user install script
+│   └── talon                  # Dev launcher wrapper
+│
+├── assets/                    # Logo and branding assets
+├── .claude/                   # Project configuration
+├── .github/                   # CI, issue templates, dependabot
+├── AGENTS.md                  # This file
+└── README.md                  # Project readme
 ```
 
 ### Control/Data Flow
 
-1. **CLI startup** → `internal/cmd/root.go` → `setupWorkspace()` creates either an in-process `app.App` or connects to a server process via `internal/client` depending on `TALON_CLIENT_SERVER`. Skills discovered here.
-2. **Agent loop** → `internal/agent/coordinator.go::Run()` → creates/gets `SessionAgent` → `agent.go::Run()` → sends prompt to LLM → executes tool calls → feeds results back to LLM → loops until done.
-3. **Tool execution** → tools receive context with session ID, message ID, permissions service, etc. → return `fantasy.ToolResponse` → coordinator feeds back to LLM.
-4. **Event streaming** → agent publishes `notify.RunComplete` events → backend streams via SSE to clients → message updates published via `pubsub` broker.
-5. **Message persistence** → messages debounce writes (33ms default) to SQLite + publish events. Terminal-state updates flush synchronously.
-6. **Hooks** → `PreToolUse` hooks run shell commands before each tool call, can allow/deny/rewrite input or halt the turn.
-7. **Skills** → discovered at session start from config paths, injected into system prompt as instructions.
-8. **Client/Server mode** → optional; enabled via `TALON_CLIENT_SERVER=1`. Server runs as daemon on Unix socket.
+1. **CLI startup** → `ai/packages/talon/src/index.ts` → loads config, discovers providers and skills, launches TUI or processes prompt
+2. **Agent loop** → Session agent receives prompt → sends to LLM → executes tool calls → feeds results back → loops until done
+3. **Tool execution** → Tools (edit, bash, search, etc.) run with permission management and return structured results
+4. **Event streaming** → Agent publishes events via pub/sub → UI streams updates via SSE
+5. **Message persistence** → Messages written to SQLite via Effect-TS + Drizzle ORM, debounced writes
+6. **Hooks** → Lifecycle hooks gate, rewrite, or intercept tool calls, messages, and permissions
+7. **Skills** → Loaded from `.talon/` config paths or built-in, injected into system prompt
+8. **LSP** → Language Server Protocol client provides diagnostics and references during editing
+9. **MCP** → Model Context Protocol servers (local commands or remote OAuth) extend tool capabilities
 
-## Key Packages & Aliases
+## Package Overview
 
-The project uses consistent import aliases for vendored deps:
+### `ai/packages/talon` — Main Application
+- **Entry**: `src/index.ts` — CLI bootstrap
+- **Build**: `bun run build` — compiles standalone binary via `bun build --single`
+- **Version**: `1.17.8` (current)
+- **Key deps**: Effect-TS, Solid.js, @ai-sdk/* providers, @tui/core, @tui/keymap, @tui/solid
+- **Subdirectories**: `agent/`, `cli/`, `config/`, `session/`, `tool/`, `skill/`, `server/`, `lsp/`, `mcp/`, `plugin/`
 
-```go
-llm     "github.com/ChxisB/talon-proxy/deps/llm"         // LLM library
-style   "github.com/ChxisB/talon-proxy/deps/style/v2"    // Styling (Lipgloss fork)
-bubble  "github.com/ChxisB/talon-proxy/deps/ui/terminal/v2" // Bubble Tea TUI
-cfg     "github.com/ChxisB/talon-proxy/deps/config/v2"    // Config (Cobra wrapper)
-term    "github.com/ChxisB/talon-proxy/deps/terminal"     // Terminal library
-trm     "github.com/ChxisB/talon-proxy/deps/terminal"     // In files that also import deps/util/term
-lip     "github.com/ChxisB/talon-proxy/deps/style/v2"     // In files with local `style` variable conflicts
-```
+### `ai/packages/core` — Core Data Layer & Config
+- **Exports**: `@talon-ai/core` — public API, session runner, intent, system context, repomap, hashline, config, tool executors
+- **Key deps**: Effect-TS, AI SDKs, Drizzle ORM, node-pty
+- **Subdirectories**: `config/`, `session/`, `tool/`, `plugin/`, `evidence/`, `wisdom/`, `repomap/`, `loop/`
 
-## Sidebar Layout (`internal/ui/model/sidebar.go`)
+### `ai/packages/tui` — TUI Application
+- **Framework**: Solid.js rendering on OpenTUI
+- **Key features**: Command palette, session sidebar, chat view, dialogs, permission prompts
 
-- **Model info** at top: provider, reasoning effort, context %, cost, token breakdown
-- **Files, LSP, MCP, Skills** sections in middle (dynamically sized)
-- **"Talon (version)"** at the very bottom in the SessionTitle style
-- Logo was removed from sidebar (was previously at top)
+## Key Packages & Patterns
 
-## Configuration
+### Runtime
+- **Bun** (`bun@1.3.14`) — JavaScript/TypeScript runtime and bundler
+- **Effect-TS** — Functional programming with structured concurrency, SQL, and STM
+- **Solid.js** — Reactive UI framework for the TUI
+- **OpenTUI** — Custom TUI engine with Zig native core + TypeScript bindings
 
-- **Config file**: `~/.talon/talon.json` (auto-created on first run)
-- **Env file**: `~/.talon/.env` (API keys, loaded via godotenv/autoload)
-- **Data directory**: `$XDG_DATA_HOME/talon/` or `~/.local/share/talon/`
-- Providers configured in talon.json under `providers.*`
-- Selected model config under `agents.coder.model`
-- Tools, LSP, MCP, hooks, skills all configured under their respective keys
-- Token-saving techniques: **memory-tree** (input compression), **token-optimizer** (context optimization), **response-cache** (SQLite cache)
-- Security: **cve** tool queries the CVE vulnerability database. Dashboard at `/security` for search, filter, severity tracking.
-- Dashboard at `/tools` has toggles for all built-in tools (auto-enabled by default)
-- Schema generated via `task schema` → `schema.json`
+### Build System
+- **Turborepo** (`turbo.json`) — Orchestrates `typecheck`, `build`, `test`, `lint` across packages
+- **oxlint** — Fast linter (no `eslint` dependency)
+- **tsgo** — TypeScript type checker used alongside `tsc`
+- **Bun** — Package manager and bundler
 
-## Important Patterns & Gotchas
-
-### Module Structure
-- The main module is `github.com/ChxisB/talon-proxy`
-- All `deps/` packages are vendored (forked Charm ecosystem packages) and referenced as module subpaths
-- `go.work` exists with `use .` — likely for the dashboard or local development
-- Uses Go 1.26 features (like `context.Context` methods on testing.T: `t.Context()`)
-- `GOEXPERIMENT=greenteagc` is set in Taskfile for all builds
+### Database
+- **SQLite** via `effect/sql-sqlite-bun` (runtime) + **Drizzle ORM** (migrations)
+- Conditional imports via `#sqlite` and `#pty` in `package.json` for platform-specific implementations
 
 ### Testing
-- Uses **VCR recording** for LLM API tests (see `deps/util/vcr` and `internal/agent/agent_test.go`)
-- Uses **catwalk** for snapshot-based testing (forked testing framework in `deps/testing/pkg/catwalk`)
-- Uses **testify** (`require`/`assert`) for assertions
-- Golden files for TUI snapshot tests live in `testdata/` directories near their tests
-- Some tests skip on Windows (`t.Skip("skipping on windows for now")`)
-- `TestMain` sets slog to Error level to suppress noise
-- Message service updates are debounced; tests must call `Flush()` before reading
+- **bun test** — Built-in test runner
+- VCR-style recording for LLM API tests
+- Snapshot tests for TUI components
+- Tests use `bun test --timeout 30000 --only-failures`
 
 ### Code Style
-- **gofumpt** enforced — imports in groups, trailing blank lines, strict formatting
-- **goimports** runs in CI on top of gofumpt
-- Formatting via `task fmt` runs `gofumpt -w .`
-- Prefer `slog` for logging (configured in `internal/log`)
-- No `errcheck` or `unused` linters in CI (disabled in `.golangci.yml`)
+- **oxfmt** — Code formatting for TUI packages
+- **prettier** — Code formatting for AI packages
+- **oxlint** — Linting (configured in `.oxlintrc.json` in both `ai/` and `tui/`)
+- **TypeScript** — Strict mode across all packages
 
-### Cross-Platform
-- Unix/Windows split files: `*_unix.go` / `*_windows.go`
-- Shell uses `mvdan.cc/sh/v3` for POSIX emulation on all platforms including Windows
-- Socket path limited to 104 bytes (macOS sun_path limit)
-- Windows uses named pipes instead of Unix sockets
+### Configuration
+- **Config file**: `~/.talon/config.json` (auto-created on first run)
+- **Config directory**: `~/.talon/` — also holds `.env` for API keys
+- **Data directory**: `~/.local/share/talon/` — identity, session data
+- **Talon local config**: `ai/.talon/` — agents, sub-agents, skills, context, commands
+- **Schema**: Full config schema supports `provider`, `model`, `vision_model`, `agent`, `mcp`, `lsp`, `permission`, `shell`, `server`, `plugin`, `skills`, `snapshot`, `autoupdate`, and more
 
-### Embedded Assets
-- Tool descriptions embedded via `//go:embed`. Some are `.md` (static), others `.md.tpl` (Go templates)
-- System prompts embedded as `.tpl` Go templates with variables
-- Provider capabilities in `internal/agent/hyper/provider.json` (generated via `task hyper`)
+## Important Notes
+
+### Cross-Workspace References
+- `ai/` references `tui/` packages via `workspace:*` protocol in its root `package.json`:
+  ```
+  "@tui/core": "workspace:*",
+  "@tui/keymap": "workspace:*",
+  "@tui/solid": "workspace:*"
+  ```
+- When building the standalone binary, Bun needs real directories (not symlinks) for native `.dylib` embedding — `scripts/install.sh` handles this
+
+### Native Library
+- `tui/packages/core/src/zig/` — Zig source for `libopentui.dylib`
+- Built with `zig build install` (Zig v0.16.x)
+- Copied to `tui/packages/core-darwin-arm64/` for workspace consumers
+- Prebuilt binary shipped in `tui/packages/core-darwin-arm64/`
 
 ### Version
-- Default version is `0.1.0` (`internal/version/version.go`)
-- Release builds set version via `-ldflags="-X github.com/ChxisB/talon-proxy/internal/version.Version=vX.Y.Z"`
-- `go install` builds get version from build info
-- BuildID derived from executable modification time for dev builds
+- **Current**: `1.17.8` (`ai/packages/talon/package.json`)
+- Monorepo packages are versioned together via changesets
 
-### Notable Gotchas
-- **slog discard workaround**: `config.Load` uses slog internally, but the file logger isn't ready yet, so slog is discarded during setup (see `internal/cmd/root.go:171`)
-- **`ghAvailable`** is cached at `tools` package init time — won't detect installs mid-session
-- **Coordinator** currently only supports the "coder" agent type; `AgentTask` config exists but isn't wired
-- **Race detection** via `-race` flag on tests is standard; a `race.log` file at project root enables race flag for builds too
-- **Permissions** `yolo` mode skips all permission prompts (dangerous)
-- **LSP** integration means edits trigger diagnostics, which stream to the UI
-- **Dashboard API routes** proxy to the agent's HTTP server (Unix socket). `dashboard/src/app/api/talon-proxy/` routes exist for tools, tasks, status, models, knowledge, health, cron, chat, diagrams, agents, admin, activity.
-
-### Go Workspace
-A `go.work` file exists at root, meaning multiple modules could be developed simultaneously. Currently only `use .` — the deps are referenced as module subpaths via `replace` directives in `go.mod`.
+### Gotchas
+- **SST config**: `sst.config.ts` at `ai/` root for Serverless Stack deployment
+- **Husky**: Git hooks via `.husky/` directory
+- **Nix flake**: `flake.nix` + `flake.lock` at `ai/` for reproducible dev environments
+- **Platform detection**: Conditional imports (`#sqlite`, `#pty`, `#fff`) in `package.json` for Bun vs Node.js compatibility

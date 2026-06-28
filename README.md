@@ -256,7 +256,7 @@ cd ai/packages/talon && bun run src/index.ts  # Run from source
 - 🧪 **Test providers** — Configure different providers and report issues
 - 🐛 **Bug reports** — Include model, error message, and reproduction steps
 - 🔧 **New tools** — The tool system is extensible; add your own tools
-- 🎨 **UI improvements** — The TUI is built with Bubble Tea; contributions welcome
+- 🎨 **UI improvements** — The TUI is built with OpenTUI (Solid.js); contributions welcome
 - 📖 **Documentation** — Improve docs, add examples
 
 ---
