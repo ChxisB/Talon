@@ -74,7 +74,7 @@ talon/
 ### Control/Data Flow
 
 1. **CLI startup** → `ai/packages/talon/src/index.ts` → loads config, discovers providers and skills, launches TUI or processes prompt
-2. **Agent loop** → Session agent receives prompt → sends to LLM → executes tool calls → feeds results back → loops until done
+2. **Agent loop** → Session agent receives prompt → builds repo map (ast-grep with regex fallback) → sends to LLM → executes tool calls → feeds results back → loops until done
 3. **Tool execution** → Tools (edit, bash, search, etc.) run with permission management and return structured results
 4. **Event streaming** → Agent publishes events via pub/sub → UI streams updates via SSE
 5. **Message persistence** → Messages written to SQLite via Effect-TS + Drizzle ORM, debounced writes
@@ -93,13 +93,13 @@ talon/
 - **Subdirectories**: `agent/`, `cli/`, `config/`, `session/`, `tool/`, `skill/`, `server/`, `lsp/`, `mcp/`, `plugin/`
 
 ### `ai/packages/core` — Core Data Layer & Config
-- **Exports**: `@talon-ai/core` — public API, session runner, intent, system context, repomap, hashline, config, tool executors
+- **Exports**: `@talon-ai/core` — public API, session runner, intent, system context, repomap (regex + ast-grep), hashline, config, tool executors
 - **Key deps**: Effect-TS, AI SDKs, Drizzle ORM, node-pty
 - **Subdirectories**: `config/`, `session/`, `tool/`, `plugin/`, `evidence/`, `wisdom/`, `repomap/`, `loop/`
 
 ### `ai/packages/tui` — TUI Application
 - **Framework**: Solid.js rendering on OpenTUI
-- **Key features**: Command palette, session sidebar, chat view, dialogs, permission prompts
+- **Key features**: Command palette, session sidebar, chat view, dialogs, permission prompts, per-agent model settings
 
 ## Key Packages & Patterns
 
@@ -136,7 +136,31 @@ talon/
 - **Config directory**: `~/.talon/` — also holds `.env` for API keys
 - **Data directory**: `~/.local/share/talon/` — identity, session data
 - **Talon local config**: `ai/.talon/` — agents, sub-agents, skills, context, commands
-- **Schema**: Full config schema supports `provider`, `model`, `vision_model`, `agent`, `mcp`, `lsp`, `permission`, `shell`, `server`, `plugin`, `skills`, `snapshot`, `autoupdate`, and more
+- **Schema**: Full config schema supports `provider`, `model`, `vision_model`, `agent` (incl. `use_small_model`, `model`, `vision_model` per-agent), `mcp`, `lsp`, `permission`, `shell`, `server`, `plugin`, `skills`, `snapshot`, `autoupdate`, and more
+
+### Repo Map — Codebase-Aware Context
+
+The repo map builds a ranked workspace index for LLM context injection:
+
+```
+scanWorkspace(directory) → extractSymbols(file) → rankFiles(symbols) → formatRepoMap(result)
+```
+
+- **Scanner** (`scanner.ts`): Recursive file discovery with `.gitignore` and max-file limits
+- **Parser** (`parser.ts`): Symbol/import extraction via regex (6 languages) or **ast-grep `sg outline`** (25+ languages, AST-level)
+- **Graph** (`graph.ts`): PageRank-like ranking on the import dependency graph
+- **Builder** (`map.ts`): Orchestrates scan → extract → rank → format
+
+Two extraction paths:
+
+| Path | Command | Coverage |
+|------|---------|----------|
+| `buildRepoMap` (sync, regex) | `extractSymbols()` | TS/JS, Python, Rust, Go |
+| `buildRepoMapSg` (async, AST) | `extractSymbolsSg()` → `sg outline` | 25+ languages, falls back to regex |
+
+The ranked map is injected into the LLM system prompt on session step 1, giving the model a prioritized view of the codebase without needing to `read` every file.
+
+Inspired by Aider's repomap.py.
 
 ## Important Notes
 

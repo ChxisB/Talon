@@ -12,6 +12,9 @@ const Color = Schema.Union([
 const AgentSchema = Schema.StructWithRest(
   Schema.Struct({
     model: Schema.optional(Schema.String),
+    use_small_model: Schema.optional(Schema.Boolean).annotate({
+      description: "When true, uses the provider's small/cheap model instead of inheriting the parent session's model",
+    }),
     vision_model: Schema.optional(Schema.String).annotate({
       description:
         "Vision model for image/document analysis in the format of provider/model, " +
@@ -48,6 +51,7 @@ const AgentSchema = Schema.StructWithRest(
 const KNOWN_KEYS = new Set([
   "name",
   "model",
+  "use_small_model",
   "vision_model",
   "variant",
   "prompt",

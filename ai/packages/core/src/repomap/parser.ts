@@ -1,3 +1,4 @@
+import { Effect } from "effect"
 import type { ScannedFile } from "./scanner"
 
 // ---------------------------------------------------------------------------
@@ -216,6 +217,69 @@ const EXTRACTORS: Extractor[] = [
   },
 ]
 
+// ---------------------------------------------------------------------------
+// sg outline integration
+// ---------------------------------------------------------------------------
+
+/**
+ * Run `sg outline` on a file and parse the JSON output.
+ * Returns null on any error (sg not found, non-zero exit, parse failure).
+ */
+function runSgOutline(filePath: string) {
+  return Effect.promise(() =>
+    (async () => {
+      // @ts-ignore - Bun API available at runtime
+      const process = Bun.spawn(["sg", "outline", filePath], { stdout: "pipe", stderr: "pipe" })
+      const output = await new Response(process.stdout).text()
+      const exitCode = await process.exited
+      if (exitCode !== 0) {
+        throw new Error(`sg outline exited with code ${exitCode}`)
+      }
+      const items = JSON.parse(output) as Array<{
+        role: string
+        name: string
+        kind: string
+        line_range: { start: number }
+      }>
+      const exports: Array<{ name: string; kind: string; line: number }> = []
+      const imports: string[] = []
+      for (const item of items) {
+        if (item.role === "import") {
+          imports.push(item.name)
+        } else if (item.role === "export" || item.role === "definition") {
+          exports.push({ name: item.name, kind: item.kind, line: item.line_range.start })
+        }
+      }
+      return { exports, imports }
+    })(),
+  ).pipe(Effect.catch(() => Effect.succeed(null)))
+}
+
+/**
+ * Extract symbols from a scanned file using ast-grep's `sg outline`.
+ * Falls back to regex-based extraction if sg is unavailable.
+ */
+export async function extractSymbolsSg(file: ScannedFile): Promise<FileSymbols | null> {
+  try {
+    const sgResult = await Effect.runPromise(runSgOutline(file.path))
+    if (sgResult) {
+      const isTest = file.path.includes(".test.") ||
+        file.path.includes(".spec.") ||
+        file.path.includes("__tests__") ||
+        file.path.includes("test_") ||
+        file.path.endsWith("_test.go")
+      return {
+        file: file.path,
+        exports: sgResult.exports,
+        imports: sgResult.imports,
+        isTest,
+      }
+    }
+  } catch {
+    // sg failed, fall through to regex
+  }
+  return extractSymbols(file)
+}
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
