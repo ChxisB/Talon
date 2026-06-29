@@ -6,6 +6,7 @@ import { useKV } from "../context/kv"
 import { useSync } from "../context/sync"
 import { createMemo, For } from "solid-js"
 import { DialogModel } from "./dialog-model"
+import { DialogAgentModels } from "./dialog-agent-models"
 import { DialogProvider } from "./dialog-provider"
 import { DialogThemeList } from "./dialog-theme-list"
 import { DialogAgent } from "./dialog-agent"
@@ -253,6 +254,14 @@ export function DialogSettings() {
                 />
               ),
             )
+          },
+        },
+        {
+          type: "navigate",
+          label: "Agent Models",
+          trailing: "Configure per-agent",
+          onClick: () => {
+            dialog.replace(() => <DialogAgentModels onBack={back} backLabel="Settings" />)
           },
         },
       ],

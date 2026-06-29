@@ -13,6 +13,6 @@
  */
 
 export { scanWorkspace, type ScannedFile } from "./scanner"
-export { extractSymbols, type FileSymbols, type Symbol } from "./parser"
+export { extractSymbols, extractSymbolsSg, type FileSymbols, type Symbol } from "./parser"
 export { rankFiles } from "./graph"
-export { buildRepoMap, formatRepoMap } from "./map"
+export { buildRepoMap, buildRepoMapSg, formatRepoMap, type RepoMapResult } from "./map"

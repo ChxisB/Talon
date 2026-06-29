@@ -46,6 +46,8 @@ talon
 | **Vision analysis** | Native support for vision-capable models (Claude, GPT-4o, Gemini) + local MiniCPM-V via Ollama |
 | **Screenshot capture** | Capture your screen and analyze it with AI |
 | **Model routing** | Configure `model` and `small_model` per-session, with automatic fallback |
+| **Codebase-aware context** | Auto-injects ranked workspace map (via AST-grep) into LLM system prompt for prioritized codebase awareness |
+| **Per-agent model routing** | Configure `use_small_model: true` per subagent to route to the provider's cheap model, with per-agent model selection in TUI |
 
 ### Developer Tools
 
@@ -74,6 +76,7 @@ talon
 | **LSP integration** | Full Language Server Protocol client — diagnostics, references, and language support |
 | **Hooks system** | 25+ lifecycle hooks — gate, rewrite, or intercept tool calls, messages, permissions, and provider requests |
 | **Agent Communication Protocol** | Agent-to-agent protocol for multi-agent coordination |
+| **Per-agent configuration** | Configure model, variant, vision model, and `use_small_model` independently per subagent via config file or TUI |
 | **Team collaboration** | Create and manage AI agent teams with messaging and task assignment |
 
 ### Session & Context
@@ -84,6 +87,7 @@ talon
 | **Context-aware** | Automatic context management with token tracking and memory tree compression |
 | **Snapshot system** | Filesystem state tracking for undo/revert |
 | **Token optimization** | Response caching, token optimization, and context compression |
+| **Repo map injection** | Ranked workspace map auto-injected at session start for context-aware code generation |
 
 ### Deployment & Operations
 

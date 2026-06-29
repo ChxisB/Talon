@@ -7,6 +7,7 @@ import { Session } from "@/session/session"
 import { SessionID, MessageID } from "../session/schema"
 import { MessageV2 } from "../session/message-v2"
 import { Agent } from "../agent/agent"
+import { Provider } from "@/provider/provider"
 import { deriveSubagentSessionPermission } from "../agent/subagent-permissions"
 import type { SessionPrompt } from "../session/prompt"
 import { Config } from "@/config/config"
@@ -84,6 +85,7 @@ export const TaskTool = Tool.define(
     const agent = yield* Agent.Service
     const background = yield* BackgroundJob.Service
     const config = yield* Config.Service
+    const provider = yield* Provider.Service
     const sessions = yield* Session.Service
     const scope = yield* Scope.Scope
     const flags = yield* RuntimeFlags.Service
@@ -164,10 +166,16 @@ export const TaskTool = Tool.define(
       if (msg.info.role !== "assistant") return yield* Effect.fail(new Error("Not an assistant message"))
       const variant = msg.info.variant
 
-      const model = next.model ?? {
-        modelID: msg.info.modelID,
-        providerID: msg.info.providerID,
+      const defaultModel = { modelID: msg.info.modelID, providerID: msg.info.providerID }
+      let model = next.model
+      if (!model && next.useSmallModel) {
+        const small = yield* provider.getSmallModel(msg.info.providerID).pipe(
+          Effect.map((m) => (m != null ? { modelID: m.id, providerID: m.providerID } : undefined)),
+          Effect.catch(() => Effect.succeed(undefined)),
+        )
+        model = small ?? defaultModel
       }
+      if (!model) model = defaultModel
       const metadata = {
         parentSessionId: ctx.sessionID,
         sessionId: nextSession.id,

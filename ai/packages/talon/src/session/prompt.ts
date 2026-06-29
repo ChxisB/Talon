@@ -40,7 +40,7 @@ import { ShellID } from "@/tool/shell/id"
 import { FSUtil } from "@talon-ai/core/fs-util"
 import { classifyIntent } from "@talon-ai/core/session/intent"
 import { analyze as intentGate } from "./intent-gate"
-import { buildRepoMap, formatRepoMap } from "@talon-ai/core/repomap"
+import { buildRepoMap, buildRepoMapSg, formatRepoMap, type RepoMapResult } from "@talon-ai/core/repomap"
 
 import { Truncate } from "@/tool/truncate"
 import { Image } from "@/image/image"
@@ -1558,19 +1558,17 @@ export const layer = Layer.effect(
             // inject it into the system prompt for codebase-aware context.
             let repoMapBlock: string | undefined
             if (step === 1) {
-              try {
-                const repoMap = buildRepoMap({ directory: ctx.directory })
-                if (repoMap.ranked.length > 0) {
-                  repoMapBlock = formatRepoMap(repoMap)
-                  yield* Effect.logInfo("repo-map built", {
-                    "session.id": sessionID,
-                    files: repoMap.totalFiles,
-                    ranked: repoMap.ranked.length,
-                    symbols: repoMap.totalSymbols,
-                  })
-                }
-              } catch (e) {
-                yield* Effect.logWarning("repo-map failed", { "session.id": sessionID, error: String(e) })
+              const repoMap = yield* Effect.promise(() => buildRepoMapSg({ directory: ctx.directory })).pipe(
+                Effect.catchDefect(() => Effect.succeed(undefined as RepoMapResult | undefined)),
+              )
+              if (repoMap && repoMap.ranked.length > 0) {
+                repoMapBlock = formatRepoMap(repoMap)
+                yield* Effect.logInfo("repo-map built", {
+                  "session.id": sessionID,
+                  files: repoMap.totalFiles,
+                  ranked: repoMap.ranked.length,
+                  symbols: repoMap.totalSymbols,
+                })
               }
             }
 

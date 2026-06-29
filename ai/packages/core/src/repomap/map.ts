@@ -1,5 +1,6 @@
+import { Effect } from "effect"
 import { scanWorkspace, type ScannedFile } from "./scanner"
-import { extractSymbols, type FileSymbols } from "./parser"
+import { extractSymbols, extractSymbolsSg, type FileSymbols } from "./parser"
 import { rankFiles } from "./graph"
 
 // ---------------------------------------------------------------------------
@@ -52,6 +53,37 @@ export function buildRepoMap(config: RepoMapConfig): RepoMapResult {
   // 4. Compute stats
   const totalSymbols = symbols.reduce((sum, s) => sum + s.exports.length, 0)
 
+  return {
+    ranked: ranked.slice(0, maxEntries),
+    symbols,
+    totalFiles: files.length,
+    totalSymbols,
+  }
+}
+
+/**
+ * Build a ranked repo map using ast-grep's `sg outline` for AST-level symbol extraction.
+ * Falls back to regex extraction per-file when sg is unavailable.
+ */
+export async function buildRepoMapSg(config: RepoMapConfig): Promise<RepoMapResult> {
+  const { directory, maxFiles = 200, maxEntries = 20 } = config
+  const files = scanWorkspace(directory, maxFiles)
+  const symbols: FileSymbols[] = []
+  for (const file of files) {
+    try {
+      const extracted = await extractSymbolsSg(file)
+      if (extracted) {
+        symbols.push(extracted)
+      }
+    } catch {
+      const extracted = extractSymbols(file)
+      if (extracted) {
+        symbols.push(extracted)
+      }
+    }
+  }
+  const ranked = rankFiles(symbols)
+  const totalSymbols = symbols.reduce((sum, s) => sum + s.exports.length, 0)
   return {
     ranked: ranked.slice(0, maxEntries),
     symbols,
