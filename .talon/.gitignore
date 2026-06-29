@@ -1,0 +1,8 @@
+node_modules
+plans
+evidence
+artifacts
+package.json
+package-lock.json
+bun.lock
+.gitignore
