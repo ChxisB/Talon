@@ -236,6 +236,9 @@ talon/
 │   │   └── examples/     # Example apps
 │   └── scripts/          # TUI build scripts
 ├── scripts/              # Build and install scripts
+├── .talon/               # Project-level Talon data (plans, evidence, artifacts — per-user, gitignored)
+├── .github/              # CI/CD, issue templates, dependabot
+├── AGENTS.md             # Agent guide for this repo
 └── .claude/              # Project configuration
 ```
 

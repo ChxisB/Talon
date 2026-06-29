@@ -1,0 +1,1 @@
+List all tasks for the current project. Optionally filter by status. Returns a list of tasks with their id, title, status, and assignee.

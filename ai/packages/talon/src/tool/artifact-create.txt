@@ -1,0 +1,18 @@
+Create an artifact — a version-controlled markdown document with structured frontmatter.
+
+Artifacts represent specs, tickets, stories, reviews, plans, or notes. They live under `.talon/artifacts/<type>/` in the project directory and are indexed in the project database for listing and cross-referencing.
+
+Use this tool when:
+- You need to create a specification document (/spec)
+- You need to create a ticket or task (/ticket)
+- You need to create a user story (/story)
+- You need to save a plan, design note, or review
+
+Parameters:
+- type: "spec" | "ticket" | "story" | "review" | "plan" | "note" — the artifact category
+- title: A short descriptive title
+- body: Optional markdown body content
+- status: Optional initial status (default: "todo")
+- assignee: Optional person/agent assigned
+- parentID: Optional parent artifact ID for hierarchical organization
+- taskID: Optional external task tracking ID

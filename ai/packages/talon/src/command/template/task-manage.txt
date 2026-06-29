@@ -1,0 +1,11 @@
+## Task management commands
+
+Available tools:
+- `task_create` — create a new task with title, status, assignee, parent, summary
+- `task_update` — update an existing task's fields
+- `task_list` — list tasks (optionally filtered by status)
+- `task_remove` — remove a task and its descendants
+
+Tasks are identified by IDs starting with `tsk_`. They support hierarchical
+organization (parent/child) and can be focused to set the active workspace
+for subsequent commands.

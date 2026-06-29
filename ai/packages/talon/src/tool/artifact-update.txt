@@ -1,0 +1,17 @@
+Update an existing artifact's title, status, assignee, body, or task ID.
+
+The artifact file on disk is updated atomically, and the database index is kept in sync.
+
+Use this tool when:
+- You need to change an artifact's status (e.g., "in_progress" → "done")
+- You need to update the body content of a spec, ticket, or story
+- You need to reassign an artifact
+- You need to link or unlink an artifact to a task
+
+Parameters:
+- id: The artifact ID (starts with "art_")
+- title: Optional new title
+- status: Optional new status ("todo" | "in_progress" | "done" | "blocked" | "archived")
+- assignee: Optional new assignee
+- body: Optional new body content (replaces existing body)
+- taskID: Optional new task tracking ID (set to empty string to clear)

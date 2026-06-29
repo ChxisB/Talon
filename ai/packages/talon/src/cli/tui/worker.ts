@@ -7,11 +7,15 @@ import { GlobalBus } from "@/bus/global"
 import { ServerAuth } from "@/server/auth"
 import { writeHeapSnapshot } from "node:v8"
 import { Heap } from "@/cli/heap"
-import { AppRuntime } from "@/effect/app-runtime"
 import { Effect } from "effect"
 import { disposeAllInstancesAndEmitGlobalDisposed } from "@/server/global-lifecycle"
 
 Heap.start()
+
+// NOTE: AppRuntime is NOT imported at module level. Doing so would force the
+// Worker thread to evaluate Database.defaultLayer (which is in AppLayer.mergeAll),
+// opening a SQLite connection that conflicts with the main thread's connection.
+// All AppRuntime usage is lazy (dynamic import).
 
 // Subscribe to global events and forward them via RPC
 GlobalBus.on("event", (event) => {
@@ -54,6 +58,7 @@ export const rpc = {
     await upgrade().catch(() => {})
   },
   async reload() {
+    const { AppRuntime } = await import("@/effect/app-runtime")
     await AppRuntime.runPromise(
       Effect.gen(function* () {
         const cfg = yield* Config.Service

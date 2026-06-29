@@ -1,0 +1,10 @@
+## Task: create a task
+
+Call the `task_create` tool with:
+- `title`: a concise, descriptive title for the task
+- `status`: (optional) one of todo, in_progress, done, blocked, archived
+- `assignee`: (optional) who this task is assigned to
+- `summary`: (optional) a longer description of the work
+- `parentID`: (optional) a parent task ID if this is a sub-task
+
+When the tool responds, note the task's ID for future reference.

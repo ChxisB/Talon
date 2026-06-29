@@ -19,9 +19,13 @@ export const AccountStateTable = sqliteTable("account_state", {
     .$type<AccountV2.ID>()
     .references(() => AccountTable.id, { onDelete: "set null" }),
   active_org_id: text().$type<AccountV2.OrgID>(),
+  active_task_id: text(),
 })
 
+
+
 // LEGACY
+
 export const ControlAccountTable = sqliteTable(
   "control_account",
   {

@@ -1,0 +1,1 @@
+Update an existing task's title, status, assignee, order key, or summary. Provide the task id (tsk_*) and any fields to change. Returns the updated task details.

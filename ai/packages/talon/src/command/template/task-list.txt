@@ -1,0 +1,4 @@
+## Task: list tasks
+
+Call the `task_list` tool to see all tasks in the current project.
+Optionally pass `status` to filter (e.g., "in_progress", "todo", "done").

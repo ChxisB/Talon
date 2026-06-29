@@ -1,0 +1,6 @@
+List or search artifacts in the current project.
+
+Use the `artifact_list` tool to find artifacts matching the criteria below. Present the results in a clear, organized format grouped by type. Include the ID, title, and status for each artifact.
+
+Search criteria:
+$ARGUMENTS

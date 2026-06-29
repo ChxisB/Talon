@@ -1,0 +1,12 @@
+Create a development ticket as an artifact.
+
+Use the `artifact_create` tool with `type: "ticket"` to create a new ticket. The artifact body should describe the work item in markdown format covering:
+- **Description** — what needs to be done and why
+- **Acceptance criteria** — how to verify completion
+- **Technical notes** — implementation hints, affected files, dependencies
+- **Estimate** — rough effort (small, medium, large)
+
+Keep the ticket focused and actionable. If the user provided additional context, incorporate it.
+
+User input:
+$ARGUMENTS

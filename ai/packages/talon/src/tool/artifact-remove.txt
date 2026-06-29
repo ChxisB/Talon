@@ -1,0 +1,11 @@
+Remove an artifact and all of its descendant artifacts.
+
+The artifact's markdown file and database index row are deleted.
+Child artifacts are recursively collected and removed as well.
+
+Use this tool when:
+- An artifact is no longer needed
+- You need to clean up stale or incorrect artifacts
+
+Parameters:
+- id: The artifact ID to remove (starts with "art_")

@@ -1,0 +1,13 @@
+Create a technical specification as an artifact.
+
+Use the `artifact_create` tool with `type: "spec"` to create a new spec document. The artifact body should contain the full specification in markdown format covering:
+- **Purpose** — what problem this spec solves and why
+- **Requirements** — functional and non-functional
+- **Design decisions** — alternatives considered and rationale
+- **API / interface surface** — exposed types, endpoints, or configuration
+- **Open questions** — unresolved items that need discussion
+
+The title of the artifact should be a short, descriptive name for the spec.
+
+User input:
+$ARGUMENTS

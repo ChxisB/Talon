@@ -37,5 +37,9 @@ export const migrations = (
     import("./migration/20260611035744_credential"),
     import("./migration/20260611192811_lush_chimera"),
     import("./migration/20260612174303_project_dir_strategy"),
+import("./migration/20260629122805_artifact"),
+import("./migration/20260629123000_task"),
+import("./migration/20260629123100_session_task_id"),
+import("./migration/20260629123200_account_state_task_id"),
   ])
 ).map((module) => module.default) satisfies DatabaseMigration.Migration[]

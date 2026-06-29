@@ -1,0 +1,1 @@
+Create a new task with a title, optional status, assignee, parent task, order key, and summary. Use this tool to break down work into trackable units when planning or organizing work. Returns the created task's id, title, and status.

@@ -1,0 +1,14 @@
+List artifacts for the current project, optionally filtered by type, status, or task ID.
+
+Returns a formatted list of artifact IDs, types, titles, and statuses.
+
+Use this tool when:
+- You need to see what artifacts exist for the current project
+- You need to find an artifact by type (specs, tickets, stories)
+- You need to check which artifacts are in a given status
+- You need to list all artifacts for a task
+
+Parameters:
+- type: Optional filter by artifact type ("spec" | "ticket" | "story" | "review" | "plan" | "note")
+- status: Optional filter by status ("todo" | "in_progress" | "done" | "blocked" | "archived")
+- taskID: Optional filter by task tracking ID

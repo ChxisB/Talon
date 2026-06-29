@@ -1,0 +1,12 @@
+Manage artifacts in the current project — create, update, list, or remove.
+
+Available artifact types: spec, ticket, story, review, plan, note
+
+Use the appropriate artifact tool:
+- **`artifact_create`** — create a new artifact
+- **`artifact_update`** — update an existing artifact by ID
+- **`artifact_list`** — list/search artifacts
+- **`artifact_remove`** — remove an artifact and its descendants
+
+User request:
+$ARGUMENTS

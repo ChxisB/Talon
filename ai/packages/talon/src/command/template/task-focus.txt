@@ -1,0 +1,12 @@
+## Task: focus on a task
+
+Set or check the currently focused task. A focused task is used to determine
+the active workspace for subsequent operations (like the `/run` command).
+
+To set focus, call `task_update` with the task's `id` and your changes.
+
+To view the current focus context, check your system context which includes
+the active task if one is focused.
+
+The focused task's workspace ID is used as the default workspace when running
+commands that don't explicitly specify a workspace.

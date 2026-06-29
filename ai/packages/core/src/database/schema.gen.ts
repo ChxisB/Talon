@@ -28,6 +28,7 @@ export default {
           \`id\` integer PRIMARY KEY,
           \`active_account_id\` text,
           \`active_org_id\` text,
+          \`active_task_id\` text,
           CONSTRAINT \`fk_account_state_active_account_id_account_id_fk\` FOREIGN KEY (\`active_account_id\`) REFERENCES \`account\`(\`id\`) ON DELETE SET NULL
         );
       `)
@@ -186,6 +187,7 @@ export default {
           \`id\` text PRIMARY KEY,
           \`project_id\` text NOT NULL,
           \`workspace_id\` text,
+          \`task_id\` text,
           \`parent_id\` text,
           \`slug\` text NOT NULL,
           \`directory\` text NOT NULL,
@@ -270,8 +272,53 @@ export default {
       yield* tx.run(`CREATE INDEX \`session_message_time_created_idx\` ON \`session_message\` (\`time_created\`);`)
       yield* tx.run(`CREATE INDEX \`session_project_idx\` ON \`session\` (\`project_id\`);`)
       yield* tx.run(`CREATE INDEX \`session_workspace_idx\` ON \`session\` (\`workspace_id\`);`)
+      yield* tx.run(`CREATE INDEX \`session_task_idx\` ON \`session\` (\`task_id\`);`)
       yield* tx.run(`CREATE INDEX \`session_parent_idx\` ON \`session\` (\`parent_id\`);`)
       yield* tx.run(`CREATE INDEX \`todo_session_idx\` ON \`todo\` (\`session_id\`);`)
+      yield* tx.run(`
+        CREATE TABLE \`task\` (
+          \`id\` text PRIMARY KEY,
+          \`title\` text NOT NULL,
+          \`status\` text NOT NULL DEFAULT 'todo',
+          \`assignee\` text,
+          \`workspace_id\` text,
+          \`project_id\` text NOT NULL,
+          \`parent_id\` text,
+          \`order_key\` text,
+          \`summary\` text,
+          \`metadata\` text,
+          \`time_created\` integer NOT NULL,
+          \`time_updated\` integer NOT NULL,
+          \`time_archived\` integer
+        );
+      `)
+      yield* tx.run(`CREATE INDEX \`task_project_idx\` ON \`task\` (\`project_id\`);`)
+      yield* tx.run(`CREATE INDEX \`task_parent_idx\` ON \`task\` (\`parent_id\`);`)
+      yield* tx.run(`CREATE INDEX \`task_status_idx\` ON \`task\` (\`status\`);`)
+      yield* tx.run(`
+        CREATE TABLE \`artifact\` (
+          \`id\` text PRIMARY KEY,
+          \`type\` text NOT NULL,
+          \`title\` text NOT NULL,
+          \`status\` text NOT NULL,
+          \`assignee\` text,
+          \`task_id\` text,
+          \`workspace_id\` text,
+          \`project_id\` text NOT NULL,
+          \`parent_id\` text,
+          \`order_key\` text,
+          \`path\` text NOT NULL,
+          \`body_hash\` text,
+          \`frontmatter\` text,
+          \`time_created\` integer NOT NULL,
+          \`time_updated\` integer NOT NULL,
+          \`time_archived\` integer
+        );
+      `)
+      yield* tx.run(`CREATE INDEX \`artifact_project_idx\` ON \`artifact\` (\`project_id\`);`)
+      yield* tx.run(`CREATE INDEX \`artifact_task_idx\` ON \`artifact\` (\`task_id\`);`)
+      yield* tx.run(`CREATE INDEX \`artifact_parent_idx\` ON \`artifact\` (\`parent_id\`);`)
+      yield* tx.run(`CREATE INDEX \`artifact_status_idx\` ON \`artifact\` (\`status\`);`)
     })
   },
 } satisfies Omit<DatabaseMigration.Migration, "id">

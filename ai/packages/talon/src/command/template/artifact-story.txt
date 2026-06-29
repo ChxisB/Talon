@@ -1,0 +1,12 @@
+Create a user story as an artifact.
+
+Use the `artifact_create` tool with `type: "story"` to create a new user story. The artifact should follow standard user story format:
+
+**As a** [type of user]  
+**I want** [goal]  
+**So that** [benefit]
+
+Include acceptance criteria as a checklist of verifiable conditions. If the user provided specific requirements, incorporate them into the story and criteria.
+
+User input:
+$ARGUMENTS

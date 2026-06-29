@@ -1,0 +1,1 @@
+Remove a task and all of its child tasks. Provide the task id (tsk_*). This will also unlink any artifacts and sessions associated with the task.
