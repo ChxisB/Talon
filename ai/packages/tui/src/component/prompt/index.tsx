@@ -64,7 +64,6 @@ export type PromptProps = {
   onSubmit?: () => void
   ref?: (ref: PromptRef | undefined) => void
   hint?: JSX.Element
-  right?: JSX.Element
   showPlaceholder?: boolean
   placeholders?: {
     normal?: string[]
@@ -103,11 +102,6 @@ const DRAFT_RETENTION_MIN_CHARS = 20
 function randomIndex(count: number) {
   if (count <= 0) return 0
   return Math.floor(Math.random() * count)
-}
-
-function fadeColor(color: RGBA | undefined, alpha: number) {
-  if (!color) return RGBA.fromValues(0, 0, 0, 1)
-  return RGBA.fromValues(color.r, color.g, color.b, color.a * alpha)
 }
 
 function hasEditorRangeSelection(selection: EditorSelection["ranges"][number]) {
@@ -207,26 +201,8 @@ export function Prompt(props: PromptProps) {
   const workspace = usePromptWorkspace(props.sessionID)
   const move = usePromptMove({ projectID: project.project, sessionID: () => props.sessionID })
   const [cursorVersion, setCursorVersion] = createSignal(0)
-  const currentProviderLabel = createMemo(() => local.model.parsed().provider)
-  const visionModelParsed = createMemo(() => {
-    const raw = (sync.data.config as Record<string, unknown>).vision_model as string | undefined
-    const value = raw ?? (kv.get("model_image") as string | undefined)
-    if (!value) return { model: "Not set", provider: undefined as string | undefined, variant: undefined }
-    const parts = value.split("/")
-    if (parts.length < 2) return { model: value, provider: parts[0], variant: undefined }
-    const providerID = parts[0]
-    const modelID = parts.slice(1).join("/")
-    const provider = sync.data.provider.find((p) => p.id === providerID)
-    const info = provider?.models[modelID]
-    const variant = local.model.variant.get(providerID, modelID)
-    const variants = local.model.variant.listFor(providerID, modelID)
-    return {
-      model: info?.name ?? modelID,
-      provider: provider?.name ?? providerID,
-      variant: variant && variants.includes(variant) ? variant : undefined,
-    }
-  })
-  const hasRightContent = createMemo(() => Boolean(props.right))
+  // visionModelParsed removed — vision model is now configured per-agent via the vision-analyst subagent
+  // currentProviderLabel and hasRightContent removed — agent/model info now lives in the session Footer
 
   function promptModelWarning() {
     toast.show({
@@ -389,17 +365,25 @@ export function Prompt(props: PromptProps) {
         run: async (ctx: CommandContext<Renderable, KeyEvent>) => {
           ctx.event.preventDefault()
           ctx.event.stopPropagation()
-          const content = await clipboard.read?.()
-          if (content?.mime.startsWith("image/")) {
-            await pasteAttachment({
-              filename: "clipboard",
-              mime: content.mime,
-              content: content.data,
-            })
-            return
-          }
-          if (content?.mime === "text/plain") {
-            await pasteInputText(content.data)
+          // Guard against re-entrant paste (e.g. keybind + bracketed paste race)
+          if (pasting) return
+          pasting = true
+          try {
+            const content = await clipboard.read?.()
+            if (!content) return
+            if (content.mime.startsWith("image/")) {
+              await pasteAttachment({
+                filename: "clipboard",
+                mime: content.mime,
+                content: content.data,
+              })
+              return
+            }
+            if (content.mime === "text/plain") {
+              await pasteInputText(content.data)
+            }
+          } finally {
+            pasting = false
           }
         },
       },
@@ -941,6 +925,7 @@ export function Prompt(props: PromptProps) {
   })
 
   let submitting = false
+  let pasting = false
   async function submit() {
     // Prevent overlapping invocations (e.g. a double-pressed Enter, or the
     // input's native onSubmit racing another dispatch). Without this guard,
@@ -1306,19 +1291,7 @@ export function Prompt(props: PromptProps) {
     return local.agent.color(agent.name) ?? theme.border
   })
 
-  const showVariant = createMemo(() => {
-    const variants = local.model.variant.list()
-    if (variants.length === 0) return false
-    const current = local.model.variant.current()
-    return !!current
-  })
-
   const agentMetaAlpha = createFadeIn(() => !!local.agent.current(), animationsEnabled)
-  const modelMetaAlpha = createFadeIn(() => !!local.agent.current() && store.mode === "normal", animationsEnabled)
-  const variantMetaAlpha = createFadeIn(
-    () => !!local.agent.current() && store.mode === "normal" && showVariant(),
-    animationsEnabled,
-  )
   const borderHighlight = createMemo(() => tint(theme.border, highlight(), agentMetaAlpha()))
 
   const placeholderText = createMemo(() => {
@@ -1452,74 +1425,6 @@ export function Prompt(props: PromptProps) {
               cursorColor={props.disabled ? theme.backgroundElement : theme.text}
               syntaxStyle={syntax()}
             />
-              <box flexDirection="column" flexShrink={0} paddingTop={1} gap={1} justifyContent="space-between">
-              <box flexDirection="row" gap={1}>
-                <Show when={local.agent.current()} fallback={<box height={1} />}>
-                  {(agent) => (
-                    <text fg={fadeColor(highlight(), agentMetaAlpha())}>
-                      {store.mode === "shell" ? "Shell" : Locale.titlecase(agent().name)}
-                    </text>
-                  )}
-                </Show>
-                <Show when={hasRightContent()}>
-                  <box flexDirection="row" gap={1} alignItems="center">
-                    {props.right}
-                  </box>
-                </Show>
-              </box>
-              <Show when={store.mode === "normal"}>
-                <box flexDirection="row" gap={1} flexShrink={0}>
-                  <text fg={fadeColor(theme.textMuted, modelMetaAlpha())} selectable={false}>
-                    Coding
-                  </text>
-                  <text fg={fadeColor(theme.textMuted, modelMetaAlpha())} selectable={false}>
-                    ·
-                  </text>
-                  <text
-                    flexShrink={0}
-                    fg={fadeColor(leader() ? theme.textMuted : theme.text, modelMetaAlpha())}
-                  >
-                    {local.model.parsed().model}
-                  </text>
-                  <text fg={fadeColor(theme.textMuted, modelMetaAlpha())}>{currentProviderLabel()}</text>
-                  <Show when={showVariant()}>
-                    <text fg={fadeColor(theme.textMuted, variantMetaAlpha())}>·</text>
-                    <text>
-                      <span style={{ fg: fadeColor(theme.warning, variantMetaAlpha()), bold: true }}>
-                        {local.model.variant.current()}
-                      </span>
-                    </text>
-                  </Show>
-                </box>
-                <box flexDirection="row" gap={1} flexShrink={0}>
-                  <text fg={fadeColor(theme.textMuted, modelMetaAlpha())} selectable={false}>
-                    Vision
-                  </text>
-                  <text fg={fadeColor(theme.textMuted, modelMetaAlpha())} selectable={false}>
-                    ·
-                  </text>
-                  <text
-                    flexShrink={0}
-                    fg={fadeColor(leader() ? theme.textMuted : theme.text, modelMetaAlpha())}
-                  >
-                    {visionModelParsed().model}
-                  </text>
-                  <Show when={visionModelParsed().provider}>
-                    <text fg={fadeColor(theme.textMuted, modelMetaAlpha())}>
-                      {visionModelParsed().provider}
-                    </text>
-                  </Show>
-                  <Show when={visionModelParsed().variant}>
-                    <text fg={fadeColor(theme.textMuted, variantMetaAlpha())}>·</text>
-                    <text>
-                      <span style={{ fg: fadeColor(theme.warning, variantMetaAlpha()), bold: true }}>
-                        {visionModelParsed().variant}
-                      </span>
-                    </text>
-                  </Show>
-                </box>
-              </Show>
-            </box>
           </box>
         </box>
         <box

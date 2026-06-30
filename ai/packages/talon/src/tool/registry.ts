@@ -32,6 +32,7 @@ import { ApplyPatchTool } from "./apply_patch"
 import { PolicyGenTool } from "./policygen"
 import { DiagramTool } from "./diagram"
 import { WorkflowTool } from "./workflow"
+import { PipelineTool } from "./pipeline"
 import { ValidateTool } from "./validate"
 import { AstGrepSearchTool, AstGrepRewriteTool } from "./ast-grep"
 import { InteractiveBashTool } from "./interactive-bash"
@@ -127,6 +128,7 @@ export const layer = Layer.effect(
     const policygen = yield* PolicyGenTool
     const diagram = yield* DiagramTool
     const workflow = yield* WorkflowTool
+    const pipeline = yield* PipelineTool
     const validate = yield* ValidateTool
     const agent = yield* Agent.Service
 
@@ -254,6 +256,7 @@ export const layer = Layer.effect(
           policygen: Tool.init(policygen),
           diagram: Tool.init(diagram),
           workflow: Tool.init(workflow),
+          pipeline: Tool.init(pipeline),
           validate: Tool.init(validate),
           teamCreate: Tool.init(teamCreate),
           teamDelete: Tool.init(teamDelete),
@@ -288,6 +291,7 @@ export const layer = Layer.effect(
             tool.write,
             tool.task,
             tool.workflow,
+            tool.pipeline,
             tool.validate,
             tool.fetch,
             tool.todo,

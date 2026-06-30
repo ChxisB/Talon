@@ -4,12 +4,15 @@ import { useSync } from "../../context/sync"
 import { useDirectory } from "../../context/directory"
 import { useConnected } from "../../component/use-connected"
 import { createStore } from "solid-js/store"
-import { useRoute } from "../../context/route"
+import { useRoute, useRouteData } from "../../context/route"
+import { useLocal } from "../../context/local"
+import type { ToolPart } from "@talon-ai/sdk/v2"
 
 export function Footer() {
   const { theme } = useTheme()
   const sync = useSync()
   const route = useRoute()
+  const local = useLocal()
   const mcp = createMemo(() => Object.values(sync.data.mcp).filter((x) => x.status === "connected").length)
   const mcpError = createMemo(() => Object.values(sync.data.mcp).some((x) => x.status === "failed"))
   const lsp = createMemo(() => Object.keys(sync.data.lsp))
@@ -19,6 +22,35 @@ export function Footer() {
   })
   const directory = useDirectory()
   const connected = useConnected()
+  const agentName = createMemo(() => local.agent.current()?.name)
+  const agentColor = createMemo(() => {
+    const name = agentName()
+    return name ? local.agent.color(name) : theme.textMuted
+  })
+  const modelInfo = createMemo(() => local.model.parsed())
+  const modelVariant = createMemo(() => local.model.variant.current())
+
+  const routeData = useRouteData("session")
+  const runningSubagents = createMemo(() => {
+    const messages = sync.data.message[routeData.sessionID] ?? []
+    return messages.flatMap((msg) => {
+      const parts = sync.data.part[msg.id] ?? []
+      return parts.filter(
+        (part): part is ToolPart =>
+          part.type === "tool" && part.tool === "task" && part.state.status === "running",
+      )
+    })
+  })
+  const activeSubagentName = createMemo(() => {
+    const tasks = runningSubagents()
+    if (tasks.length === 0) return undefined
+    const subagentType = tasks[0].state.input?.subagent_type
+    return typeof subagentType === "string" ? subagentType : undefined
+  })
+  const activeSubagentColor = createMemo(() => {
+    const name = activeSubagentName()
+    return name ? local.agent.color(name) : undefined
+  })
 
   const [store, setStore] = createStore({
     welcome: false,
@@ -51,7 +83,29 @@ export function Footer() {
 
   return (
     <box flexDirection="row" justifyContent="space-between" gap={1} flexShrink={0}>
-      <text fg={theme.textMuted}>{directory()}</text>
+      <box flexDirection="row" gap={1} flexShrink={0}>
+        <text fg={theme.textMuted}>{directory()}</text>
+        <Show when={agentName()}>
+          <text fg={theme.textMuted}>
+            <span style={{ fg: agentColor() }}>@{agentName()}</span>
+            <Show when={activeSubagentName()}>
+              {(name) => (
+                <span>
+                  <span> → </span>
+                  <span style={{ fg: activeSubagentColor() }}>@{name()}</span>
+                </span>
+              )}
+            </Show>
+            <Show when={modelInfo().model !== "No provider selected"}>
+              <span> · {modelInfo().model}</span>
+              <span style={{ fg: theme.textMuted }}> ({modelInfo().provider})</span>
+              <Show when={modelVariant()}>
+                {(variant) => <span> · {variant()}</span>}
+              </Show>
+            </Show>
+          </text>
+        </Show>
+      </box>
       <box gap={2} flexDirection="row" flexShrink={0}>
         <Switch>
           <Match when={store.welcome}>

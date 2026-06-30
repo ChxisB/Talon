@@ -3,8 +3,9 @@
 // Steps run in parallel (no dependency) or sequentially (dependsOn).
 // Context flows between steps automatically.
 //
-// The workflow runner delegates execution to the TaskTool, which spawns
-// child sessions for each step. Steps in the same batch run concurrently.
+// NOTE: The workflow runner below is a stub. For actual multi-step
+// orchestration with auto-routing, quality gates, and loop-back,
+// use the `pipeline` tool (tool/pipeline.ts) instead.
 
 import { Effect, Context, Layer, Schema } from "effect"
 import { Agent } from "./agent"

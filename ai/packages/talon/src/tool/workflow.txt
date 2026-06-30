@@ -17,12 +17,12 @@ Example workflow:
 ```
 
 Available specialist agents:
-- **explore**: Fast file search and pattern matching
-- **librarian**: Deep codebase investigation and dependency tracing
-- **architect**: Software architecture and design guidance
-- **reviewer**: Code review for bugs, security, and quality
-- **planner**: Task decomposition and strategic planning
-- **general**: General-purpose multi-step tasks
+- **codebase-explorer**: Fast file search and pattern matching
+- **codebase-researcher**: Deep codebase investigation and dependency tracing
+- **software-architect**: Software architecture and design guidance
+- **code-reviewer**: Code review for bugs, security, and quality
+- **task-planner**: Task decomposition and strategic planning
+- **general-purpose**: General-purpose multi-step tasks
 - **build**: Default agent (code editing and implementation)
 
 Steps with no "dependsOn" run in parallel. Steps with "dependsOn" run after their dependencies complete. Context flows automatically from upstream steps.

@@ -68,6 +68,7 @@ import { SessionTools } from "./tools"
 import { LLMEvent } from "@talon-ai/llm"
 import { MediaRouter } from "./media-router"
 import { categoryToModelType, resolveVisionModel } from "@talon-ai/core/category"
+import PROMPT_VISION_ANALYST from "../agent/prompt/vision-analyst.txt"
 
 // @ts-ignore
 globalThis.AI_SDK_LOG_WARNINGS = false
@@ -1172,106 +1173,157 @@ export const layer = Layer.effect(
         let modelOverride: { providerID: string; modelID: string } | undefined
 
         // ── Vision Pre-Analysis ──────────────────────────────────────────────
-        // If the first user message has image/PDF attachments and a vision model
-        // is configured, route media to the vision model for description before
-        // the coding model processes the request. The analysis text is injected
-        // into the context as a synthetic assistant message via finalModelMsgs.
+        // If any user message has image/PDF attachments and a vision model is
+        // configured, route media to the vision model for description before the
+        // coding model processes the request. The analysis text is injected into
+        // the context as a synthetic assistant message (via finalModelMsgs).
         //
-        // NOTE: visionAnalysisAttempted tracks whether we even found a vision model
-        // and media to analyze — even if the actual analysis fails, we must still
-        // strip media from the primary model messages (line 1452) since the primary
-        // model cannot handle raw image input. If analysis succeeds, the text is
-        // also injected as context (line 1459).
+        // This block runs once outside the loop to catch media in the first
+        // message. It's also re-run inside the loop (via maybeAnalyzeMedia)
+        // for subsequent user messages that contain media.
         let visionAnalysisText: string | undefined
         let visionAnalysisAttempted = false
+        let lastAnalyzedMessageID: string | undefined
+
+        /** Resolve the vision model string for a given agent + user message. */
+        const resolveVisionModelStr = Effect.fn("SessionPrompt.resolveVisionModelStr")(function* (
+          userMsg: SessionV1.User,
+          agentOpt: Option.Option<Agent.Info>,
+        ) {
+          const cfg = yield* config.get()
+          let visionModelStr: string | undefined
+
+          // 1. Check the vision-analyst subagent's model FIRST.
+          //    The user explicitly assigned a model to this role in Settings → Models,
+          //    so it takes priority over auto-detecting the chat model or global config.
+          const visionAnalystAgent = yield* agents.get("visionAnalyst").pipe(Effect.option)
+          if (Option.isSome(visionAnalystAgent) && visionAnalystAgent.value.model) {
+            visionModelStr = `${visionAnalystAgent.value.model.providerID}/${visionAnalystAgent.value.model.modelID}`
+            yield* Effect.logInfo("using vision-analyst subagent model for vision analysis", {
+              "session.id": sessionID,
+              model: visionModelStr,
+            })
+          }
+
+          // 2. Fall back to per-agent vision_model option or global vision_model config
+          if (!visionModelStr) {
+            const agentVision = Option.isSome(agentOpt) ? agentOpt.value.options?.vision_model : undefined
+            if (typeof agentVision === "string") visionModelStr = agentVision
+            else visionModelStr = cfg.vision_model
+          }
+
+          // 3. If still no vision model, try the user's selected model if it has vision capabilities
+          if (!visionModelStr && userMsg.model) {
+            const userModel = yield* provider.getModel(
+              userMsg.model.providerID,
+              userMsg.model.modelID,
+            ).pipe(Effect.option)
+            if (Option.isSome(userModel) && userModel.value.capabilities?.input?.image) {
+              visionModelStr = `${userMsg.model.providerID}/${userMsg.model.modelID}`
+            }
+          }
+
+          return visionModelStr as string | undefined
+        })
+
+        /** Attempt to analyze media in a user message using the configured vision model. */
+        const maybeAnalyzeMedia = Effect.fn("SessionPrompt.maybeAnalyzeMedia")(function* (
+          userMsg: SessionV1.User,
+          userParts: SessionV1.Part[],
+        ) {
+          // Skip if already analyzed this message
+          if (userMsg.id === lastAnalyzedMessageID) return
+
+          const hasMedia = MediaRouter.hasMediaAttachments(userParts)
+          if (!hasMedia) return
+
+          const userAgent = yield* agents.get(userMsg.agent).pipe(Effect.option)
+          const visionModelStr = yield* resolveVisionModelStr(userMsg, userAgent)
+          const parsedVision = MediaRouter.parseModelString(visionModelStr)
+
+          if (!parsedVision) {
+            // Media present but no vision model configured — skip analysis and
+            // let media pass through to the primary model. If that model doesn't
+            // support images, it will produce a clear error via unsupportedParts.
+            yield* Effect.logWarning("media present but no vision_model configured", {
+              "session.id": sessionID,
+              "message.id": userMsg.id,
+            })
+            return
+          }
+
+          visionAnalysisAttempted = true
+          lastAnalyzedMessageID = userMsg.id
+
+          const visionModel = yield* getModel(parsedVision.providerID, parsedVision.modelID, sessionID)
+          yield* status.set(sessionID, {
+            type: "busy",
+            label: `vision-analyst analyzing image with ${visionModel.name}...`,
+          })
+
+          const textParts = userParts
+            .filter((p): p is SessionV1.TextPart => p.type === "text")
+            .map((p) => p.text)
+
+          const result = yield* MediaRouter.analyzeAttachments(
+            userParts, textParts, visionModel, sessionID,
+            Option.isSome(userAgent) ? userAgent.value : (yield* agents.defaultInfo()),
+            userMsg, llm.stream.bind(llm),
+            PROMPT_VISION_ANALYST,
+          ).pipe(
+            Effect.catchCause((cause) =>
+              Effect.gen(function* () {
+                if (Cause.hasDies(cause)) {
+                  yield* Effect.logWarning("vision analysis failed (defect)", {
+                    "session.id": sessionID,
+                    model: visionModel.id,
+                    error: String(Cause.squash(cause)),
+                  })
+                } else {
+                  yield* Effect.logWarning("vision analysis failed", {
+                    "session.id": sessionID,
+                    model: visionModel.id,
+                    error: Cause.pretty(cause),
+                  })
+                }
+                return { analysis: "", analyzed: false } as const
+              }),
+            ),
+          )
+
+          if (result.analyzed) {
+            visionAnalysisText = result.analysis
+            yield* Effect.logInfo("vision analysis complete", {
+              "session.id": sessionID,
+              model: visionModel.id,
+              length: visionAnalysisText.length,
+            })
+            yield* status.set(sessionID, {
+              type: "busy",
+              label: "Vision analysis complete, handing to primary model...",
+            })
+          } else {
+            yield* Effect.logWarning("vision analysis returned empty result", {
+              "session.id": sessionID,
+              model: visionModel.id,
+            })
+            yield* status.set(sessionID, {
+              type: "busy",
+              label: "Vision analysis returned no content, continuing...",
+            })
+          }
+        })
+
+        // Run initial vision analysis on the current messages
         {
           const initialMsgs = yield* MessageV2.filterCompactedEffect(sessionID).pipe(
             Effect.provideService(Database.Service, database),
           )
           const { user: firstUser } = MessageV2.latest(initialMsgs)
           if (firstUser) {
-            const firstAgent = yield* agents.get(firstUser.agent).pipe(Effect.option)
-            if (Option.isSome(firstAgent)) {
-              const cfg = yield* config.get()
-              let visionModelStr = firstAgent.value.options?.vision_model ?? cfg.vision_model
-
-              // If no explicit vision_model is configured, try the user's selected model
-              // if it has vision capabilities (so the vision model follows the CLI model selector)
-              if (!visionModelStr && firstUser.model) {
-                const userModel = yield* provider.getModel(
-                  firstUser.model.providerID,
-                  firstUser.model.modelID,
-                ).pipe(Effect.option)
-                if (Option.isSome(userModel) && userModel.value.capabilities?.input?.image) {
-                  visionModelStr = `${firstUser.model.providerID}/${firstUser.model.modelID}`
-                  yield* Effect.logInfo("using selected model as vision model", {
-                    "session.id": sessionID,
-                    model: visionModelStr,
-                  })
-                }
-              }
-
-              const parsedVision = MediaRouter.parseModelString(visionModelStr as string | undefined)
-              const firstParts =
-                initialMsgs.find((m) => m.info.role === "user" && m.info.id === firstUser.id)?.parts ?? []
-              if (parsedVision && MediaRouter.hasMediaAttachments(firstParts)) {
-                visionAnalysisAttempted = true
-                const visionModel = yield* getModel(parsedVision.providerID, parsedVision.modelID, sessionID)
-                yield* status.set(sessionID, {
-                  type: "busy",
-                  label: `Analyzing image with ${visionModel.name}...`,
-                })
-                const textParts = firstParts
-                  .filter((p): p is SessionV1.TextPart => p.type === "text")
-                  .map((p) => p.text)
-                const result = yield* MediaRouter.analyzeAttachments(
-                  firstParts, textParts, visionModel, sessionID,
-                  firstAgent.value, firstUser, llm.stream.bind(llm),
-                ).pipe(
-                  // The vision analysis uses Effect.orDie internally (llmStream).
-                  // If the LLM call fails (defect), log and continue gracefully.
-                  Effect.catchCause((cause) =>
-                    Effect.gen(function* () {
-                      if (Cause.hasDies(cause)) {
-                        yield* Effect.logWarning("vision analysis failed (defect)", {
-                          "session.id": sessionID,
-                          model: visionModel.id,
-                          error: String(Cause.squash(cause)),
-                        })
-                      } else {
-                        yield* Effect.logWarning("vision analysis failed", {
-                          "session.id": sessionID,
-                          model: visionModel.id,
-                          error: Cause.pretty(cause),
-                        })
-                      }
-                      return { analysis: "", analyzed: false } as const
-                    }),
-                  ),
-                )
-                if (result.analyzed) {
-                  visionAnalysisText = result.analysis
-                  yield* Effect.logInfo("vision analysis complete", {
-                    "session.id": sessionID,
-                    model: visionModel.id,
-                    length: visionAnalysisText.length,
-                  })
-                  yield* status.set(sessionID, {
-                    type: "busy",
-                    label: "Vision analysis complete, handing to primary model...",
-                  })
-                } else {
-                  yield* Effect.logWarning("vision analysis returned empty result", {
-                    "session.id": sessionID,
-                    model: visionModel.id,
-                  })
-                  yield* status.set(sessionID, {
-                    type: "busy",
-                    label: "Vision analysis returned no content, continuing...",
-                  })
-                }
-              }
-            }
+            const firstParts =
+              initialMsgs.find((m) => m.info.role === "user" && m.info.id === firstUser.id)?.parts ?? []
+            yield* maybeAnalyzeMedia(firstUser, firstParts)
           }
         }
         // ── End Vision Pre-Analysis ──────────────────────────────────────────
@@ -1287,6 +1339,18 @@ export const layer = Layer.effect(
           const { user: lastUser, assistant: lastAssistant, finished: lastFinished, tasks } = MessageV2.latest(msgs)
 
           if (!lastUser) throw new Error("No user message found in stream. This should never happen.")
+
+          // ── Vision Analysis for current step ─────────────────────────────
+          // For every user message (not just the first), check if it contains
+          // media that needs vision model analysis. This ensures images pasted
+          // in subsequent turns are properly analyzed and stripped.
+          const currentUserParts =
+            msgs.find((m) => m.info.role === "user" && m.info.id === lastUser.id)?.parts ?? []
+          if (currentUserParts.length > 0) {
+            yield* maybeAnalyzeMedia(lastUser, currentUserParts)
+          }
+          const hasVisionAnalysisForThisStep = lastAnalyzedMessageID === lastUser.id
+          // ── End Vision Analysis ───────────────────────────────────────────
 
           const lastAssistantMsg = msgs.findLast(
             (msg) => msg.info.role === "assistant" && msg.info.id === lastAssistant?.id,
@@ -1492,14 +1556,14 @@ export const layer = Layer.effect(
               sys.skills(agent),
               sys.environment(model),
               instruction.system().pipe(Effect.orDie),
-              MessageV2.toModelMessagesEffect(msgs, model, visionAnalysisAttempted && step === 1 ? { stripMedia: true } : undefined),
+              MessageV2.toModelMessagesEffect(msgs, model, hasVisionAnalysisForThisStep ? { stripMedia: true } : undefined),
             ])
 
             // ── Inject vision analysis into model messages ──────────────────
             // If a vision pre-analysis was performed AND returned actual text,
             // insert the analysis as a synthetic assistant message + follow-up
             // user message so the coding model has the analysis in context.
-            const finalModelMsgs: ModelMessage[] = visionAnalysisText && step === 1
+            const finalModelMsgs: ModelMessage[] = visionAnalysisText && hasVisionAnalysisForThisStep
               ? [
                   ...modelMsgs,
                   { role: "assistant", content: `[Media analysis by ${model.id}]:\n${visionAnalysisText}` },

@@ -195,6 +195,12 @@ export type FooterSubagentTab = {
   background?: boolean
   title?: string
   toolCalls?: number
+  /** Estimated cost in USD (from session token usage / model pricing) */
+  cost?: number
+  /** Input tokens used by this subagent */
+  inputTokens?: number
+  /** Output tokens used by this subagent */
+  outputTokens?: number
   lastUpdatedAt: number
 }
 

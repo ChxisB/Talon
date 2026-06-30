@@ -137,6 +137,7 @@ export function analyzeAttachments(
   agent: Agent.Info,
   user: SessionV1.User,
   llmStream: (input: LLM.StreamInput) => Stream.Stream<LLMEvent, unknown>,
+  systemPrompt?: string,
 ): Effect.Effect<{ analysis: string; analyzed: boolean }> {
   return Effect.gen(function* () {
     const fileParts: SessionV1.FilePart[] = parts.filter(
@@ -161,7 +162,7 @@ export function analyzeAttachments(
       agent,
       model,
       sessionID,
-      system: [VISION_SYSTEM_PROMPT],
+      system: [systemPrompt ?? VISION_SYSTEM_PROMPT],
       small: false,
       tools: {},
       messages: [visionMessage],

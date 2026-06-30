@@ -16,11 +16,11 @@ export function DialogAgentModels(props: { onBack?: () => void; backLabel?: stri
   const toast = useToast()
   const local = useLocal()
 
-  const subagents = createMemo(() => sync.data.agent.filter((agent) => agent.mode === "subagent" && !agent.hidden))
+  const agents = createMemo(() => sync.data.agent.filter((agent) => !agent.hidden))
 
   const modelLabel = createMemo(() => {
     const labels: Record<string, string> = {}
-    for (const agent of subagents()) {
+    for (const agent of agents()) {
       const m = agent.model
       if (m) {
         const provider = sync.data.provider.find((p) => p.id === m.providerID)
@@ -72,13 +72,13 @@ export function DialogAgentModels(props: { onBack?: () => void; backLabel?: stri
     <box paddingLeft={2} paddingRight={2} gap={1} paddingBottom={1}>
       <box flexDirection="row" justifyContent="space-between">
         <text fg={theme.text} attributes={TextAttributes.BOLD}>
-          Agent Models
+          Models
         </text>
         <text fg={theme.textMuted} onMouseUp={back}>
           {props.backLabel ?? "esc"}
         </text>
       </box>
-      <For each={subagents()}>
+      <For each={agents()}>
         {(agent) => (
           <box
             flexDirection="row"

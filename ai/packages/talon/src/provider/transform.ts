@@ -399,9 +399,13 @@ function unsupportedParts(msgs: ModelMessage[], model: Provider.Model): ModelMes
       if (model.capabilities.input[modality]) return part
 
       const name = filename ? `"${filename}"` : modality
+      const hint =
+        modality === "image"
+          ? " To analyze images, configure a vision model in Settings → Models → Vision Analyst, or use a model with vision capabilities."
+          : ""
       return {
         type: "text" as const,
-        text: `ERROR: Cannot read ${name} (this model does not support ${modality} input). Inform the user.`,
+        text: `ERROR: Cannot read ${name} (this model does not support ${modality} input).${hint}`,
       }
     })
 
@@ -1265,7 +1269,7 @@ export function providerOptions(model: Provider.Model, options: { [x: string]: a
 
   // AI SDK packages that resolve providerOptionsName by splitting the
   // provider name on "." (e.g. "wafer.ai" -> "wafer") need the same
-  // logic here so the key we write matches the key they read.
+  // so the key we write matches the key they read.
   // Other SDKs (xai, mistral, groq, cohere, etc.) use hardcoded keys
   // like "xai" or "cohere" - applying .split(".")[0] would break those.
   const usesDotSplitOptions =

@@ -247,7 +247,6 @@ export function createTuiApiAdapters(input: Input): Omit<TuiPluginApi, "lifecycl
             onSubmit={props.onSubmit}
             ref={props.ref}
             hint={props.hint}
-            right={props.right}
             showPlaceholder={props.showPlaceholder}
             placeholders={props.placeholders}
           />

@@ -23,6 +23,7 @@ import {
 } from "./footer.command"
 import { FOOTER_MENU_ROWS, RunFooterMenu } from "./footer.menu"
 import { RunFooterSubagentBody } from "./footer.subagent"
+import { RunSubagentSidebar, SUBAGENT_SIDEBAR_WIDTH } from "./footer.sidebar"
 import { RunPromptBody, createPromptState } from "./footer.prompt"
 import { RunPermissionBody } from "./footer.permission"
 import { RunQuestionBody } from "./footer.question"
@@ -619,13 +620,22 @@ export function RunFooterView(props: RunFooterViewProps) {
     })
   })
 
+  // Show subagent sidebar when there are running or completed subagents
+  const sideboarding = createMemo(() => {
+    if (!props.subagent) return false
+    const s = props.subagent()
+    if (!s) return false
+    // Auto-show sidebar when any subagent exists (running, completed, etc.)
+    return s.tabs.length > 0
+  })
+
   return (
     <box
       width="100%"
       height="100%"
       border={false}
       backgroundColor="transparent"
-      flexDirection="column"
+      flexDirection={sideboarding() ? "row" : "column"}
       gap={0}
       padding={0}
     >
@@ -937,6 +947,13 @@ export function RunFooterView(props: RunFooterViewProps) {
             onClose={closeTab}
           />
         </box>
+      </Show>
+      <Show when={sideboarding()}>
+        <RunSubagentSidebar
+          subagent={props.subagent ?? (() => undefined)}
+          theme={runTheme}
+          accentColor={theme().highlight as unknown as string}
+        />
       </Show>
     </box>
   )

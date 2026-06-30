@@ -22,6 +22,7 @@ import PROMPT_ORCHESTRATOR from "./prompt/orchestrator.txt"
 import PROMPT_GHOST from "./prompt/ghost.txt"
 import PROMPT_GHOST_GPT from "./prompt/ghost-gpt.txt"
 import PROMPT_PROMETHEUS from "./prompt/prometheus.txt"
+import PROMPT_VISION_ANALYST from "./prompt/vision-analyst.txt"
 import { Permission } from "@/permission"
 import { mergeDeep, pipe, sortBy, values } from "remeda"
 import { Global } from "@talon-ai/core/global"
@@ -146,8 +147,8 @@ export const layer = Layer.effect(
 
         const agents: Record<string, Info> = {
           general: {
-            name: "general",
-            description: `General-purpose agent for researching complex questions and executing multi-step tasks. Use this agent to execute multiple units of work in parallel.`,
+            name: "general-purpose",
+            description: `General-purpose agent for researching complex questions, executing multi-step tasks, and synthesizing information across multiple sources. Use this agent to execute multiple units of work in parallel.`,
             permission: Permission.merge(
               defaults,
               Permission.fromConfig({
@@ -160,7 +161,7 @@ export const layer = Layer.effect(
             native: true,
           },
           explore: {
-            name: "explore",
+            name: "codebase-explorer",
             permission: Permission.merge(
               defaults,
               Permission.fromConfig({
@@ -176,7 +177,7 @@ export const layer = Layer.effect(
               }),
               user,
             ),
-            description: `Fast agent specialized for exploring codebases. Use this when you need to quickly find files by patterns (eg. "src/components/**/*.tsx"), search code for keywords (eg. "API endpoints"), or answer questions about the codebase (eg. "how do API endpoints work?"). When calling this agent, specify the desired thoroughness level: "quick" for basic searches, "medium" for moderate exploration, or "very thorough" for comprehensive analysis across multiple locations and naming conventions.`,
+            description: `Codebase exploration specialist. Quickly searches code by patterns, filenames, and content. Use this when you need to find files (e.g. find all React components), search for patterns (e.g. where is the auth middleware?), or investigate how code is organized. Specify thoroughness level: quick, medium, or very thorough.`,
             useSmallModel: true,
             prompt: PROMPT_EXPLORE,
             options: {},
@@ -233,8 +234,8 @@ export const layer = Layer.effect(
           // -- Discipline Agents (specialist roles for multi-agent orchestration) --
 
           architect: {
-            name: "architect",
-            description: "Software architect consultant. Analyzes codebase structure and provides design guidance.",
+            name: "software-architect",
+            description: "Software architecture consultant. Analyzes codebase structure, reviews design decisions, and provides architecture guidance. Use this for design reviews, technology choices, system decomposition, and architecture documentation.",
             permission: Permission.merge(
               defaults,
               Permission.fromConfig({
@@ -263,8 +264,8 @@ export const layer = Layer.effect(
           },
 
           reviewer: {
-            name: "reviewer",
-            description: "Code review specialist. Reviews code for bugs, security issues, and quality problems.",
+            name: "code-reviewer",
+            description: "Code review specialist. Reviews code for correctness, security vulnerabilities, performance issues, and style violations. Provides actionable feedback with file paths and line numbers.",
             permission: Permission.merge(
               defaults,
               Permission.fromConfig({
@@ -285,8 +286,8 @@ export const layer = Layer.effect(
           },
 
           librarian: {
-            name: "librarian",
-            description: "Codebase investigation specialist. Deep research into how code works across the project.",
+            name: "codebase-researcher",
+            description: "Deep codebase investigation specialist. Traces data flow across modules, maps dependencies, and understands complex interactions. Use this for understanding how a feature works end-to-end, finding all callers of a function, or mapping module dependencies.",
             permission: Permission.merge(
               defaults,
               Permission.fromConfig({
@@ -309,8 +310,8 @@ export const layer = Layer.effect(
           },
 
           planner: {
-            name: "planner",
-            description: "Strategic planning specialist. Breaks complex tasks into actionable, ordered steps.",
+            name: "task-planner",
+            description: "Strategic planning specialist. Breaks complex tasks into actionable, ordered steps with clear dependencies, parallelization opportunities, and acceptance criteria. Use this before starting multi-step implementations.",
             permission: Permission.merge(
               defaults,
               Permission.fromConfig({
@@ -339,10 +340,10 @@ export const layer = Layer.effect(
           },
 
           orchestrator: {
-            name: "orchestrator",
+            name: "multi-agent-orchestrator",
             hidden: true,
             description:
-              "Multi-agent orchestrator. Decomposes complex tasks, delegates to specialist agents via the workflow tool, and synthesizes results.",
+              "Multi-agent orchestrator. Decomposes complex tasks, delegates to specialist agents via the workflow tool, and synthesizes results. Coordinates parallel execution and manages dependencies between steps.",
             permission: Permission.merge(
               defaults,
               Permission.fromConfig({
@@ -368,6 +369,7 @@ export const layer = Layer.effect(
               defaults,
               Permission.fromConfig({
                 workflow: "allow",
+                pipeline: "allow",
                 question: "allow",
               }),
               user,
@@ -376,13 +378,30 @@ export const layer = Layer.effect(
             options: {},
             mode: "primary",
             native: true,
-              color: "#c792ea",
+            color: "#c792ea",
+          },
+
+          visionAnalyst: {
+            name: "vision-analyst",
+            description: "Image and document analyst. Analyzes images, screenshots, diagrams, and PDFs to extract information and provide detailed descriptions.",
+            permission: Permission.merge(
+              defaults,
+              Permission.fromConfig({
+                "*": "deny",
+                read: "allow",
+              }),
+              user,
+            ),
+            prompt: PROMPT_VISION_ANALYST,
+            options: {},
+            mode: "subagent",
+            native: true,
           },
 
           prometheus: {
-            name: "prometheus",
+            name: "strategy-consultant",
             description:
-              "Strategic planning consultant. Interviews, explores the codebase, and produces thorough adversarial plans before implementation begins.",
+              "Strategic planning consultant. Interviews stakeholders, explores the codebase, and produces thorough adversarial plans before implementation begins. Identifies risks, edge cases, and hidden dependencies.",
             permission: Permission.merge(
               defaults,
               Permission.fromConfig({
@@ -414,17 +433,36 @@ export const layer = Layer.effect(
         for (const [key, value] of Object.entries(cfg.agent ?? {})) {
           if (value.disable) {
             delete agents[key]
+            // Also delete any existing agent whose display name matches this key,
+            // preventing duplicate entries when the TUI saves per-agent configs
+            // using agent.name (display name) as the config key.
+            for (const existingKey of Object.keys(agents)) {
+              if (agents[existingKey].name === key) {
+                delete agents[existingKey]
+              }
+            }
             continue
           }
           let item = agents[key]
-          if (!item)
-            item = agents[key] = {
-              name: key,
-              mode: "all",
-              permission: Permission.merge(defaults, user),
-              options: {},
-              native: false,
+          if (!item) {
+            // If a config key doesn't match any built-in agent key, check whether
+            // any existing agent already has this display name. This prevents
+            // duplicate entries when the TUI (or external config) saves per-agent
+            // settings using agent.name (display name) as the config key instead
+            // of the internal identifier key.
+            const nameMatch = Object.entries(agents).find(([, v]) => v.name === key)
+            if (nameMatch) {
+              item = nameMatch[1]
+            } else {
+              item = agents[key] = {
+                name: key,
+                mode: "all",
+                permission: Permission.merge(defaults, user),
+                options: {},
+                native: false,
+              }
             }
+          }
           if (value.model) item.model = Provider.parseModel(value.model)
           item.useSmallModel = value.use_small_model ?? item.useSmallModel
           item.variant = value.variant ?? item.variant

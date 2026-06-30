@@ -105,25 +105,7 @@ export function DialogSettings() {
   const toast = useToast()
   const local = useLocal()
 
-  const currentModelLabel = createMemo(() => {
-    const parsed = local.model.parsed()
-    return `${parsed.provider} / ${parsed.model}`
-  })
-
-  const visionModelLabel = createMemo(() => {
-    // Read from sync data (merged config including global), with fallback from local KV
-    const raw = (sync.data.config as Record<string, unknown>).vision_model as string | undefined
-    const fallback = kv.get("model_image") as string | undefined
-    const value = raw ?? fallback
-    if (!value) return "Not set"
-    const parts = value.split("/")
-    if (parts.length < 2) return value
-    const providerID = parts[0]
-    const modelID = parts.slice(1).join("/")
-    const provider = sync.data.provider.find((p) => p.id === providerID)
-    const modelInfo = provider?.models[modelID]
-    return modelInfo?.name ?? modelID
-  })
+  // currentModelLabel and visionModelLabel removed — models are configured per-agent via the Models dialog
 
   const connectedProviders = createMemo(() => sync.data.provider_next.connected)
 
@@ -179,86 +161,8 @@ export function DialogSettings() {
       title: "Models",
       items: [
         {
-            type: "navigate",
-            label: "Coding",
-            trailing: currentModelLabel(),
-            onClick: () => {
-              const codingCurrent = local.model.current()
-              dialog.replace(() => (
-                <DialogModel
-                  current={codingCurrent}
-                  onModelSelect={(providerID, modelID) => {
-                    local.model.set({ providerID, modelID }, { recent: true })
-                    const value = `${providerID}/${modelID}`
-                    sdk.client.global.config
-                      .update({ config: { model: value } as any })
-                      .then(() => sync.bootstrap())
-                      .then(() => {
-                        toast.show({
-                          variant: "info",
-                          message: `Coding model set to ${value}`,
-                          duration: 2000,
-                        })
-                      })
-                      .catch((err) => {
-                        toast.show({
-                          variant: "warning",
-                          message: `Failed to set coding model: ${err instanceof Error ? err.message : String(err)}`,
-                          duration: 4000,
-                        })
-                      })
-                  }}
-                  onBack={back}
-                  backLabel="Settings"
-                />
-              ))
-            },
-        },
-        {
           type: "navigate",
-          label: "Vision",
-          trailing: visionModelLabel(),
-          onClick: () => {
-            const raw = (sync.data.config as Record<string, unknown>).vision_model as string | undefined
-            const fallback = kv.get("model_image") as string | undefined
-            const visionModelValue = raw ?? fallback
-            const visionCurrent = visionModelValue
-              ? (() => {
-                  const parts = visionModelValue.split("/")
-                  if (parts.length < 2) return undefined
-                  return { providerID: parts[0], modelID: parts.slice(1).join("/") }
-                })()
-              : undefined
-            dialog.replace(
-              () => (
-                <DialogModel
-                  current={visionCurrent}
-                      onModelSelect={(providerID, modelID) => {
-                        const value = `${providerID}/${modelID}`
-                        sdk.client.global.config
-                          .update({ config: { vision_model: value } as any })
-                        .then(() => sync.bootstrap())
-                        .then(() => {
-                          toast.show({ variant: "info", message: `Vision model set to ${value}`, duration: 2000 })
-                        })
-                        .catch((err) => {
-                          toast.show({
-                            variant: "warning",
-                            message: `Failed to set vision model: ${err instanceof Error ? err.message : String(err)}`,
-                            duration: 4000,
-                          })
-                        })
-                    }}
-                  onBack={back}
-                  backLabel="Settings"
-                />
-              ),
-            )
-          },
-        },
-        {
-          type: "navigate",
-          label: "Agent Models",
+          label: "Models",
           trailing: "Configure per-agent",
           onClick: () => {
             dialog.replace(() => <DialogAgentModels onBack={back} backLabel="Settings" />)
