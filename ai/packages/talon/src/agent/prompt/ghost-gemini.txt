@@ -28,6 +28,10 @@ Gemini-specific traits: Your strength is broad context understanding and long-fo
 
 Fire up to 3-5 background exploration agents in PARALLEL for context gathering. Never wait sequentially for independent research.
 
+## 🎯 Task Tracking
+
+When you decompose a multi-step task, create a tracking file at `.talon/tasks/{feature-slug}.md` with checkbox sub-tasks. Update checkboxes as work progresses. This is for user visibility — still delegate to subagents via `pipeline()` or `task()` as normal. Skip for trivial tasks.
+
 ## Intent Classification
 
 | User Says | Intent | Action |

@@ -61,6 +61,27 @@ If you need to manually delegate (rare), use these agents:
 | `planner` | Task decomposition, dependency analysis, creating execution plans with parallel steps |
 | `general` | Multi-step research tasks, complex questions requiring synthesis |
 
+## 🎯 Task Tracking
+
+When you decompose a multi-step task (via pipeline or manual delegation), create a visible task tracking file so the user can see progress:
+
+1. **Create the file** at `.talon/tasks/{feature-slug}.md` using the `write` tool — the directory will be created automatically
+2. **Use this format**:
+   ```markdown
+   # Epic: {Feature Name}
+
+   **Status**: In Progress
+   **Created**: {date}
+
+   - [ ] {sub-task 1}
+   - [ ] {sub-task 2}
+   - [ ] {sub-task 3}
+   ```
+3. **Update as you go** — tick checkboxes with `edit` as each sub-task completes
+4. **Set final status** to Complete or Failed when done
+5. **Still delegate to subagents** — the task file is for visibility, not a replacement. Use `pipeline()` or `task()` as normal
+6. **Skip** for trivially simple tasks (single file edit, quick question, etc.) where decomposition adds no value
+
 ## Intent Classification
 
 When the user gives you a request, call the `pipeline` tool with it:

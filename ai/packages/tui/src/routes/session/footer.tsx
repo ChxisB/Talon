@@ -6,7 +6,6 @@ import { useConnected } from "../../component/use-connected"
 import { createStore } from "solid-js/store"
 import { useRoute, useRouteData } from "../../context/route"
 import { useLocal } from "../../context/local"
-import type { ToolPart } from "@talon-ai/sdk/v2"
 
 export function Footer() {
   const { theme } = useTheme()
@@ -31,21 +30,34 @@ export function Footer() {
   const modelVariant = createMemo(() => local.model.variant.current())
 
   const routeData = useRouteData("session")
-  const runningSubagents = createMemo(() => {
-    const messages = sync.data.message[routeData.sessionID] ?? []
-    return messages.flatMap((msg) => {
-      const parts = sync.data.part[msg.id] ?? []
-      return parts.filter(
-        (part): part is ToolPart =>
-          part.type === "tool" && part.tool === "task" && part.state.status === "running",
-      )
-    })
-  })
   const activeSubagentName = createMemo(() => {
-    const tasks = runningSubagents()
-    if (tasks.length === 0) return undefined
-    const subagentType = tasks[0].state.input?.subagent_type
-    return typeof subagentType === "string" ? subagentType : undefined
+    const sessionID = routeData.sessionID
+    if (!sessionID) return undefined
+
+    // 1. Check for busy child sessions — covers pipeline() orchestration
+    //    (which creates child sessions directly without task tool parts)
+    const busyChild = sync.data.session.find(
+      (s) => s.parentID === sessionID && sync.data.session_status[s.id]?.type === "busy",
+    )
+    if (busyChild?.agent) return busyChild.agent
+
+    // 2. Fallback: check task tool parts — covers manual task() calls
+    const messages = sync.data.message[sessionID] ?? []
+    for (const msg of messages) {
+      const parts = sync.data.part[msg.id] ?? []
+      for (const part of parts) {
+        if (part.type === "tool" && part.tool === "task" && part.state.status === "running") {
+          const subagentType = (part.state as Record<string, unknown>).input as
+            | Record<string, unknown>
+            | undefined
+          if (subagentType?.subagent_type && typeof subagentType.subagent_type === "string") {
+            return subagentType.subagent_type
+          }
+        }
+      }
+    }
+
+    return undefined
   })
   const activeSubagentColor = createMemo(() => {
     const name = activeSubagentName()

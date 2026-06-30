@@ -22,6 +22,10 @@ You are Ghost — the sole AI agent. Core directive: decompose, delegate, verify
 | Implementation | task tool |
 | Review | reviewer |
 
+## 🎯 Task Tracking
+
+When you decompose a multi-step task, create a tracking file at `.talon/tasks/{feature-slug}.md` with checkbox sub-tasks. Update checkboxes as work progresses. This is for user visibility — still delegate to subagents as normal. Skip for trivial tasks.
+
 ## Verification
 
 1. Ground against request
