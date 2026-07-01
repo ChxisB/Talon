@@ -6,6 +6,7 @@ import { useConnected } from "../../component/use-connected"
 import { createStore } from "solid-js/store"
 import { useRoute, useRouteData } from "../../context/route"
 import { useLocal } from "../../context/local"
+import * as Model from "../../util/model"
 
 export function Footer() {
   const { theme } = useTheme()
@@ -63,6 +64,18 @@ export function Footer() {
     const name = activeSubagentName()
     return name ? local.agent.color(name) : undefined
   })
+  const activeSubagentModelInfo = createMemo(() => {
+    const name = activeSubagentName()
+    if (!name) return undefined
+    const agent = sync.data.agent.find((a) => a.name === name)
+    if (!agent) return undefined
+    const m = agent.model
+    if (!m) return undefined
+    return {
+      model: Model.name(sync.data.provider, m.providerID, m.modelID),
+      provider: sync.data.provider.find((p) => p.id === m.providerID)?.name ?? m.providerID,
+    }
+  })
 
   const [store, setStore] = createStore({
     welcome: false,
@@ -108,12 +121,23 @@ export function Footer() {
                 </span>
               )}
             </Show>
-            <Show when={modelInfo().model !== "No provider selected"}>
-              <span> · {modelInfo().model}</span>
-              <span style={{ fg: theme.textMuted }}> ({modelInfo().provider})</span>
-              <Show when={modelVariant()}>
-                {(variant) => <span> · {variant()}</span>}
-              </Show>
+            <Show when={activeSubagentModelInfo()}
+              fallback={
+                <Show when={modelInfo().model !== "No provider selected"}>
+                  <span> · {modelInfo().model}</span>
+                  <span style={{ fg: theme.textMuted }}> ({modelInfo().provider})</span>
+                  <Show when={modelVariant()}>
+                    {(variant) => <span> · {variant()}</span>}
+                  </Show>
+                </Show>
+              }
+            >
+              {(info) => (
+                <>
+                  <span> · {info().model}</span>
+                  <span style={{ fg: theme.textMuted }}> ({info().provider})</span>
+                </>
+              )}
             </Show>
           </text>
         </Show>

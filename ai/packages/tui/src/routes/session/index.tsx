@@ -56,6 +56,7 @@ import { DialogSessionRename } from "../../component/dialog-session-rename"
 import { Sidebar } from "./sidebar"
 import { Footer } from "./footer.tsx"
 import { SubagentFooter } from "./subagent-footer.tsx"
+import { SubagentStatus } from "./subagent-status.tsx"
 import { filetype } from "../../util/filetype"
 import parsers from "../../parsers-config"
 import { errorMessage } from "../../util/error"
@@ -1315,6 +1316,7 @@ export function Session() {
                   />
                 </Show>
                 <Show when={!session()?.parentID}>
+                  <SubagentStatus />
                   <Footer />
                 </Show>
                 <Show when={session()?.parentID}>

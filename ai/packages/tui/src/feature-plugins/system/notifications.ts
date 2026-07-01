@@ -58,9 +58,16 @@ const tui: TuiPlugin = async (api) => {
 
   api.event.on("session.status", (event) => {
     const sessionID = event.properties.sessionID
+    const session = api.state.session.get(sessionID)
+    const agentName = session?.agent
+
     if (event.properties.status.type === "busy" || event.properties.status.type === "retry") {
+      const wasActive = active.has(sessionID)
       active.add(sessionID)
       errored.delete(sessionID)
+      if (!wasActive && session?.parentID && agentName) {
+        notify(api, sessionID, `Subagent started: ${agentName}`, "subagent_done")
+      }
       return
     }
 
@@ -73,8 +80,11 @@ const tui: TuiPlugin = async (api) => {
       return
     }
 
-    const session = api.state.session.get(sessionID)
-    notify(api, sessionID, "Session done", session?.parentID ? "subagent_done" : "done")
+    if (session?.parentID && agentName) {
+      notify(api, sessionID, `Subagent finished: ${agentName}`, "subagent_done")
+    } else {
+      notify(api, sessionID, "Session done", "done")
+    }
   })
 
   api.event.on("session.error", (event) => {
